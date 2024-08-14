@@ -1,0 +1,18 @@
+version: '3'
+
+includes:
+  fasttree: ./software/FastTree.yml
+  tinytex: ./software/TinyTex.yml
+
+tasks:
+  all:
+    - task: fasttree
+    - task: tinytex
+
+  fasttree:
+    - task: fasttree:install
+    - task: fasttree:install_dbl
+    - task: fasttree:install_openmp
+
+  tinytex:
+    - task: tinytex:install
