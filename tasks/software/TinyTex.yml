@@ -1,16 +1,5 @@
 version: '3'
 
-vars:
-  APP: tinytex
-  VERSION: 2024.07.03
-  BINARY: https://github.com/rstudio/tinytex-releases/releases/download/v2024.07.03/TinyTeX-1-v2024.07.03.tar.gz
-  RELPATH_EXE: .TinyTeX/bin/x86_64-linux/
-  EXE: [latexmk, pdflatex, bibtex, tlmgr]
-  
-  HOME: $HOME
-  DIR: '{{ .DIR | default .HOME }}'
-  SUBDIR: '{{.APP}}/{{.VERSION}}'
-
 includes:
   group_install: ../utils/GroupInstallTasks.yml
 
@@ -22,25 +11,38 @@ tasks:
 
       Check here for latest release:
       https://github.com/rstudio/tinytex-releases
+    cmds:
+      - task: _install
+        vars:
+          APP: tinytex
+          VERSION: 2024.07.03
+          BINARY: https://github.com/rstudio/tinytex-releases/releases/download/v2024.07.03/TinyTeX-1-v2024.07.03.tar.gz
+          RELPATH_EXE: .TinyTeX/bin/x86_64-linux/
+          EXE: latexmk pdflatex bibtex tlmgr
+
+  _install:
+    deps:
+      - task: build
+        vars:
+          BINARY: '{{.BINARY}}'
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+    cmds:
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          EXE: '{{.EXE}}'
+
+  build:
     dir: $GROUP_HOME/opt/{{.SUBDIR}}
     deps:
       - task: group_install:check_software
         vars:
           SOFTWARE: perl
     cmds:
-      - echo "wget {{.BINARY}}"
-      - defer: { task: group_install:cleanup }
-      - echo "tar xf $(basename ${{.BINARY}})"
-      - task: group_install:finish
-    generates:
-      - $GROUP_HOME/opt/{{.SUBDIR}}/{{.RELPATH_EXE}}{{.EXE}}
-      - $GROUP_HOME/bin/{{.EXE}}
-      - $GROUP_HOME/Modules/modulefiles/{{.APP}}/{{.VERSION}}
-    requires:
-      vars: [SUBDIR, BINARY]
-  
-  path_deps:
-    - task: group_install:check_software
-      vars:
-        SOFTWARE: [perl]
-  
+      - echo 'wget {{.BINARY}}'
+      - echo 'tar xf $(basename ${{.BINARY}})'
+      - echo 'rm -f $(basename ${{.BINARY}})'
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/.TinyTeX/latexmk

@@ -1,11 +1,12 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-
 includes:
-  group:
-    taskfile: ./tasks/GroupInstall.yml
-    vars:
-      DIR: '{{.GROUP_HOME}}'
+  fasttree: ./tasks/software/FastTree.yml
+  tinytex: ./tasks/software/TinyTex.yml
+
+tasks:
+  install_all:
+    - task: fasttree:install
+    - task: fasttree:install_dbl
+    - task: fasttree:install_openmp
+    - task: tinytex:install

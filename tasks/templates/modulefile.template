@@ -1,0 +1,20 @@
+#%Module
+##
+## $APP (v$VERSION)
+
+proc ModulesHelp { } {
+   puts stderr "
+Adds $APP to your path
+Version: $VERSION
+"
+}
+
+module-whatis "Adds $APP to your path\n"
+module-whatis "Provides: $APP <-- should edit to list executables"
+
+set basedir [getenv "MODULE_BASEDIR"]
+if { $basedir eq "" } {
+    puts stderr "Error: MODULE_BASEDIR environment variable is not set."
+    exit 1
+}
+prepend-path PATH "$${basedir}/$APP/$VERSION$RELPATH_EXE"

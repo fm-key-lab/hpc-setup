@@ -1,16 +1,5 @@
 version: '3'
 
-vars:
-  APP: fasttree
-  VERSION: 2.1.11
-  BINARY: http://www.microbesonline.org/fasttree/FastTree
-  RELPATH_EXE:
-  EXE: [FastTree]
-
-  HOME: $HOME
-  DIR: '{{ .DIR | default .HOME }}'
-  SUBDIR: '{{.APP}}/{{.VERSION}}'
-
 includes:
   group_install: ../utils/GroupInstallTasks.yml
 
@@ -22,30 +11,25 @@ tasks:
 
       Reference:
       http://www.microbesonline.org/fasttree/#Install
-    dir: '{{.DIR}}/opt/{{.SUBDIR}}'
     cmds:
-      - |
-        echo "wget {{.BINARY}}"
-        echo "chmod +x {{index .EXE 0}}"
-      - task: group_install:finish
-    generates:
-      - '{{.DIR}}/opt/{{.SUBDIR}}/{{.RELPATH_EXE}}{{index .EXE 0}}'
-      - '{{.DIR}}/bin/{{.EXE}}'
-      - '{{.DIR}}/Modules/modulefiles/{{.APP}}/{{.VERSION}}'
-  
-  install_double:
+      - task: _install
+        vars:
+          APP: fasttree
+          EXE: FastTree
+          BINARY: http://www.microbesonline.org/fasttree/FastTree
+
+  install_dbl:
     desc: Install FastTree-2 (Double Precision)
     summary: |
       Install FastTree-2: Approximately-ML trees from alns
 
       Double Precision for closely related species.
     cmds:
-      - task: install
+      - task: _install
         vars:
           APP: fasttree_dbl
+          EXE: FastTreeDbl
           BINARY: http://www.microbesonline.org/fasttree/FastTreeDbl
-          EXE: [FastTreeDbl]
-          SUBDIR: '{{.APP}}/{{.VERSION}}'
 
   install_openmp:
     desc: Install FastTree-2 (+SSE +OpenMP)
@@ -54,17 +38,36 @@ tasks:
 
       Multi-threaded executable (+SSE +OpenMP).
     cmds:
-      - task: install
+      - task: _install
         vars:
-          APP: fasttree_mp
+          APP: fasttree_openmp
+          EXE: FastTreeMP
           BINARY: http://www.microbesonline.org/fasttree/FastTreeMP
-          EXE: [FastTreeMP]
+
+  _install:
+    internal: true
+    vars:
+      VERSION: 2.1.11
+      RELPATH_EXE: /
+    deps:
+      - task: build
+        vars:
+          BINARY: '{{.BINARY}}'
           SUBDIR: '{{.APP}}/{{.VERSION}}'
+          EXE: '{{.EXE}}'
+    cmds:
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          EXE: '{{.EXE}}'
 
-  install_veryfast:
-    desc: Install VeryFastTree
-    summary: |
-      Install VeryFastTree
-
-      Reference:
-      https://github.com/citiususc/veryfasttree?tab=readme-ov-file#requirements
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    cmds:
+      - |
+        wget {{.BINARY}}
+        chmod 755 {{.EXE}}
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/{{.EXE}}

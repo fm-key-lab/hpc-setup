@@ -1,34 +1,42 @@
-version: '3'
-
-vars:
-  HOME: $HOME
-  DIR: '{{ .DIR | default .HOME }}'
+version: 3
 
 tasks:
-  finish:
-    - task: symlink
-    - task: modulefile
-  
+  complete:
+    cmds:
+      - for: { var: EXE }
+        task: symlink
+        vars:
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          EXE: '{{.ITEM}}'
+      - task: modulefile
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+
   symlink:
-    silent: True
     dir: $GROUP_HOME/bin
     cmds:
-      - for: { var: EXE, as: GROUP_EXE }
-        cmd: echo "ln -s ../opt/{{.SUBDIR}}/{{.RELPATH_EXE}}{{.GROUP_EXE}} {{.GROUP_EXE}}"
-    generates:
-      - $GROUP_HOME/bin/{{.EXE}}
+      - ln -s ../opt/{{.SUBDIR}}{{.RELPATH_EXE}}{{.EXE}} {{.EXE}}
+    status:
+      - test -L $GROUP_HOME/bin/{{.EXE}}
     requires:
       vars: [SUBDIR, RELPATH_EXE, EXE]
 
   modulefile:
     dir: $GROUP_HOME/Modules/modulefiles/{{.APP}}
+    vars:
+      PYTHON_MODULE: python-waterboa/2024.06
     cmds:
-      - |
-        echo "writing modulefile"
-    generates:
-      - $GROUP_HOME/Modules/modulefiles/{{.APP}}/{{.VERSION}}
+      - bash -c '
+        module load {{.PYTHON_MODULE}} &&
+        python {{.USER_WORKING_DIR}}/tasks/scripts/write_modulefile.py --APP {{.APP}} --VERSION {{.VERSION}} --RELPATH_EXE {{.RELPATH_EXE}} &&
+        module unload {{.PYTHON_MODULE}}'
+    status:
+      - test -f $GROUP_HOME/Modules/modulefiles/{{.APP}}/{{.VERSION}}
     requires:
-      vars: [APP, VERSION]
+      vars: [APP, VERSION, RELPATH_EXE]
 
   check_software:
     silent: True
