@@ -1,0 +1,67 @@
+version: '3'
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install Gubbins
+    summary: |
+      Genealogies Unbiased By recomBinations In Nucleotide Sequences
+
+      Rapid phylogenetic analysis of large samples of recombinant bacterial 
+      whole genome sequences using Gubbins
+
+      References:
+      https://github.com/nickjcroucher/gubbins
+    cmds:
+      - task: _install
+        vars:
+          APP: gubbins
+          VERSION: 3.3.5
+          RELPATH_EXE: /bin/
+          EXE: run_gubbins.py
+
+  _install:
+    deps:
+      - task: build
+        vars:
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+          VERSION: '{{.VERSION}}'
+    cmds:
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          EXE: '{{.EXE}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    vars:
+      CONDA_MODULE: micromamba
+      CONDA_DEPS: gubbins python=3.9 libtool autoconf-archive automake pkg-config check pytest pip
+      GIT_REPO: https://github.com/nickjcroucher/gubbins
+    cmds:
+      - bash -c '
+        module load {{.CONDA_MODULE}} &&
+        micromamba create -c conda-forge -c bioconda -p $GROUP_HOME/opt/{{.SUBDIR}} {{.CONDA_DEPS}} -y &&
+        micromamba activate $GROUP_HOME/opt/{{.SUBDIR}} &&
+        micromamba remove --force gubbins -y &&
+        cd {{.VERSION}} &&
+        git clone {{.GIT_REPO}} &&
+        mv gubbins/* . &&
+        autoreconf -i &&
+        chmod +x configure &&
+        ./configure --prefix=$GROUP_HOME/opt/{{.SUBDIR}} &&
+        make; make install &&
+        cd python &&
+        python3 -m pip install . &&
+        module unload {{.CONDA_MODULE}}'
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bin/run_gubbins.py
+
+  test:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    cmds:
+      - make test

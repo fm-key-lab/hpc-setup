@@ -2,6 +2,7 @@ version: '3'
 
 includes:
   fasttree: ./software/FastTree.yml
+  gubbins: ./software/Gubbins.yml
   tinytex: ./software/TinyTex.yml
 
 tasks:
@@ -13,6 +14,9 @@ tasks:
     - task: fasttree:install
     - task: fasttree:install_dbl
     - task: fasttree:install_openmp
+
+  gubbins:
+    - task: gubbins:install
 
   tinytex:
     - task: tinytex:install
