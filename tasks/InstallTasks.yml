@@ -8,6 +8,17 @@ includes:
 tasks:
   all:
     - task: fasttree
+    - task: gubbins
+    - task: tinytex
+
+  core:
+    - task: gubbins
+
+  bio:
+    - task: fasttree
+    - task: gubbins
+
+  utils:
     - task: tinytex
 
   fasttree:
