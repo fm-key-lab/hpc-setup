@@ -6,6 +6,9 @@ vars:
   BINARY: http://www.microbesonline.org/fasttree/FastTree
   RELPATH_EXE:
   EXE: [FastTree]
+
+  HOME: $HOME
+  DIR: '{{ .DIR | default .HOME }}'
   SUBDIR: '{{.APP}}/{{.VERSION}}'
 
 includes:
@@ -19,16 +22,16 @@ tasks:
 
       Reference:
       http://www.microbesonline.org/fasttree/#Install
-    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    dir: '{{.DIR}}/opt/{{.SUBDIR}}'
     cmds:
       - |
         echo "wget {{.BINARY}}"
         echo "chmod +x {{index .EXE 0}}"
       - task: group_install:finish
     generates:
-      - $GROUP_HOME/opt/{{.SUBDIR}}/{{.RELPATH_EXE}}{{index .EXE 0}}
-      - $GROUP_HOME/bin/{{.EXE}}
-      - $GROUP_HOME/Modules/modulefiles/{{.APP}}/{{.VERSION}}
+      - '{{.DIR}}/opt/{{.SUBDIR}}/{{.RELPATH_EXE}}{{index .EXE 0}}'
+      - '{{.DIR}}/bin/{{.EXE}}'
+      - '{{.DIR}}/Modules/modulefiles/{{.APP}}/{{.VERSION}}'
   
   install_double:
     desc: Install FastTree-2 (Double Precision)
@@ -40,9 +43,7 @@ tasks:
       - task: install
         vars:
           APP: fasttree_dbl
-          VERSION: 2.1.11
           BINARY: http://www.microbesonline.org/fasttree/FastTreeDbl
-          RELPATH_EXE:
           EXE: [FastTreeDbl]
           SUBDIR: '{{.APP}}/{{.VERSION}}'
 
@@ -56,9 +57,7 @@ tasks:
       - task: install
         vars:
           APP: fasttree_mp
-          VERSION: 2.1.11
           BINARY: http://www.microbesonline.org/fasttree/FastTreeMP
-          RELPATH_EXE:
           EXE: [FastTreeMP]
           SUBDIR: '{{.APP}}/{{.VERSION}}'
 

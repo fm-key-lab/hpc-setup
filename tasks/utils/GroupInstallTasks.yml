@@ -1,5 +1,9 @@
 version: '3'
 
+vars:
+  HOME: $HOME
+  DIR: '{{ .DIR | default .HOME }}'
+
 tasks:
   finish:
     - task: symlink

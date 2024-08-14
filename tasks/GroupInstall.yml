@@ -1,5 +1,16 @@
 version: '3'
 
+vars:
+  HOME: $HOME
+  DIR: '{{ .DIR | default .HOME }}'
+
 includes:
   fasttree: ./software/FastTree.yml
   tinytex: ./software/TinyTex.yml
+
+tasks:
+  install_all:
+    - task: fasttree:install
+    - task: fasttree:install_double
+    - task: fasttree:install_openmp
+    - task: tinytex:install

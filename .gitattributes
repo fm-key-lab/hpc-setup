@@ -1,1 +1,3 @@
 modulefile.template linguist-language=Tcl
+*.yml linguist-detectable=true
+*.yml linguist-language=YAML

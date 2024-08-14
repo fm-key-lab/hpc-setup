@@ -6,6 +6,9 @@ vars:
   BINARY: https://github.com/rstudio/tinytex-releases/releases/download/v2024.07.03/TinyTeX-1-v2024.07.03.tar.gz
   RELPATH_EXE: .TinyTeX/bin/x86_64-linux/
   EXE: [latexmk, pdflatex, bibtex, tlmgr]
+  
+  HOME: $HOME
+  DIR: '{{ .DIR | default .HOME }}'
   SUBDIR: '{{.APP}}/{{.VERSION}}'
 
 includes:

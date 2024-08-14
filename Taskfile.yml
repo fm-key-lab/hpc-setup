@@ -1,4 +1,11 @@
 version: '3'
 
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+
 includes:
-  group: ./tasks/GroupInstall.yml
+  group:
+    taskfile: ./tasks/GroupInstall.yml
+    vars:
+      DIR: '{{.GROUP_HOME}}'
