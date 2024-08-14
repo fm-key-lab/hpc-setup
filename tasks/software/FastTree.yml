@@ -1,0 +1,71 @@
+version: '3'
+
+vars:
+  APP: fasttree
+  VERSION: 2.1.11
+  BINARY: http://www.microbesonline.org/fasttree/FastTree
+  RELPATH_EXE:
+  EXE: [FastTree]
+  SUBDIR: '{{.APP}}/{{.VERSION}}'
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install FastTree-2
+    summary: |
+      Install FastTree-2: Approximately-ML trees from alns
+
+      Reference:
+      http://www.microbesonline.org/fasttree/#Install
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    cmds:
+      - |
+        echo "wget {{.BINARY}}"
+        echo "chmod +x {{index .EXE 0}}"
+      - task: group_install:finish
+    generates:
+      - $GROUP_HOME/opt/{{.SUBDIR}}/{{.RELPATH_EXE}}{{index .EXE 0}}
+      - $GROUP_HOME/bin/{{.EXE}}
+      - $GROUP_HOME/Modules/modulefiles/{{.APP}}/{{.VERSION}}
+  
+  install_double:
+    desc: Install FastTree-2 (Double Precision)
+    summary: |
+      Install FastTree-2: Approximately-ML trees from alns
+
+      Double Precision for closely related species.
+    cmds:
+      - task: install
+        vars:
+          APP: fasttree_dbl
+          VERSION: 2.1.11
+          BINARY: http://www.microbesonline.org/fasttree/FastTreeDbl
+          RELPATH_EXE:
+          EXE: [FastTreeDbl]
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+
+  install_openmp:
+    desc: Install FastTree-2 (+SSE +OpenMP)
+    summary: |
+      Install FastTree-2: Approximately-ML trees from alns
+
+      Multi-threaded executable (+SSE +OpenMP).
+    cmds:
+      - task: install
+        vars:
+          APP: fasttree_mp
+          VERSION: 2.1.11
+          BINARY: http://www.microbesonline.org/fasttree/FastTreeMP
+          RELPATH_EXE:
+          EXE: [FastTreeMP]
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+
+  install_veryfast:
+    desc: Install VeryFastTree
+    summary: |
+      Install VeryFastTree
+
+      Reference:
+      https://github.com/citiususc/veryfasttree?tab=readme-ov-file#requirements

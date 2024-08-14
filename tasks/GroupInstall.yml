@@ -1,0 +1,5 @@
+version: '3'
+
+includes:
+  fasttree: ./software/FastTree.yml
+  tinytex: ./software/TinyTex.yml

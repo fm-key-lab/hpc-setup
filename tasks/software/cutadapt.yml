@@ -1,0 +1,23 @@
+version: '3'
+
+vars:
+  APP: "fasttree"
+  VERSION: "2.1.11"
+  SUBDIR: '{{.APP}}/{{.VERSION}}'
+  BINARY: http://www.microbesonline.org/fasttree/FastTree
+  EXE: "FastTree"
+
+includes:
+  install: ../InstallTasks.yml
+
+tasks:
+  cutadapt:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    cmds:
+      - |
+        echo "wget {{.BINARY}}"
+        echo "chmod +x {{.EXE}}"
+        pwd
+      - task: install:finish
+    generates:
+      - $GROUP_HOME/opt/{{.SUBDIR}}
