@@ -1,0 +1,45 @@
+version: '3'
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install Pandoc
+    summary: |
+      Install Pandoc: A universal document converter
+
+      Reference:
+        - https://pandoc.org/installing.html
+        - https://github.com/jgm/pandoc/releases/tag/3.3
+    cmds:
+      - task: _install
+        vars:
+          APP: pandoc
+          VERSION: 3.3
+          BINARY: https://github.com/jgm/pandoc/releases/download/3.3/pandoc-3.3-linux-amd64.tar.gz
+          RELPATH_EXE: /pandoc-3.3/bin/
+
+  _install:
+    internal: true
+    deps:
+      - task: build
+        vars:
+          BINARY: '{{.BINARY}}'
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+    cmds:
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          EXE: '{{.APP}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    cmds:
+      - wget {{.BINARY}}
+      - defer: rm -f $(basename ${{.BINARY}})
+      - tar xf $(basename ${{.BINARY}})
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/pandoc-3.3/bin/pandoc

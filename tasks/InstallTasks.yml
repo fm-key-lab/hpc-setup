@@ -1,25 +1,42 @@
 version: '3'
 
 includes:
+  duckdb: ./software/DuckDB.yml
   fasttree: ./software/FastTree.yml
   gubbins: ./software/Gubbins.yml
+  pandoc: ./software/Pandoc.yml
+  snpsites: ./software/SNPsites.yml
   tinytex: ./software/TinyTex.yml
+  veryfasttree: ./software/VeryFastTree.yml
 
 tasks:
   all:
+    - task: duckdb
     - task: fasttree
     - task: gubbins
+    - task: pandoc
+    - task: snpsites
     - task: tinytex
+    - task: veryfasttree
 
   core:
     - task: gubbins
+    - task: snpsites
 
   bio:
     - task: fasttree
     - task: gubbins
+    - task: snpsites
+    - task: veryfasttree
 
   utils:
+    - task: duckdb
+    - task: pandoc
     - task: tinytex
+
+  duckdb:
+    - task: duckdb:install
+    - task: duckdb:install_nightly
 
   fasttree:
     - task: fasttree:install
@@ -29,5 +46,14 @@ tasks:
   gubbins:
     - task: gubbins:install
 
+  pandoc:
+    - task: pandoc:install
+
+  snpsites:
+    - task: snpsites:install
+
   tinytex:
     - task: tinytex:install
+
+  veryfasttree:
+    - task: veryfasttree:install_py

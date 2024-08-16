@@ -66,8 +66,7 @@ tasks:
   build:
     dir: $GROUP_HOME/opt/{{.SUBDIR}}
     cmds:
-      - |
-        wget {{.BINARY}}
-        chmod 755 {{.EXE}}
+      - wget {{.BINARY}}
+      - chmod 755 {{.EXE}}
     status:
       - test -f $GROUP_HOME/opt/{{.SUBDIR}}/{{.EXE}}

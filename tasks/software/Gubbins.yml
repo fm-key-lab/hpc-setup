@@ -7,7 +7,7 @@ tasks:
   install:
     desc: Install Gubbins
     summary: |
-      Genealogies Unbiased By recomBinations In Nucleotide Sequences
+      Gubbins: Genealogies Unbiased By recomBinations In Nucleotide Sequences
 
       Rapid phylogenetic analysis of large samples of recombinant bacterial 
       whole genome sequences using Gubbins

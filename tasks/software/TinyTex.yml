@@ -11,14 +11,20 @@ tasks:
 
       Check here for latest release:
       https://github.com/rstudio/tinytex-releases
+    vars:
+      APP: tinytex
+      VERSION: 2024.07.03
     cmds:
       - task: _install
         vars:
-          APP: tinytex
-          VERSION: 2024.07.03
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
           BINARY: https://github.com/rstudio/tinytex-releases/releases/download/v2024.07.03/TinyTeX-1-v2024.07.03.tar.gz
-          RELPATH_EXE: .TinyTeX/bin/x86_64-linux/
+          RELPATH_EXE: /.TinyTeX/bin/x86_64-linux/
           EXE: latexmk pdflatex bibtex tlmgr
+      - task: install_latex_packages
+        vars:
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
 
   _install:
     deps:
@@ -41,8 +47,35 @@ tasks:
         vars:
           SOFTWARE: perl
     cmds:
-      - echo 'wget {{.BINARY}}'
-      - echo 'tar xf $(basename ${{.BINARY}})'
-      - echo 'rm -f $(basename ${{.BINARY}})'
+      - wget {{.BINARY}}
+      - defer: rm -f $(basename ${{.BINARY}})
+      - tar xf $(basename ${{.BINARY}})
     status:
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/.TinyTeX/latexmk
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/.TinyTeX/bin/x86_64-linux/latexmk
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/.TinyTeX/bin/x86_64-linux/pdflatex
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/.TinyTeX/bin/x86_64-linux/bibtex
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/.TinyTeX/bin/x86_64-linux/tlmgr
+
+  install_latex_packages:
+    vars:
+      PACKAGES: csquotes float cleveref natbib listings grfext tcolorbox pgf xcolor environ trimspaces parskip adjustbox collectbox eurosym ucs enumitem jknapltx pdfcol caption upquote grffile titling twemojis
+    cmds:
+      - for: { var: PACKAGES }
+        task: _tlmgr_install
+        vars:
+          SUBDIR: '{{.SUBDIR}}'
+          PACKAGE: '{{.ITEM}}'
+    requires:
+      vars: [SUBDIR]
+
+  _tlmgr_install:
+    cmds:
+      - bash -c '
+        module purge; module load {{.SUBDIR}} &&
+        tlmgr install {{.PACKAGE}}
+        module unload {{.SUBDIR}}'
+    internal: true
+    requires:
+      vars: [PACKAGE, SUBDIR]
+    status:
+      - test -d $GROUP_HOME/opt/{{.SUBDIR}}/.TinyTeX/texmf-dist/tex/latex/{{.PACKAGE}}

@@ -1,0 +1,56 @@
+version: '3'
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install SNP-sites
+    summary: |
+      SNP-sites: Rapidly extracts SNPs from a multi-FASTA alignment.
+
+      Finds SNP sites from a multi-FASTA alignment file
+
+      References:
+      - http://sanger-pathogens.github.io/snp-sites/
+      - https://github.com/sanger-pathogens/snp-sites
+    cmds:
+      - task: _install
+        vars:
+          APP: snp-sites
+          VERSION: 2.5.1
+          BINARY: https://github.com/sanger-pathogens/snp-sites/archive/refs/tags/v2.5.1.tar.gz
+          RELPATH_EXE: /bin/
+          EXE: snp-sites
+
+  _install:
+    deps:
+      - task: build
+        vars:
+          BINARY: '{{.BINARY}}'
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+          VERSION: '{{.VERSION}}'
+    cmds:
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          EXE: '{{.EXE}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    cmds:
+      - wget {{.BINARY}}
+      - defer: rm -f $(basename ${{.BINARY}})
+      - tar xf $(basename ${{.BINARY}})
+      - cd snp-sites-{{.VERSION}}
+      - autoreconf -i -f
+      - ./configure --prefix=$GROUP_HOME/opt/{{.SUBDIR}}
+      - make; make install
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bin/snp-sites
+
+  test:
+    cmds:
+      - $GROUP_HOME/opt/{{.SUBDIR}}/bin/snp-sites -V
