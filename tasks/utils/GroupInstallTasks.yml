@@ -24,6 +24,7 @@ tasks:
     requires:
       vars: [SUBDIR, RELPATH_EXE, EXE]
 
+  # TODO: Use only major.minor versioning?
   modulefile:
     dir: $GROUP_HOME/Modules/modulefiles/{{.APP}}
     vars:

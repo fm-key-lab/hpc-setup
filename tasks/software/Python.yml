@@ -1,0 +1,57 @@
+version: '3'
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install_3_12:
+    desc: Install Python
+    cmds:
+      - task: _install
+        vars:
+          VERSION: 3.12.4
+          EXE: python3.12 pip3.12
+
+  install_2_7:
+    desc: Install Python
+    summary: |
+      Notes:
+      - `pip` for this version no longer supported.
+    cmds:
+      - task: _install
+        vars:
+          VERSION: 2.7.5
+          EXE: python2.7
+
+  _install:
+    internal: true
+    vars:
+      APP: python
+      RELPATH_EXE: /bin/
+    deps:
+      - task: build
+        vars:
+          VERSION: '{{.VERSION}}'
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+    cmds:
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          EXE: '{{.APP}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    cmds:
+      - wget {{.BINARY}}
+      - defer: rm -f $(basename ${{.BINARY}})
+      - tar xf $(basename ${{.BINARY}})
+      - ./configure --prefix=$GROUP_HOME/opt/{{.SUBDIR}} {{.ENABLE_OPTIMIZATIONS}}
+      - make; make altinstall
+    vars:
+      BINARY: https://www.python.org/ftp/python{{.VERSION}}/Python-{{.VERSION}}.tgz
+      ENABLE_OPTIMIZATIONS:
+        sh: '[ "${{{.VERSION}}}" -gt 3 ] && echo "--enable-optimizations" || echo ""'
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bin/python*

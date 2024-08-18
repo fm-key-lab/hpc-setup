@@ -4,23 +4,30 @@ includes:
   duckdb: ./software/DuckDB.yml
   fasttree: ./software/FastTree.yml
   gubbins: ./software/Gubbins.yml
+  rust: ./software/Rust.yml
   pandoc: ./software/Pandoc.yml
+  python: ./software/Python.yml
   snpsites: ./software/SNPsites.yml
   tinytex: ./software/TinyTex.yml
   veryfasttree: ./software/VeryFastTree.yml
 
 tasks:
+  default: core
+  
   all:
     - task: duckdb
     - task: fasttree
     - task: gubbins
     - task: pandoc
+    - task: rust
+    - task: python
     - task: snpsites
     - task: tinytex
     - task: veryfasttree
 
   core:
     - task: gubbins
+    - task: python
     - task: snpsites
 
   bio:
@@ -33,6 +40,12 @@ tasks:
     - task: duckdb
     - task: pandoc
     - task: tinytex
+
+  interpreters:
+    - task: python
+
+  compilers:
+    - task: rust
 
   duckdb:
     - task: duckdb:install
@@ -48,6 +61,13 @@ tasks:
 
   pandoc:
     - task: pandoc:install
+
+  python:
+    - task: python:install_3_12
+    - task: python:install_2_7
+
+  rust:
+    - task: rust:install
 
   snpsites:
     - task: snpsites:install
