@@ -40,7 +40,8 @@ tasks:
         vars:
           SOFTWARE: '{{.PYTHON_INTERPRETER}}'
     cmds:
-      - bash -c 'module load {{.UV_MODULE}} &&
+      - bash -c '
+        module load {{.UV_MODULE}} &&
         cd $GROUP_HOME/opt/{{.SUBDIR}} &&
         uv venv --python={{.PYTHON_INTERPRETER}} &&
         source .venv/bin/activate &&

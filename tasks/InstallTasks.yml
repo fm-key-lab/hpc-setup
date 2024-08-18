@@ -1,13 +1,17 @@
 version: '3'
 
 includes:
+  bowtie2: ./software/Bowtie2.yml
   duckdb: ./software/DuckDB.yml
   fasttree: ./software/FastTree.yml
   gubbins: ./software/Gubbins.yml
-  rust: ./software/Rust.yml
+  ncurses: ./software/Ncurses.yml
   pandoc: ./software/Pandoc.yml
   python: ./software/Python.yml
+  rust: ./software/Rust.yml
+  samtools: ./software/SAMtools.yml
   snpsites: ./software/SNPsites.yml
+  srst2: ./software/SRST2.yml
   tinytex: ./software/TinyTex.yml
   veryfasttree: ./software/VeryFastTree.yml
 
@@ -15,29 +19,43 @@ tasks:
   default: core
   
   all:
+    - task: bowtie2
     - task: duckdb
     - task: fasttree
     - task: gubbins
+    - task: ncurses
     - task: pandoc
-    - task: rust
     - task: python
+    - task: rust
+    - task: samtools
     - task: snpsites
+    - task: srst2
     - task: tinytex
     - task: veryfasttree
 
+  # ~*~
+
   core:
+    - task: bowtie2
     - task: gubbins
     - task: python
     - task: snpsites
+    - task: srst2
 
   bio:
+    - task: bowtie2
     - task: fasttree
     - task: gubbins
+    - task: samtools
     - task: snpsites
+    - task: srst2
     - task: veryfasttree
 
-  utils:
+  data:
     - task: duckdb
+
+  utils:
+    - task: ncurses
     - task: pandoc
     - task: tinytex
 
@@ -46,6 +64,11 @@ tasks:
 
   compilers:
     - task: rust
+
+  # ~*~
+
+  bowtie2:
+    - task: bowtie2:install
 
   duckdb:
     - task: duckdb:install
@@ -59,6 +82,9 @@ tasks:
   gubbins:
     - task: gubbins:install
 
+  ncurses:
+    - task: ncurses:install
+
   pandoc:
     - task: pandoc:install
 
@@ -66,11 +92,17 @@ tasks:
     - task: python:install_3_12
     - task: python:install_2_7
 
+  samtools:
+    - task: samtools:install
+
   rust:
     - task: rust:install
 
   snpsites:
     - task: snpsites:install
+
+  srst2:
+    - task: srst2:install
 
   tinytex:
     - task: tinytex:install

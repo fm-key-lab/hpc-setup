@@ -1,0 +1,66 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install GNU Ncurses
+    summary: |
+      Install GNU Ncurses
+
+      Note:
+        - https://www.gnu.org/software/guile-ncurses/
+        - https://ftp.gnu.org/pub/gnu/ncurses/
+    cmds:
+      - task: _install
+        vars:
+          APP: ncurses
+          VERSION: 6.5
+          RELPATH_EXE: /
+
+  _install:
+    internal: true
+    deps:
+      - task: build
+        vars:
+          VERSION: '{{.VERSION}}'
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+    cmds:
+      # TODO: Modulefile is further customized
+      - task: group_install:modulefile
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    summary: |
+      ** Configuration summary for NCURSES 6.5 20240427:
+
+            extended funcs: yes
+            xterm terminfo: xterm-new
+
+              bin directory:$GROUP_HOME/opt/{{.SUBDIR}}/bin
+              lib directory:$GROUP_HOME/opt/{{.SUBDIR}}/lib
+          include directory:$GROUP_HOME/opt/{{.SUBDIR}}/include/ncursesw
+              man directory:$GROUP_HOME/opt/{{.SUBDIR}}/share/man
+        terminfo directory:$GROUP_HOME/opt/{{.SUBDIR}}/share/terminfo
+
+      ** Include-directory is not in a standard location
+    cmds:
+      - wget {{.BINARY}}
+      - defer: rm -f $(basename {{.BINARY}})
+      - tar xf $(basename {{.BINARY}})
+      - cd $(basename {{.BINARY}} -s .tar.gz)
+      - ./configure --prefix=$GROUP_HOME/opt/{{.SUBDIR}}
+      - make; make install
+    vars:
+      BINARY: https://ftp.gnu.org/pub/gnu/ncurses/ncurses-{{.VERSION}}.tar.gz
+    status:
+      - test -d $GROUP_HOME/opt/{{.SUBDIR}}/bin
+      - test -d $GROUP_HOME/opt/{{.SUBDIR}}/lib
+      - test -d $GROUP_HOME/opt/{{.SUBDIR}}/include/ncursesw
+      - test -d $GROUP_HOME/opt/{{.SUBDIR}}/share/man
+      - test -d $GROUP_HOME/opt/{{.SUBDIR}}/share/terminfo

@@ -1,0 +1,46 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    cmds:
+      - task: _install
+        vars:
+          APP: bowtie2
+          VERSION: 2.1.0
+          RELPATH_EXE: /bowtie2-2.1.0/
+          EXE: bowtie2 bowtie2-align bowtie2-align-debug bowtie2-build bowtie2-build-debug bowtie2-inspect bowtie2-inspect-debug
+
+  _install:
+    internal: true
+    deps:
+      - task: build
+        vars:
+          VERSION: '{{.VERSION}}'
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+    cmds:
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          EXE: '{{.EXE}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    cmds:
+      - wget {{.BINARY}}
+      - defer: rm -f $(basename {{.BINARY}})
+      - unzip $(basename {{.BINARY}})
+    vars:
+      BINARY: https://downloads.sourceforge.net/project/bowtie-bio/bowtie2/{{.VERSION}}/bowtie2-{{.VERSION}}-linux-x86_64.zip
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bowtie2-2.1.0/bowtie2
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bowtie2-2.1.0/bowtie2-align
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bowtie2-2.1.0/bowtie2-align-debug
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bowtie2-2.1.0/bowtie2-build
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bowtie2-2.1.0/bowtie2-build-debug
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bowtie2-2.1.0/bowtie2-inspect
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bowtie2-2.1.0/bowtie2-inspect-debug

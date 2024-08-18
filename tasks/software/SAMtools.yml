@@ -1,0 +1,52 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    cmds:
+      - task: _install
+        vars:
+          APP: samtools
+          VERSION: 0.1.18
+          RELPATH_EXE: /samtools-0.1.18/
+          EXE: samtools
+
+  _install:
+    internal: true
+    deps:
+      - task: build
+        vars:
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+    cmds:
+      # NOTE: Added /misc/ to path too
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          EXE: '{{.APP}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    cmds:
+      - wget {{.BINARY}}
+      - defer: rm -f $(basename {{.BINARY}})
+      - tar xf $(basename {{.BINARY}})
+      - cd $(basename {{.BINARY}} -s .tar.bz2)
+      - bash -c '
+        module load {{.NCURSES_MODULE}}
+        make LIBCURSES="-lncursesw"
+        module unload {{.NCURSES_MODULE}}'
+    vars:
+      NCURSES_MODULE: ncurses/6.5
+      BINARY: https://sourceforge.net/projects/samtools/files/samtools/0.1.18/samtools-0.1.18.tar.bz2
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/samtools-0.1.18/samtools
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/samtools-0.1.18/misc/maq2sam-long
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/samtools-0.1.18/misc/maq2sam-short
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/samtools-0.1.18/misc/md5fa
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/samtools-0.1.18/misc/md5sum-lite
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/samtools-0.1.18/misc/seqtk
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/samtools-0.1.18/misc/wgsim

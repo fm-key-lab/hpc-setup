@@ -1,0 +1,62 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+# NOTE: Currently non-functional and not used.
+#       Instead, the `srst2` environment module runs in a container.
+
+tasks:
+  install:
+    - task: _install
+      vars:
+        APP: srst2
+        VERSION: 0.2.0
+
+  _install:
+    deps:
+      - task: build
+        vars:
+          VERSION: '{{.VERSION}}'
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    deps:
+      - task: group_install:check_software
+        vars:
+          SOFTWARE: '{{.BOWTIE2}}'
+      - task: group_install:check_software
+        vars:
+          SOFTWARE: '{{.BOWTIE2_BUILD}}'
+      - task: group_install:check_software
+        vars:
+          SOFTWARE: '{{.SAMTOOLS}}'
+    cmds:
+      - task: git_clone
+        vars:
+          SUBDIR: '{{.SUBDIR}}'
+      - pip install {{.PYTHON_DEPS}}
+      - pip install ./srst2
+    vars:
+      BOWTIE2: $GROUP_HOME/opt/bowtie2/2.1.0/bowtie2-2.1.0/bowtie2
+      BOWTIE2_BUILD: $GROUP_HOME/opt/bowtie2/2.1.0/bowtie2-2.1.0/bowtie2-build
+      PYTHON_INTERPRETER: $GROUP_HOME/opt/python/2.7.5/bin/python2.7
+      PYTHON_DEPS: scipy biopython
+      SAMTOOLS: $GROUP_HOME/opt/samtools/0.1.18/samtools-0.1.18/samtools # must be < 0.1.19
+      UV_MODULE: uv/0.2.34
+    env:
+      SRST2_BOWTIE2: '{{.BOWTIE2}}'
+      SRST2_BOWTIE2_BUILD: '{{.BOWTIE2_BUILD}}'
+      SRST2_SAMTOOLS: '{{.SAMTOOLS}}'
+    requires:
+      vars: [SUBDIR]
+  
+  git_clone:
+    internal: true
+    cmds:
+      - git clone https://github.com/katholt/srst2
+    requires:
+      vars: [SUBDIR]
+    status:
+      - test -d $GROUP_HOME/opt/{{.SUBDIR}}/srst2

@@ -7,6 +7,8 @@ tasks:
   install:
     desc: Install Rust
     summary: |
+      Install Rust compiler
+
       Note:
       # To get started you need Cargo's bin directory 
       # ($GROUP_HOME/opt/rust/1.80.1/bin) in your PATH
