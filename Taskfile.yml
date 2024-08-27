@@ -2,6 +2,7 @@ version: '3'
 
 includes:
   install: ./tasks/InstallTasks.yml
+  containers: ./tasks/ContainerTasks.yml
 
 tasks:
   default: install:core
