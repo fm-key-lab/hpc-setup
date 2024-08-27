@@ -1,0 +1,60 @@
+version: '3'
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install aria2
+    summary: |
+      Install aria2.
+
+      aria2 is a lightweight multi-protocol & multi-source command-line 
+      download utility. It supports HTTP/HTTPS, FTP, SFTP, BitTorrent and 
+      Metalink. aria2 can be manipulated via built-in JSON-RPC and XML-RPC 
+      interfaces.
+
+      Notes
+      -----
+      - Latest releases on [GH](https://github.com/aria2/aria2/releases)
+      - See [here](https://github.com/aria2/aria2?tab=readme-ov-file#dependency)
+        for optional dependencies.
+    cmds:
+      - task: _install
+        vars:
+          APP: aria2
+          VERSION: 1.37.0
+
+  _install:
+    internal: true
+    deps:
+      - task: build
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    prompt: Install aria2 in $GROUP_HOME/opt/{{.SUBDIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+      - |
+        cd $(basename {{.URL}} .tar.gz)
+        autoreconf -i
+        ./configure \
+          --prefix=$GROUP_HOME/opt/{{.SUBDIR}} \
+          --with-bashcompletiondir=$GROUP_HOME/opt/{{.SUBDIR}}/share/doc/aria2/bash_completion \
+          --without-gnutls \
+          --with-openssl='/usr/bin/openssl' \
+          --with-ca-bundle='{{.CA_BUNDLE}}' \
+          --disable-bittorrent \
+          --disable-metalink
+        make
+    vars:
+      APP: aria2
+      SUBDIR: '{{.APP}}/{{.VERSION}}'
+      URL: https://github.com/aria2/aria2/releases/download/release-{{.VERSION}}/aria2-{{.VERSION}}.tar.gz
+    requires:
+      vars: [CA_BUNDLE, VERSION]

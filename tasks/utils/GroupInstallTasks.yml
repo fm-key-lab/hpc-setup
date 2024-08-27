@@ -46,10 +46,11 @@ tasks:
     requires:
       vars: [SOFTWARE]
 
-  cleanup:
-    silent: True
-    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+  clean:
+    prompt: Delete $GROUP_HOME/opt/{{.SUBDIR}}?
     cmds:
-      - rm -f $(basename ${{.BINARY}})
+      - rm -rf $GROUP_HOME/opt/{{.SUBDIR}}
+    vars:
+      SUBDIR: '{{.APP}}/{{.VERSION}}'
     requires:
-      vars: [SUBDIR, BINARY]
+      vars: [APP, VERSION]

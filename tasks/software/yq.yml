@@ -1,0 +1,51 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install yq
+    summary: |
+      Install yq
+
+      References:
+        - https://github.com/mikefarah/yq
+        - Latest release: https://github.com/mikefarah/yq/releases/latest
+    cmds:
+      - task: _install
+        vars:
+          APP: yq
+          VERSION: 4.44.3
+          BINARY: yq_linux_amd64
+          RELPATH_EXE: /
+
+  _install:
+    internal: true
+    deps:
+      - task: build
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          BINARY: '{{.BINARY}}'
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+    cmds:
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          EXE: '{{.BINARY}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+      - ln -s {{.BINARY}} {{.APP}}
+    vars:
+      URL: https://github.com/mikefarah/yq/releases/download/v{{.VERSION}}/{{.BINARY}}.tar.gz
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/{{.BINARY}}
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/{{.APP}}

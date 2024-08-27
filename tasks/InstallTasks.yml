@@ -1,6 +1,7 @@
 version: '3'
 
 includes:
+  aria2: ./software/Aria2.yml
   bowtie2: ./software/Bowtie2.yml
   duckdb: ./software/DuckDB.yml
   fasttree: ./software/FastTree.yml
@@ -14,11 +15,16 @@ includes:
   srst2: ./software/SRST2.yml
   tinytex: ./software/TinyTex.yml
   veryfasttree: ./software/VeryFastTree.yml
+  yq: ./software/yq.yml
+
+vars:
+  CA_BUNDLE: /etc/ssl/ca-bundle.pem
 
 tasks:
   default: core
   
   all:
+    - task: aria2
     - task: bowtie2
     - task: duckdb
     - task: fasttree
@@ -32,6 +38,7 @@ tasks:
     - task: srst2
     - task: tinytex
     - task: veryfasttree
+    - task: yq
 
   # ~*~
 
@@ -53,8 +60,10 @@ tasks:
 
   data:
     - task: duckdb
+    - task: yq
 
   utils:
+    - task: aria2
     - task: ncurses
     - task: pandoc
     - task: tinytex
@@ -66,6 +75,9 @@ tasks:
     - task: rust
 
   # ~*~
+
+  aria2:
+    - task: aria2:install
 
   bowtie2:
     - task: bowtie2:install
@@ -109,3 +121,6 @@ tasks:
 
   veryfasttree:
     - task: veryfasttree:install_py
+
+  yq:
+    - task: yq:install
