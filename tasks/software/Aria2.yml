@@ -28,11 +28,33 @@ tasks:
   _install:
     internal: true
     deps:
-      - task: build
+      - task: build_static
         vars:
           APP: '{{.APP}}'
           VERSION: '{{.VERSION}}'
+  
+  build_static:
+    summary: |
+      Install aria2 static build.
 
+      Notes
+      -----
+      - Check other static builds [here](https://git.q3aql.dev/q3aql/aria2-static-builds)
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    prompt: Install aria2 in $GROUP_HOME/opt/{{.SUBDIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f aria2-{{.VERSION}}-linux-gnu-$(exec arch)-build1.tar.bz2
+      - tar jxvf aria2-{{.VERSION}}-linux-gnu-$(exec arch)-build1.tar.bz2
+      - cd aria2-{{.VERSION}}-linux-gnu-$(exec arch)-build1
+      - make
+    vars:
+      APP: aria2
+      SUBDIR: '{{.APP}}/{{.VERSION}}'
+      URL: https://drive.proton.me/urls/QKY2M7X7TC#b6YBf4Tl5QiR
+    requires:
+      vars: [CA_BUNDLE, VERSION]
+  
   build:
     dir: $GROUP_HOME/opt/{{.SUBDIR}}
     prompt: Install aria2 in $GROUP_HOME/opt/{{.SUBDIR}}?
