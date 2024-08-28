@@ -1,0 +1,55 @@
+version: '3'
+
+vars:
+  GROUP_VENVS: $GROUP_HOME/envs/venv
+  PYTHON_MODULE: python-waterboa/2024.06
+  UV_MODULE: uv/0.2.34
+
+tasks:
+  create_venv:
+    dir: '{{.GROUP_VENVS}}/{{.NAME}}'
+    cmds:
+      # TODO: Use `uv init` instead with a config
+      - |
+        bash -c '
+        module purge;
+        module load {{.UV_MODULE}};
+        uv venv --python={{.PYTHON}};
+        source .venv/bin/activate;
+        uv pip install -r {{.REQUIREMENTS}};
+        deactivate;
+        module unload {{.UV_MODULE}}'
+    prompt: Create environment {{.GROUP_VENVS}}/{{.NAME}}?
+    requires:
+      vars: [NAME, PYTHON, REQUIREMENTS]
+    preconditions:
+      - test -f {{.REQUIREMENTS}}
+    status:
+      - test -f {{.GROUP_VENVS}}/{{.NAME}}/.venv/bin/activate
+
+  create_venv_modulefile:
+    dir: $GROUP_HOME/Modules/modulefiles/{{.NAME}}
+    cmds:
+      - bash -c '
+        module load {{.PYTHON_MODULE}} &&
+        python {{.USER_WORKING_DIR}}/tasks/scripts/write_modulefile.py --NAME {{.NAME}} --VERSION {{.DEFAULT_VERSION}} --template venv &&
+        module unload {{.PYTHON_MODULE}}'
+    vars:
+      DEFAULT_VERSION: 0.0.1-alpha
+    status:
+      - test -f $GROUP_HOME/Modules/modulefiles/{{.NAME}}/{{.DEFAULT_VERSION}}
+    requires:
+      vars: [NAME]
+
+  sandbox_venv:
+    vars:
+      NAME: sandbox
+    cmds:
+      - task: create_venv
+        vars:
+          NAME: '{{.NAME}}'
+          PYTHON: $GROUP_HOME/opt/python/python/bin/python3.12
+          REQUIREMENTS: '{{.USER_WORKING_DIR}}/tasks/envs/sandbox-requirements.txt'
+      - task: create_venv_modulefile
+        vars:
+          NAME: '{{.NAME}}'

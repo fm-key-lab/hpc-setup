@@ -13,6 +13,8 @@ module-whatis "Adds $APP to your path\n"
 module-whatis "Provides: $APP <-- should edit to list executables"
 
 set basedir [getenv "MODULE_BASEDIR"]
+
+# TODO: Should be `$$basedir`
 if { $basedir eq "" } {
     puts stderr "Error: MODULE_BASEDIR environment variable is not set."
     exit 1

@@ -24,6 +24,7 @@ tasks:
         vars:
           APP: aria2
           VERSION: 1.37.0
+          RELPATH_EXE: /bin/
 
   _install:
     internal: true
@@ -32,29 +33,47 @@ tasks:
         vars:
           APP: '{{.APP}}'
           VERSION: '{{.VERSION}}'
-  
+    cmds:
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          EXE: aria2c
+
+  # TODO: Not ideal how this static build is obtained outside of the Taskfile.
+
   build_static:
     summary: |
       Install aria2 static build.
 
       Notes
       -----
+      - Static builds are housed in Proton Drive and downloaded in browser
       - Check other static builds [here](https://git.q3aql.dev/q3aql/aria2-static-builds)
+      - Do not use bundled Makefile (i.e., `make install PREFIX=$GROUP_HOME/opt/{{.SUBDIR}}`)
     dir: $GROUP_HOME/opt/{{.SUBDIR}}
     prompt: Install aria2 in $GROUP_HOME/opt/{{.SUBDIR}}?
     cmds:
-      - wget {{.URL}}
-      - defer: rm -f aria2-{{.VERSION}}-linux-gnu-$(exec arch)-build1.tar.bz2
-      - tar jxvf aria2-{{.VERSION}}-linux-gnu-$(exec arch)-build1.tar.bz2
-      - cd aria2-{{.VERSION}}-linux-gnu-$(exec arch)-build1
-      - make
+      - tar jxvf aria2-{{.VERSION}}-linux-gnu-64bit-build1.tar.bz2
+      - defer: rm -f aria2-{{.VERSION}}-linux-gnu-64bit-build1.tar.bz2
+      - |
+        cd aria2-{{.VERSION}}-linux-gnu-64bit-build1
+        mkdir -p $GROUP_HOME/opt/{{.SUBDIR}}/bin
+        mkdir -p $GROUP_HOME/opt/{{.SUBDIR}}/share/man/man1/
+        cp aria2c $GROUP_HOME/opt/{{.SUBDIR}}/bin
+        cp man-aria2c $GROUP_HOME/opt/{{.SUBDIR}}/share/man/man1/aria2c.1
+        chmod 755 $GROUP_HOME/opt/{{.SUBDIR}}/bin/aria2c
+        chmod 644 $GROUP_HOME/opt/{{.SUBDIR}}/share/man/man1/aria2c.1
     vars:
       APP: aria2
       SUBDIR: '{{.APP}}/{{.VERSION}}'
       URL: https://drive.proton.me/urls/QKY2M7X7TC#b6YBf4Tl5QiR
     requires:
-      vars: [CA_BUNDLE, VERSION]
-  
+      vars: [VERSION]
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bin/aria2c
+
   build:
     dir: $GROUP_HOME/opt/{{.SUBDIR}}
     prompt: Install aria2 in $GROUP_HOME/opt/{{.SUBDIR}}?
