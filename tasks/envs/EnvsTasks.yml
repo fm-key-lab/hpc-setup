@@ -41,6 +41,19 @@ tasks:
     requires:
       vars: [NAME]
 
+  add_jupyter_kernel:
+    dir: '{{.GROUP_VENVS}}/{{.NAME}}'
+    cmds:
+      - |
+        bash -c '
+        source .venv/bin/activate;
+        python -m ipykernel install --user --name group-venv-{{.NAME}} --display-name "Python ({{.NAME}}), group venvs"
+        deactivate'
+    status:
+      - test -d $HOME/.local/share/jupyter/kernels/group-venv-{{.NAME}}
+    requires:
+      vars: [NAME]
+
   sandbox_venv:
     vars:
       NAME: sandbox
@@ -51,5 +64,8 @@ tasks:
           PYTHON: $GROUP_HOME/opt/python/python/bin/python3.12
           REQUIREMENTS: '{{.USER_WORKING_DIR}}/tasks/envs/sandbox-requirements.txt'
       - task: create_venv_modulefile
+        vars:
+          NAME: '{{.NAME}}'
+      - task: add_jupyter_kernel
         vars:
           NAME: '{{.NAME}}'

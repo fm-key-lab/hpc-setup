@@ -1,0 +1,7 @@
+version: '3'
+
+includes:
+  jupyter: JupyterInSlurm.yml
+
+tasks:
+  default: jupyter:launch_nb_job

@@ -8,6 +8,8 @@ ipywidgets
 jax[cpu]
 jaxlib
 jupyter
+# https://discourse.jupyter.org/t/why-tornado-web-httperror-http-403-forbidden/24775/2
+jupyter_server==2.12.5
 jupyterlab
 matplotlib
 neptune

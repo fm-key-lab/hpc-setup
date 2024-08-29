@@ -1,0 +1,44 @@
+version: '3'
+
+vars:
+  JOB_NAME: '{{.JOB_NAME | default "jupyter-notebook"}}'
+  PARTITION: '{{.PARTITION | default "interactive"}}'
+  TIME: '{{.TIME | default "1:00:00"}}'
+  NODES: '{{.NODES | default 1}}'
+  NTASKS_PER_NODE: '{{.NTASKS_PER_NODE | default 1}}'
+  CPUS_PER_TASK: '{{.CPUS_PER_TASK | default 8}}'
+  PORT: '{{.PORT | default 8888}}'
+  MEM: '{{.MEM | default "8G"}}'
+
+tasks:
+  launch_nb_job:
+    desc: "Launch Jupyter Notebook in a SLURM job"
+    summary: |
+      Launch Jupyter Notebook in a SLURM job
+
+      Usage
+      -----
+      $ module purge; module load task
+      $ cd $GROUP_HOME/tools/hpc-setup/tasks/misc
+      $ task NAME=group-venv-sandbox
+    cmds:
+      - |
+        bash -c "sbatch <<EOT
+        #!/bin/bash
+        #SBATCH --job-name={{.JOB_NAME}}
+        #SBATCH --partition={{.PARTITION}}
+        #SBATCH --time={{.TIME}}
+        #SBATCH --nodes={{.NODES}}
+        #SBATCH --ntasks-per-node={{.NTASKS_PER_NODE}}
+        #SBATCH --cpus-per-task={{.CPUS_PER_TASK}}
+        #SBATCH --mem={{.MEM}}
+        #SBATCH --output=$HOME/jupyter-%j.out
+        #SBATCH --error=$HOME/jupyter-%j.err
+
+        module load sandbox
+        jupyter-notebook --no-browser --ip=0.0.0.0 --port={{.PORT}} --NotebookApp.token='' --KernelSpecManager.default_kernel_name={{.KERNELSPEC}}
+        EOT"
+    vars:
+      KERNELSPEC: $HOME/.local/share/jupyter/kernels/{{.NAME}}
+    requires:
+      vars: [NAME]
