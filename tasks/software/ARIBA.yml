@@ -54,7 +54,7 @@ tasks:
 
   build:
     dir: $GROUP_HOME/opt/{{.SUBDIR}}
-    # prompt: Install in $GROUP_HOME/opt/{{.SUBDIR}}?
+    prompt: Install in $GROUP_HOME/opt/{{.SUBDIR}}?
     deps:
       - task: bowtie2:install
       - task: cdhit:install

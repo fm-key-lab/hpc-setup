@@ -20,7 +20,7 @@ tasks:
         uv pip install {{.REQUIREMENTS}};
         deactivate;
         module unload {{.UV_MODULE}}'
-    # prompt: Create environment {{.GROUP_VENVS}}/{{.NAME}}?
+    prompt: Create environment {{.GROUP_VENVS}}/{{.NAME}}?
     requires:
       vars: [NAME, PYTHON, REQUIREMENTS]
     # preconditions:
