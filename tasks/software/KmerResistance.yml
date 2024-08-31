@@ -1,0 +1,68 @@
+version: 3
+
+# TODO: Use SSH, not HTTPS, for bitbucket
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+  kma: KMA.yml
+
+tasks:
+  install:
+    desc: Install KmerResistance
+    summary: |
+      Install KmerResistance
+
+      KmerResistance splits reads into k-mers, maps them and counts the 
+      co-occurrence of k-mers between reads and a reference database to predict 
+      resistance genes and associated species. Both methods can identify 
+      antimicrobial resistance genes even in the presence of contaminants (for 
+      example, background noise in the raw reads owing to the presence of 
+      laboratory or host contamination) and in samples for which insufficient 
+      reads are available for de novo assembly, but they cannot predict 
+      antimicrobial resistance conferred by single-nucleotide polymorphisms (SNPs). 
+      
+      Notes
+      -----
+      - Dependence on KMA added to modulefile
+
+      URLs
+      ----
+      - https://bitbucket.org/genomicepidemiology/kmerresistance/src/master/
+    cmds:
+      - task: _install
+        vars:
+          APP: kmerresistance
+          VERSION: 2.2.0
+          RELPATH_EXE: /kmerresistance/
+
+  _install:
+    internal: true
+    deps:
+      - task: build
+        vars:
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+    cmds:
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          EXE: '{{.APP}}'
+      - echo 'prepend-path PATH "${basedir}/kma/1.4.15/kma"' >> $GROUP_HOME/Modules/modulefiles/{{.APP}}/{{.VERSION}}
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    prompt: Install in $GROUP_HOME/opt/{{.SUBDIR}}?
+    deps:
+      - task: kma:install
+    cmds:
+      - git clone https://bitbucket.org/genomicepidemiology/kmerresistance.git
+      - |
+        cd kmerresistance
+        make
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/kmerresistance/kmerresistance
+
+  test:
+    - $GROUP_HOME/opt/{{.SUBDIR}}/kmerresistance/kmerresistance -i reads_se.fq.gz -o output/name -t_db templates -s_db species
+    - $GROUP_HOME/opt/{{.SUBDIR}}/kmerresistance/kmerresistance -ipe reads_1.fq.gz reads_2.fq.gz -o output/name -t_db templates -s_db species

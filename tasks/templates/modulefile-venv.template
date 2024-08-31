@@ -25,7 +25,7 @@ if { $$groupdir eq "" } {
 set venv "$${groupdir}/envs/venv/$NAME/.venv"
 
 prepend-path            PATH                        "$${venv}/bin"
-setenv --set-if-undef   PS1                         "($NAME) $$env(PS1)"
+# setenv --set-if-undef   PS1                         "($NAME) $$env(PS1)"
 setenv --set-if-undef   VIRTUAL_ENV                 "$${venv}"
 setenv                  VIRTUAL_ENV_DISABLE_PROMPT  1
 

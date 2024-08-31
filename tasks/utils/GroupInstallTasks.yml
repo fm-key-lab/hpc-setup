@@ -32,12 +32,16 @@ tasks:
     cmds:
       - bash -c '
         module load {{.PYTHON_MODULE}} &&
-        python {{.USER_WORKING_DIR}}/tasks/scripts/write_modulefile.py --APP {{.APP}} --VERSION {{.VERSION}} --RELPATH_EXE {{.RELPATH_EXE}} &&
+        python {{.ROOT_DIR}}/tasks/scripts/write_modulefile.py --APP {{.APP}} --VERSION {{.VERSION}} --RELPATH_EXE {{.RELPATH_EXE}} &&
         module unload {{.PYTHON_MODULE}}'
     status:
       - test -f $GROUP_HOME/Modules/modulefiles/{{.APP}}/{{.VERSION}}
     requires:
       vars: [APP, VERSION, RELPATH_EXE]
+
+  build_in_venv:
+    cmds:
+      - echo ""
 
   check_software:
     silent: True
@@ -45,6 +49,14 @@ tasks:
       - command -v {{.SOFTWARE}} >/dev/null 2>&1 || exit 1
     requires:
       vars: [SOFTWARE]
+
+  check_package:
+    cmds:
+      - rpm -qa | grep -q {{.PACKAGE}} || { echo "{{.PACKAGE}} is not installed."; exit 1; }
+      - echo "{{.PACKAGE}} is installed."
+    silent: true
+    requires:
+      vars: [PACKAGE]
 
   clean:
     prompt: Delete $GROUP_HOME/opt/{{.SUBDIR}}?

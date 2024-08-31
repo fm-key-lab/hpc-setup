@@ -34,7 +34,7 @@ tasks:
       - wget {{.BINARY}}
       - defer: rm -f $(basename {{.BINARY}})
       - tar xf $(basename {{.BINARY}})
-      - cd $(basename {{.BINARY}} -s .tar.bz2)
+      - cd $(basename {{.BINARY}} .tar.bz2)
       - bash -c '
         module load {{.NCURSES_MODULE}}
         make LIBCURSES="-lncursesw"

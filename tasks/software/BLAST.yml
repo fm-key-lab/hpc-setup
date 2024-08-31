@@ -1,0 +1,67 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    cmds:
+      - task: _install
+        vars:
+          APP: blast
+          VERSION: 2.16.0
+          RELPATH_EXE: /ncbi-blast{{.VERSION}}+/bin/
+          EXE: blastn
+
+  _install:
+    internal: true
+    deps:
+      - task: download_prebuilt_binary
+        vars:
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+          VERSION: '{{.VERSION}}'
+    cmds:
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          EXE: '{{.EXE}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    prompt: Install in $GROUP_HOME/opt/{{.SUBDIR}}?
+    deps:
+      - for: lmdb perl sqlite
+        task: group_install:check_package
+        vars:
+          PACKAGE: '{{.ITEM}}'
+    cmds:
+      - task: download_prebuilt_binary
+        vars:
+          VERSION: '{{.VERSION}}'
+
+  download_build_src:
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+      - |
+        cd c++
+        ./configure --prefix=$GROUP_HOME/opt/{{.SUBDIR}}
+        cd ReleaseMT/build
+        make all_r
+    vars:
+      URL: https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/{{.VERSION}}/ncbi-blast-{{.VERSION}}+-src.tar.gz
+    requires:
+      vars: [SUBDIR, VERSION]
+
+  download_prebuilt_binary:
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+    vars:
+      URL: https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/{{.VERSION}}/ncbi-blast-{{.VERSION}}+-x64-linux.tar.gz
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/ncbi-blast-{{.VERSION}}+/bin/blastn

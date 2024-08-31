@@ -1,0 +1,47 @@
+version: 3
+
+# TODO: Use SSH, not HTTPS, for bitbucket
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install KMA
+    summary: |
+      Install KMA: k-mer alignment
+
+      Notes
+      -----
+      - https://bitbucket.org/genomicepidemiology/kma/src/master/
+    cmds:
+      - task: _install
+        vars:
+          APP: kma
+          VERSION: 1.4.15
+          RELPATH_EXE: /kma/
+
+  _install:
+    internal: true
+    deps:
+      - task: build
+        vars:
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    deps:
+      - task: group_install:check_package
+        vars:
+          PACKAGE: zlib
+    cmds:
+      - git clone https://bitbucket.org/genomicepidemiology/kma.git
+      - cd kma
+      - make
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/kma/kma
+
+  test:
+    - $GROUP_HOME/opt/{{.SUBDIR}}/kma/kma index -i templates.fsa.gz -o templates
+    - $GROUP_HOME/opt/{{.SUBDIR}}/kma/kma -i reads_se.fq.gz -o output/name -t_db templates
+    - $GROUP_HOME/opt/{{.SUBDIR}}/kma/kma -ipe reads_1.fq.gz reads_2.fq.gz -o output/name -t_db templates

@@ -1,0 +1,64 @@
+version: '3'
+
+# NOTE: Does not make due to `intltool-update` bug
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+  intltool: Intltool.yml
+
+tasks:
+  install:
+    desc: Install GNOME Gnumeric
+    deps:
+      - task: intltool:install
+        vars:
+          VERSION: '{{.INTLTOOL_VERSION}}'
+    summary: |
+      GNOME Gnumeric: Gnumeric is an open-source spreadsheet program.
+
+      Notes
+      -----
+      - https://gitlab.gnome.org/GNOME/gnumeric
+      - http://www.gnumeric.org
+    cmds:
+      - task: _install
+        vars:
+          APP: gnumeric
+          INTLTOOL_VERSION: '{{.INTLTOOL_VERSION}}'
+          VERSION: '{{.VERSION}}'
+    vars:
+      INTLTOOL_VERSION: 0.51.0
+      VERSION: 1.12.57
+
+  _install:
+    deps:
+      - task: build
+        vars:
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+          VERSION: '{{.VERSION}}'
+          INTLTOOL_VERSION: '{{.INTLTOOL_VERSION}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename ${{.URL}})
+      - tar xf $(basename ${{.URL}})
+      - |
+        PATH=$path:$PATH
+        echo $PATH
+        cd gnumeric-{{.VERSION}}
+        ./configure --prefix=$GROUP_HOME/opt/{{.SUBDIR}}
+        make; make install
+    env:
+      path: $GROUP_HOME/opt/intltool/{{.INTLTOOL_VERSION}}/bin
+      # Required for `intltool-update`; see https://stackoverflow.com/a/63384268
+      PERL: $GROUP_HOME/opt/perl/5.24.4/bin/perl
+      PKG_CONFIG_PATH: $GROUP_HOME/opt/intltool/{{.INTLTOOL_VERSION}}/intltool-{{.INTLTOOL_VERSION}}/lib/pkgconfig
+      LD_LIBRARY_PATH: $GROUP_HOME/opt/intltool/{{.INTLTOOL_VERSION}}/intltool-{{.INTLTOOL_VERSION}}/lib
+    vars:
+      URL: http://ftp.gnome.org/pub/GNOME/sources/gnumeric/1.12/gnumeric-{{.VERSION}}.tar.xz
+    requires:
+      vars: [INTLTOOL_VERSION, VERSION]
+    status:
+      - test -d $GROUP_HOME/opt/{{.SUBDIR}}/gnumeric-{{.VERSION}}

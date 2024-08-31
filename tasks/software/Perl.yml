@@ -1,0 +1,50 @@
+version: '3'
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install Perl
+    summary: |
+      Install Perl
+
+      Notes
+      -----
+      - https://www.cpan.org/src/README.html
+    cmds:
+      - task: _install
+        vars:
+          APP: perl
+          VERSION: 5.24.4
+          RELPATH_EXE: /bin/
+
+  _install:
+    internal: true
+    deps:
+      - task: build
+        vars:
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+          VERSION: '{{.VERSION}}'
+    cmds:
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          EXE: '{{.APP}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename ${{.URL}})
+      - tar -xzf $(basename ${{.URL}})
+      - |
+        cd perl-{{.VERSION}}
+        ./Configure -des -Dprefix=$GROUP_HOME/opt/{{.SUBDIR}}
+        make; make install
+    vars:
+      URL: https://www.cpan.org/src/5.0/perl-{{.VERSION}}.tar.gz
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bin/perl

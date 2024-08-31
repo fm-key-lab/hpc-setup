@@ -1,0 +1,76 @@
+version: 3
+
+# TODO: Set dbs in modulefile
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+  group_envs: ../envs/EnvsTasks.yml
+  blast: BLAST.yml
+  kma: KMA.yml
+
+tasks:
+  install:
+    desc: Install ResFinder
+    summary: |
+      Install ResFinder
+
+      ResFinder identifies acquired antimicrobial resistance genes in total or 
+      partial sequenced isolates of bacteria.
+      
+      Notes
+      -----
+      - Dependence on KMA added to modulefile
+
+      URLs
+      ----
+      - https://bitbucket.org/genomicepidemiology/resfinder
+    cmds:
+      - task: _install
+        vars:
+          APP: resfinder
+          VERSION: 4.6.0
+          CGE_BLASTN: opt/blast/2.16.0/ncbi-blast-2.16.0+/bin/blastn
+          CGE_KMA: opt/kma/1.4.15/kma/kma
+
+  _install:
+    internal: true
+    deps:
+      - task: build
+        vars:
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+          CGE_BLASTN: $GROUP_HOME/{{.CGE_BLASTN}}
+          CGE_KMA: $GROUP_HOME/{{.CGE_KMA}}
+    cmds:
+      - task: group_envs:create_venv_modulefile
+        vars:
+          NAME: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+      - |
+        echo 'setenv --set-if-undef   CGE_BLASTN                  "${groupdir}/{{.CGE_BLASTN}}"
+        setenv --set-if-undef   CGE_KMA                     "${groupdir}/{{.CGE_KMA}}"
+        setenv --set-if-undef   CGE_RESFINDER_RESGENE_DB    ""
+        setenv --set-if-undef   CGE_RESFINDER_RESPOINT_DB   ""
+        setenv --set-if-undef   CGE_RESFINDER_GENE_COV      "0.60"
+        setenv --set-if-undef   CGE_RESFINDER_GENE_ID       "0.80"
+        setenv --set-if-undef   CGE_RESFINDER_POINT_COV     "0.60"
+        setenv --set-if-undef   CGE_RESFINDER_POINT_ID      "0.80"
+        setenv --set-if-undef   CGE_DISINFINDER_DB          ""
+        setenv --set-if-undef   CGE_DISINFINDER_DB_KMA      "kma"' >> $GROUP_HOME/Modules/modulefiles/resfinder/0.0.1-alpha
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    prompt: Install in $GROUP_HOME/opt/{{.SUBDIR}}?
+    deps:
+      - task: blast:install
+      - task: kma:install
+    cmds:
+      - task: group_envs:create_venv
+        vars:
+          NAME: resfinder
+          PYTHON: $GROUP_HOME/opt/python/python/bin/python3.12
+          REQUIREMENTS: resfinder
+    env:
+      CGE_BLASTN: '{{.CGE_BLASTN}}'
+      CGE_KMA: '{{.CGE_KMA}}'
+    status:
+      - test -d $GROUP_HOME/envs/venv/resfinder/.venv/lib/python3.12/site-packages/resfinder

@@ -16,14 +16,14 @@ tasks:
         module load {{.UV_MODULE}};
         uv venv --python={{.PYTHON}};
         source .venv/bin/activate;
-        uv pip install -r {{.REQUIREMENTS}};
+        uv pip install {{.REQUIREMENTS}};
         deactivate;
         module unload {{.UV_MODULE}}'
     prompt: Create environment {{.GROUP_VENVS}}/{{.NAME}}?
     requires:
       vars: [NAME, PYTHON, REQUIREMENTS]
-    preconditions:
-      - test -f {{.REQUIREMENTS}}
+    # preconditions:
+    #   - test -f {{.REQUIREMENTS}}
     status:
       - test -f {{.GROUP_VENVS}}/{{.NAME}}/.venv/bin/activate
 
@@ -32,12 +32,13 @@ tasks:
     cmds:
       - bash -c '
         module load {{.PYTHON_MODULE}} &&
-        python {{.USER_WORKING_DIR}}/tasks/scripts/write_modulefile.py --NAME {{.NAME}} --VERSION {{.DEFAULT_VERSION}} --template venv &&
+        python {{.ROOT_DIR}}/tasks/scripts/write_modulefile.py --NAME {{.NAME}} --VERSION {{.VERSION}} --template venv &&
         module unload {{.PYTHON_MODULE}}'
     vars:
       DEFAULT_VERSION: 0.0.1-alpha
+      VERSION: '{{.DEFAULT_VERSION}}'
     status:
-      - test -f $GROUP_HOME/Modules/modulefiles/{{.NAME}}/{{.DEFAULT_VERSION}}
+      - test -f $GROUP_HOME/Modules/modulefiles/{{.NAME}}/{{.VERSION}}
     requires:
       vars: [NAME]
 
@@ -62,7 +63,7 @@ tasks:
         vars:
           NAME: '{{.NAME}}'
           PYTHON: $GROUP_HOME/opt/python/python/bin/python3.12
-          REQUIREMENTS: '{{.USER_WORKING_DIR}}/tasks/envs/sandbox-requirements.txt'
+          REQUIREMENTS: -r '{{.ROOT_DIR}}/tasks/envs/sandbox-requirements.txt'
       - task: create_venv_modulefile
         vars:
           NAME: '{{.NAME}}'

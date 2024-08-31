@@ -1,0 +1,50 @@
+version: '3'
+
+# NOTE: `intltool-update` bug
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install intltool-update
+    summary: |
+      Install intltool-update
+      
+      Intltool is an internationalization tool used for extracting translatable 
+      strings from source files.
+
+      Notes
+      -----
+      - https://launchpad.net/intltool
+    cmds:
+      - task: _install
+        vars:
+          APP: intltool
+          VERSION: '{{.VERSION}}'
+    vars:
+      VERSION: 0.51.0
+
+  _install:
+    deps:
+      - task: build
+        vars:
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+          VERSION: '{{.VERSION}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename ${{.URL}})
+      - tar xzf $(basename ${{.URL}})
+      - |
+        cd intltool-{{.VERSION}}
+        ./configure --prefix=$GROUP_HOME/opt/{{.SUBDIR}}
+        make; make install
+    vars:
+      URL: http://launchpad.net/intltool/trunk/{{.VERSION}}/+download/intltool-{{.VERSION}}.tar.gz
+    requires:
+      vars: [VERSION]
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bin/intltool-update

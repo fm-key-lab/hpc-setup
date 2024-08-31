@@ -2,13 +2,19 @@ version: '3'
 
 includes:
   aria2: ./software/Aria2.yml
+  blast: ./software/BLAST.yml
   bowtie2: ./software/Bowtie2.yml
   duckdb: ./software/DuckDB.yml
   fasttree: ./software/FastTree.yml
+  gnumeric: ./software/Gnumeric.yml
   gubbins: ./software/Gubbins.yml
+  kma: ./software/KMA.yml
+  kmerresistance: ./software/KmerResistance.yml
   ncurses: ./software/Ncurses.yml
   pandoc: ./software/Pandoc.yml
+  perl: ./software/Perl.yml
   python: ./software/Python.yml
+  resfinder: ./software/ResFinder.yml
   rust: ./software/Rust.yml
   samtools: ./software/SAMtools.yml
   snpsites: ./software/SNPsites.yml
@@ -25,13 +31,19 @@ tasks:
   
   all:
     - task: aria2
+    - task: blast
     - task: bowtie2
     - task: duckdb
     - task: fasttree
+    - task: gnumeric
     - task: gubbins
+    - task: kma
+    - task: kmerresistance
     - task: ncurses
     - task: pandoc
+    - task: perl
     - task: python
+    - task: resfinder
     - task: rust
     - task: samtools
     - task: snpsites
@@ -43,6 +55,7 @@ tasks:
   # ~*~
 
   core:
+    - task: blast
     - task: bowtie2
     - task: gubbins
     - task: python
@@ -50,9 +63,13 @@ tasks:
     - task: srst2
 
   bio:
+    - task: blast
     - task: bowtie2
     - task: fasttree
     - task: gubbins
+    - task: kma
+    - task: kmerresistance
+    - task: resfinder
     - task: samtools
     - task: snpsites
     - task: srst2
@@ -60,6 +77,7 @@ tasks:
 
   data:
     - task: duckdb
+    - task: gnumeric
     - task: yq
 
   utils:
@@ -69,6 +87,7 @@ tasks:
     - task: tinytex
 
   interpreters:
+    - task: perl
     - task: python
 
   compilers:
@@ -78,6 +97,9 @@ tasks:
 
   aria2:
     - task: aria2:install
+
+  blast:
+    - task: blast:install
 
   bowtie2:
     - task: bowtie2:install
@@ -91,8 +113,17 @@ tasks:
     - task: fasttree:install_dbl
     - task: fasttree:install_openmp
 
+  gnumeric:
+    - task: gnumeric:install
+
   gubbins:
     - task: gubbins:install
+
+  kma:
+    - task: kma:install
+
+  kmerresistance:
+    - task: kmerresistance:install
 
   ncurses:
     - task: ncurses:install
@@ -100,12 +131,18 @@ tasks:
   pandoc:
     - task: pandoc:install
 
+  perl:
+    - task: perl:install
+
   python:
     - task: python:install_3_12
     - task: python:install_2_7
 
   samtools:
     - task: samtools:install
+
+  resfinder:
+    - task: resfinder:install
 
   rust:
     - task: rust:install
