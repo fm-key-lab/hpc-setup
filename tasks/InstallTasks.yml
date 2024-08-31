@@ -2,14 +2,17 @@ version: '3'
 
 includes:
   aria2: ./software/Aria2.yml
+  ariba: ./software/ARIBA.yml
   blast: ./software/BLAST.yml
   bowtie2: ./software/Bowtie2.yml
+  cdhit: ./software/CD-HIT.yml
   duckdb: ./software/DuckDB.yml
   fasttree: ./software/FastTree.yml
   gnumeric: ./software/Gnumeric.yml
   gubbins: ./software/Gubbins.yml
   kma: ./software/KMA.yml
   kmerresistance: ./software/KmerResistance.yml
+  mummer: ./software/MUMmer.yml
   ncurses: ./software/Ncurses.yml
   pandoc: ./software/Pandoc.yml
   perl: ./software/Perl.yml
@@ -31,14 +34,17 @@ tasks:
   
   all:
     - task: aria2
+    - task: ariba
     - task: blast
     - task: bowtie2
+    - task: cdhit
     - task: duckdb
     - task: fasttree
     - task: gnumeric
     - task: gubbins
     - task: kma
     - task: kmerresistance
+    - task: mummer
     - task: ncurses
     - task: pandoc
     - task: perl
@@ -63,12 +69,15 @@ tasks:
     - task: srst2
 
   bio:
+    - task: ariba
     - task: blast
     - task: bowtie2
+    - task: cdhit
     - task: fasttree
     - task: gubbins
     - task: kma
     - task: kmerresistance
+    - task: mummer
     - task: resfinder
     - task: samtools
     - task: snpsites
@@ -98,11 +107,17 @@ tasks:
   aria2:
     - task: aria2:install
 
+  ariba:
+    - task: ariba:install
+
   blast:
     - task: blast:install
 
   bowtie2:
     - task: bowtie2:install
+
+  cdhit:
+    - task: cdhit:install
 
   duckdb:
     - task: duckdb:install
@@ -124,6 +139,9 @@ tasks:
 
   kmerresistance:
     - task: kmerresistance:install
+
+  mummer:
+    - task: mummer:install
 
   ncurses:
     - task: ncurses:install

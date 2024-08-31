@@ -1,0 +1,16 @@
+version: 3
+
+includes:
+  igenomes: ./data/iGenomes.yml
+  ncbi_taxonomy: ./data/NCBITaxonomy.yml
+
+tasks:
+  all:
+    - task: ncbi_taxranks
+    - task: reference_genomes
+
+  ncbi_taxranks:
+    - task: ncbi_taxonomy:download
+  
+  reference_genomes:
+    - task: igenomes:download_ecoli

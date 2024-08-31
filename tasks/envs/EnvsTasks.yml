@@ -6,6 +6,7 @@ vars:
   UV_MODULE: uv/0.2.34
 
 tasks:
+  # TODO: Graceful exits when errors
   create_venv:
     dir: '{{.GROUP_VENVS}}/{{.NAME}}'
     cmds:
@@ -19,7 +20,7 @@ tasks:
         uv pip install {{.REQUIREMENTS}};
         deactivate;
         module unload {{.UV_MODULE}}'
-    prompt: Create environment {{.GROUP_VENVS}}/{{.NAME}}?
+    # prompt: Create environment {{.GROUP_VENVS}}/{{.NAME}}?
     requires:
       vars: [NAME, PYTHON, REQUIREMENTS]
     # preconditions:

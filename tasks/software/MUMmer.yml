@@ -1,0 +1,81 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install MUMmer
+    summary: |
+      Install MUMmer
+
+      Notes
+      -----
+      - Based on `sanger-pathogens/pymummer/install_dependencies.sh`...
+        - After installing, run `cd ./src/tigr; make`
+        - Add both build directory and ./src/tigr to path
+        - Requires programs
+          required_progs = ['nucmer', 'show-coords', 'show-snps', 'delta-filter']
+          to be in PATH
+      - tigr outputs TIGR assembler
+        - Except for `nucmer`, versions of each prog for TIGR
+
+      URLs
+      ----
+      - https://mummer.sourceforge.net
+      - https://github.com/sanger-pathogens/pymummer/blob/master/install_dependencies.sh
+    cmds:
+      - task: _install
+        vars:
+          APP: mummer
+          VERSION: 3.23
+          RELPATH_EXE: /MUMmer3.23/
+          EXE: |
+            nucmer 
+            show-coords 
+            show-snps 
+            delta-filter
+
+  _install:
+    internal: true
+    deps:
+      - task: build
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+    cmds:
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          EXE: '{{.EXE}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    prompt: Install in $GROUP_HOME/opt/{{.SUBDIR}}?
+    deps:
+      - for: make perl sed awk
+        task: group_install:check_package
+        vars:
+          PACKAGE: '{{.ITEM}}'
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+      - |
+        cd MUMmer{{.VERSION}}
+        make install
+        cd ./src/tigr
+        make
+    vars:
+      URL: https://sourceforge.net/projects/mummer/files/mummer/{{.VERSION}}/MUMmer{{.VERSION}}.tar.gz
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer3.23/nucmer
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer3.23/show-coords
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer3.23/show-snps
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer3.23/delta-filter
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer3.23/src/tigr/show-coords
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer3.23/src/tigr/show-snps
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer3.23/src/tigr/delta-filter

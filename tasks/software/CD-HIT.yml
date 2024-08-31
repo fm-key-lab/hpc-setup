@@ -1,0 +1,67 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install CD-HIT
+    summary: |
+      Install CD-HIT
+
+      URLs
+      ----
+        - https://github.com/weizhongli/cdhit/releases
+        - https://sites.google.com/view/cd-hit
+        - https://code.google.com/archive/p/cdhit/
+    cmds:
+      - task: _install
+        vars:
+          APP: cdhit
+          VERSION: 4.8.1
+          RELPATH_EXE: /bin/
+          EXE: |
+            cd-hit
+            cd-hit-2d
+            cd-hit-454
+            cd-hit-div
+            cd-hit-est
+            cd-hit-est-2d
+
+  _install:
+    internal: true
+    deps:
+      - task: build
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+    cmds:
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          EXE: '{{.EXE}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    prompt: Install in $GROUP_HOME/opt/{{.SUBDIR}}?
+    deps:
+      - task: group_install:check_package
+        vars:
+          PACKAGE: zlib
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+      - |
+        cd cdhit-{{.VERSION}}
+        make
+        mkdir -p $GROUP_HOME/opt/{{.SUBDIR}}/bin
+        make install PREFIX=$GROUP_HOME/opt/{{.SUBDIR}}/bin
+    vars:
+      URL: https://github.com/weizhongli/cdhit/archive/refs/tags/V{{.VERSION}}.tar.gz
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bin/cd-hit
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bin/cd-hit-est

@@ -3,6 +3,12 @@ version: '3'
 includes:
   create_env: ./tasks/envs/EnvsTasks.yml
   install: ./tasks/InstallTasks.yml
+  download: ./tasks/PublicDataTasks.yml
 
 tasks:
-  default: install:core
+  setup:
+    prompt: Are you setting up a new HPC?
+    cmds:
+      - task: install:core
+      - task: download:ncbi_taxranks
+      - task: download:reference_genomes

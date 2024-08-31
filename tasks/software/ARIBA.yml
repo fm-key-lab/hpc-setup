@@ -1,0 +1,86 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+  group_envs: ../envs/EnvsTasks.yml
+  bowtie2: Bowtie2.yml
+  cdhit: CD-HIT.yml
+  mummer: MUMmer.yml
+
+tasks:
+  install:
+    desc: Install ARIBA
+    summary: |
+      Install ARIBA
+
+      ARIBA is a tool that identifies antibiotic resistance genes by running 
+      local assemblies. It can also be used for MLST calling.
+      
+      Notes
+      -----
+      - `pymummer` checks for MUMmer programs to be in PATH during setup
+
+      URLs
+      ----
+      - https://github.com/sanger-pathogens/ariba
+    cmds:
+      - task: _install
+        vars:
+          APP: ariba
+          VERSION: 2.14.7
+          ARIBA_BOWTIE2: opt/bowtie2/2.1.0/bowtie2-2.1.0/bowtie2
+          ARIBA_CDHIT: opt/cdhit/4.8.1/bin/cd-hit-est
+
+  _install:
+    internal: true
+    deps:
+      - task: build
+        vars:
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+          ARIBA_BOWTIE2: $GROUP_HOME/{{.ARIBA_BOWTIE2}}
+          ARIBA_CDHIT: $GROUP_HOME/{{.ARIBA_CDHIT}}
+    cmds:
+      - task: group_envs:create_venv_modulefile
+        vars:
+          NAME: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+      - |
+        echo '
+        depends-on mummer
+        
+        setenv --set-if-undef   ARIBA_BOWTIE2     "${groupdir}/{{.ARIBA_BOWTIE2}}"
+        setenv --set-if-undef   ARIBA_CDHIT     "${groupdir}/{{.ARIBA_CDHIT}}"
+        setenv --set-if-undef   PYTHONWARNINGS    "ignore::SyntaxWarning"' >> $GROUP_HOME/Modules/modulefiles/ariba/0.0.1-alpha
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    # prompt: Install in $GROUP_HOME/opt/{{.SUBDIR}}?
+    deps:
+      - task: bowtie2:install
+      - task: cdhit:install
+      - task: mummer:install
+    cmds:
+      - task: group_envs:create_venv
+        vars:
+          NAME: ariba
+          PYTHON: $GROUP_HOME/opt/python/python/bin/python3.12
+          REQUIREMENTS: '"dendropy>=4.2.0" "matplotlib>=3.1.0" "pyfastaq>=3.12.0" "pysam>=0.9.1" biopython'
+      - |
+        bash -c '
+        module purge;
+        source $GROUP_HOME/envs/venv/ariba/.venv/bin/activate;
+        PATH=$GROUP_HOME/opt/mummer/3.23/MUMmer3.23;
+        module load {{.BINUTILS_MODULE}} {{.GCC_MODULE}} {{.UV_MODULE}} &&
+        uv pip install "pymummer>=0.10.1" &&
+        uv pip install ariba &&
+        module purge &&
+        deactivate'
+    vars:
+      BINUTILS_MODULE: binutils/2.42
+      GCC_MODULE: gcc/14
+      UV_MODULE: uv/0.2.34
+    env:
+      ARIBA_BOWTIE2: '{{.ARIBA_BOWTIE2}}'
+      ARIBA_CDHIT: '{{.ARIBA_CDHIT}}'
+    status:
+      - test -d $GROUP_HOME/envs/venv/ariba/.venv/lib/python3.12/site-packages/ariba

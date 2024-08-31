@@ -39,6 +39,7 @@ tasks:
 
   build:
     dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    prompt: Install in $GROUP_HOME/opt/{{.SUBDIR}}?
     cmds:
       - wget {{.URL}}
       - defer: rm -f $(basename {{.URL}})

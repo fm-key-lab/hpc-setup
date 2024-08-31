@@ -10,7 +10,6 @@ tasks:
         vars:
           APP: blast
           VERSION: 2.16.0
-          RELPATH_EXE: /ncbi-blast{{.VERSION}}+/bin/
           EXE: blastn
 
   _install:
@@ -25,7 +24,7 @@ tasks:
         vars:
           APP: '{{.APP}}'
           VERSION: '{{.VERSION}}'
-          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          RELPATH_EXE: '/ncbi-blast-{{.VERSION}}+/bin/'
           EXE: '{{.EXE}}'
 
   build:
@@ -55,6 +54,8 @@ tasks:
       URL: https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/{{.VERSION}}/ncbi-blast-{{.VERSION}}+-src.tar.gz
     requires:
       vars: [SUBDIR, VERSION]
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/ncbi-blast-{{.VERSION}}+-src/c++/ReleaseMT/bin/blastn
 
   download_prebuilt_binary:
     cmds:

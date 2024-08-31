@@ -1,0 +1,23 @@
+version: 3
+
+tasks:
+  download:
+    desc: Download taxonomic rank file
+    summary: |
+      Download taxonomic rank file
+      
+      Consists of taxonomic classes and for all species on NCBI.
+
+      URLs
+      ----
+      - https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump_archive
+    dir: $GROUP_HOME/public_data/databases/ncbi_taxranks/{{.DATE}}
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - unzip $(basename {{.URL}})
+    vars:
+      DATE: '{{.DATE | default "2024-08-01"}}'
+      URL: https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump_archive/new_taxdump_{{.DATE}}.zip
+    status:
+      - test -f $GROUP_HOME/public_data/databases/ncbi_taxranks/{{.DATE}}/rankedlineage.dmp
