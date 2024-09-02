@@ -1,0 +1,51 @@
+version: '3'
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install NCBI Datasets CLI tools
+    summary: |
+      Install NCBI Datasets CLI tools
+
+      URLs
+      ----
+      - https://www.ncbi.nlm.nih.gov/datasets/docs/v2/download-and-install/
+    cmds:
+      - task: _install
+        vars:
+          APP: ncbi_datasets
+          VERSION: 2
+          EXE: datasets dataformat
+
+  _install:
+    internal: true
+    deps:
+      - task: build
+        vars:
+          VERSION: '{{.VERSION}}'
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+    cmds:
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '/'
+          EXE: '{{.EXE}}'
+  
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    prompt: Install in $GROUP_HOME/opt/{{.SUBDIR}}?
+    cmds:
+      - for: { var: URLS, as: URL }
+        cmd: |
+          wget {{.URL}}
+          chmod +x $(basename ${{.URL}})
+    vars:
+      URLS: |
+        https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/v{{.VERSION}}/linux-amd64/datasets
+        https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/v{{.VERSION}}/linux-amd64/dataformat
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/datasets
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/dataformat

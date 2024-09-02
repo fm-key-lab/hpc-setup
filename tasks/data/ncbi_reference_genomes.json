@@ -1,0 +1,26 @@
+{
+    "ASM584v2": {
+        "accession": "GCA_000005845.2",
+        "taxon": "Escherichia_coli"
+    },
+    "ASM886v2": {
+        "accession": "GCF_000008865.2",
+        "taxon": "Escherichia_coli"
+    },
+    "ASM102517v1": {
+        "accession": "GCF_001025175.1",
+        "taxon": "Bifidobacterium_breve"
+    },
+    "45889_C01": {
+        "accession": "GCA_900636985.1",
+        "taxon": "Klebsiella_oxytoca"
+    },
+    "ASM1828913v1": {
+        "accession": "GCA_018289135.1",
+        "taxon": "Bacteroides_xylanisolvens"
+    },
+    "Ente_faec_T5_V1": {
+        "accession": "GCF_000393015.1",
+        "taxon": "Enterococcus_faecalis"
+    }
+}

@@ -1,0 +1,49 @@
+version: 3
+
+includes:
+  run_utils: ../utils/Run.yml
+
+vars:
+  JQ: $GROUP_HOME/bin/jq
+  NCBI_REFERENCE_URL: https://ftp.ncbi.nlm.nih.gov/genomes/
+  NCBI_DATASETS_MODULE: ncbi_datasets/2
+
+tasks:
+  download-reference:
+    dir: $GROUP_HOME/public_data/reference_genomes/{{.TAXON}}/{{.ACCESSION}}/{{.SOURCE}}
+
+  download-core-reference-genomes:
+    vars:
+      REF_JSON_PATH: '{{.TASKFILE_DIR}}/ncbi_reference_genomes.json'
+      REF_KEYS:
+        sh: '{{.JQ}} -r "keys[]" {{.REF_JSON_PATH}}'
+      REF_ENTRIES:
+        sh: '{{.JQ}} -c . {{.REF_JSON_PATH}}'
+      REF_ENTRIES_MAP:
+        ref: "fromJson .REF_ENTRIES"
+    cmds:
+      - for: { var: REF_KEYS }
+        task: download-ncbi-reference-genome
+        vars:
+          ACCESSION: '{{index .REF_ENTRIES_MAP .ITEM "accession"}}'
+          TAXON: '{{index .REF_ENTRIES_MAP .ITEM "taxon"}}'
+
+  download-ncbi-reference-genome:
+    dir: $GROUP_HOME/public_data/reference_genomes/{{.TAXON}}/{{.ACCESSION}}/NCBI
+    cmds:
+      - task: run_utils:run-in-module
+        vars:
+          CMDS: datasets download genome accession {{.ACCESSION}} --filename {{.PREFIX}}/ncbi_dataset.zip --include gff3,rna,cds,protein,genome,seq-report
+          MODULE: '{{.NCBI_DATASETS_MODULE}}'
+      - unzip {{.PREFIX}}/ncbi_dataset.zip
+      - defer: rm -f {{.PREFIX}}/ncbi_dataset.zip
+    vars:
+      PREFIX: $GROUP_HOME/public_data/reference_genomes/{{.TAXON}}/{{.ACCESSION}}/NCBI
+    required:
+      vars: [ACCESSION, TAXON]
+    status:
+      - test -f {{.PREFIX}}/README.md
+      - test -d {{.PREFIX}}/ncbi_dataset
+      - test -f {{.PREFIX}}/ncbi_dataset/data/assembly_data_report.jsonl
+      - test -f {{.PREFIX}}/ncbi_dataset/data/dataset_catalog.json
+      - test -d {{.PREFIX}}/ncbi_dataset/data/{{.ACCESSION}}

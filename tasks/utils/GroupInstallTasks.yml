@@ -39,6 +39,22 @@ tasks:
     requires:
       vars: [APP, VERSION, RELPATH_EXE]
 
+  build-from-source-vanilla:
+    dir: '{{.PREFIX}}'
+    prompt: Install in {{.PREFIX}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+      - |
+        cd {{.APP}}-{{.VERSION}}
+        ./configure --prefix={{.PREFIX}}
+        make; make install
+    status:
+      - test {{.STATUS}}
+    requires:
+      vars: [APP, PREFIX, STATUS, URL, VERSION]
+
   build_in_venv:
     cmds:
       - echo ""

@@ -10,5 +10,4 @@ tasks:
     prompt: Are you setting up a new HPC?
     cmds:
       - task: install:core
-      - task: download:ncbi_taxranks
-      - task: download:reference_genomes
+      - task: download:all

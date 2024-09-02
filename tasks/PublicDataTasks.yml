@@ -2,20 +2,25 @@ version: 3
 
 includes:
   igenomes: ./data/iGenomes.yml
+  ncbi_reference: ./data/NCBIReference.yml
   ncbi_taxonomy: ./data/NCBITaxonomy.yml
   pubmlst: ./data/PubMLST.yml
 
 tasks:
   all:
+    - task: igenome_reference_genomes
+    - task: ncbi_reference_genomes
     - task: ncbi_taxranks
     - task: pubmlst
-    - task: reference_genomes
+  
+  igenome_reference_genomes:
+    - task: igenomes:download_ecoli
+  
+  ncbi_reference_genomes:
+    - task: ncbi_reference:download-core-reference-genomes
 
   ncbi_taxranks:
     - task: ncbi_taxonomy:download
   
   pubmlst:
     - task: pubmlst:ariba_db
-  
-  reference_genomes:
-    - task: igenomes:download_ecoli
