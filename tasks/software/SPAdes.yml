@@ -1,0 +1,49 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install SPAdes
+    summary: |
+      Install SPAdes
+
+      URLs
+      ----
+      - https://github.com/ablab/spades/releases/tag/v4.0.0
+    cmds:
+      - task: _install
+        vars:
+          APP: spades
+          VERSION: 4.0.0
+
+  _install:
+    internal: true
+    deps:
+      - task: build
+        vars:
+          VERSION: '{{.VERSION}}'
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+    cmds:
+      - task: group_install:modulefile
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '/SPAdes-{{.VERSION}}-Linux/bin/'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    prompt: Install in $GROUP_HOME/opt/{{.SUBDIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+    vars:
+      URL: https://github.com/ablab/spades/releases/download/v{{.VERSION}}/SPAdes-{{.VERSION}}-Linux.tar.gz
+    status:
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/SPAdes-{{.VERSION}}-Linux/bin/spades.py
+
+  test:
+    - $GROUP_HOME/opt/{{.SUBDIR}}/SPAdes-{{.VERSION}}-Linux/bin/spades.py --test
+    - defer: rm -rf $GROUP_HOME/opt/{{.SUBDIR}}/SPAdes-{{.VERSION}}-Linux/bin/spades_test

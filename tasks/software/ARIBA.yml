@@ -6,6 +6,7 @@ includes:
   bowtie2: Bowtie2.yml
   cdhit: CD-HIT.yml
   mummer: MUMmer.yml
+  spades: SPAdes.yml
 
 tasks:
   install:
@@ -47,6 +48,7 @@ tasks:
       - |
         echo '
         depends-on mummer
+        depends-on spades
         
         setenv --set-if-undef   ARIBA_BOWTIE2     "${groupdir}/{{.ARIBA_BOWTIE2}}"
         setenv --set-if-undef   ARIBA_CDHIT     "${groupdir}/{{.ARIBA_CDHIT}}"
@@ -59,6 +61,7 @@ tasks:
       - task: bowtie2:install
       - task: cdhit:install
       - task: mummer:install
+      - task: spades:install
     cmds:
       - task: group_envs:create_venv
         vars:
@@ -69,8 +72,7 @@ tasks:
         bash -c '
         module purge;
         source $GROUP_HOME/envs/venv/ariba/.venv/bin/activate;
-        PATH=$GROUP_HOME/opt/mummer/3.23/MUMmer3.23;
-        module load {{.BINUTILS_MODULE}} {{.GCC_MODULE}} {{.UV_MODULE}} &&
+        module load {{.BINUTILS_MODULE}} {{.GCC_MODULE}} mummer/3.22 {{.UV_MODULE}} &&
         uv pip install "pymummer>=0.10.1" &&
         uv pip install ariba &&
         module purge &&

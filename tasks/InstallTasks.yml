@@ -21,6 +21,7 @@ includes:
   rust: ./software/Rust.yml
   samtools: ./software/SAMtools.yml
   snpsites: ./software/SNPsites.yml
+  spades: ./software/SPAdes.yml
   srst2: ./software/SRST2.yml
   tinytex: ./software/TinyTex.yml
   veryfasttree: ./software/VeryFastTree.yml
@@ -53,6 +54,7 @@ tasks:
     - task: rust
     - task: samtools
     - task: snpsites
+    - task: spades
     - task: srst2
     - task: tinytex
     - task: veryfasttree
@@ -81,6 +83,7 @@ tasks:
     - task: resfinder
     - task: samtools
     - task: snpsites
+    - task: spades
     - task: srst2
     - task: veryfasttree
 
@@ -158,6 +161,15 @@ tasks:
 
   samtools:
     - task: samtools:install
+
+  snpsites:
+    - task: snpsites:install
+  
+  spades:
+    - task: spades:install
+
+  srst2:
+    - task: srst2:install
 
   resfinder:
     - task: resfinder:install

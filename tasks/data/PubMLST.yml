@@ -1,0 +1,13 @@
+version: 3
+
+# TODO: Refactor to get list of species and loop through it
+# TODO: Wait on completion
+
+tasks:
+  ariba_db:
+    dir: '{{.DIRECTORY}}'
+    cmds:
+      - bash -c '. {{.ROOT_DIR}}/tasks/scripts/ariba_pubmlst_all_species.sh {{.DIRECTORY}}'
+      # - defer: rm -rf {{.DIRECTORY}}/.logs # SLURM logs
+    vars:
+      DIRECTORY: $GROUP_HOME/public_data/databases/pubmlst/ariba

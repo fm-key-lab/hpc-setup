@@ -28,13 +28,15 @@ tasks:
       - task: _install
         vars:
           APP: mummer
-          VERSION: 3.23
-          RELPATH_EXE: /MUMmer3.23/
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: /MUMmer{{.VERSION}}/
           EXE: |
             nucmer 
             show-coords 
             show-snps 
             delta-filter
+    vars:
+      VERSION: '{{.VERSION | default "3.23"}}'
 
   _install:
     internal: true
@@ -72,10 +74,10 @@ tasks:
     vars:
       URL: https://sourceforge.net/projects/mummer/files/mummer/{{.VERSION}}/MUMmer{{.VERSION}}.tar.gz
     status:
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer3.23/nucmer
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer3.23/show-coords
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer3.23/show-snps
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer3.23/delta-filter
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer3.23/src/tigr/show-coords
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer3.23/src/tigr/show-snps
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer3.23/src/tigr/delta-filter
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer{{.VERSION}}/nucmer
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer{{.VERSION}}/show-coords
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer{{.VERSION}}/show-snps
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer{{.VERSION}}/delta-filter
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer{{.VERSION}}/src/tigr/show-coords
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer{{.VERSION}}/src/tigr/show-snps
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/MUMmer{{.VERSION}}/src/tigr/delta-filter
