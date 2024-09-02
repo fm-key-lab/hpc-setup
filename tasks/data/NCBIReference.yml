@@ -14,7 +14,7 @@ tasks:
 
   download-core-reference-genomes:
     vars:
-      REF_JSON_PATH: '{{.TASKFILE_DIR}}/ncbi_reference_genomes.json'
+      REF_JSON_PATH: '{{.TASKFILE_DIR}}/core-reference-genomes.json'
       REF_KEYS:
         sh: '{{.JQ}} -r "keys[]" {{.REF_JSON_PATH}}'
       REF_ENTRIES:
