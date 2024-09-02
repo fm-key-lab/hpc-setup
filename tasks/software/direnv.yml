@@ -1,0 +1,33 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    cmds:
+      - task: build
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '/'
+          EXE: '{{.APP}}'
+    vars:
+      APP: direnv
+      VERSION: '{{.VERSION | default "2.34.0"}}'
+  
+  build:
+    dirs: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
+    cmds:
+      - curl -sfL {{.INSTALLER_SCRIPT}} | bash
+    env:
+      bin_path: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
+      release: '{{.VERSION}}'
+    vars:
+      INSTALLER_SCRIPT: https://direnv.net/install.sh
+    status:
+      - test -f $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}/direnv

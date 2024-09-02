@@ -6,6 +6,7 @@ includes:
   blast: ./software/BLAST.yml
   bowtie2: ./software/Bowtie2.yml
   cdhit: ./software/CD-HIT.yml
+  direnv: ./software/direnv.yml
   duckdb: ./software/DuckDB.yml
   fasttree: ./software/FastTree.yml
   gnumeric: ./software/Gnumeric.yml
@@ -41,6 +42,7 @@ tasks:
     - task: blast
     - task: bowtie2
     - task: cdhit
+    - task: direnv
     - task: duckdb
     - task: fasttree
     - task: gnumeric
@@ -102,6 +104,7 @@ tasks:
 
   utils:
     - task: aria2
+    - task: direnv
     - task: ncurses
     - task: pandoc
     - task: tinytex
@@ -129,6 +132,9 @@ tasks:
 
   cdhit:
     - task: cdhit:install
+
+  direnv:
+    - task: direnv:install
 
   duckdb:
     - task: duckdb:install
