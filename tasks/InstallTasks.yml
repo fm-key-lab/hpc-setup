@@ -28,6 +28,7 @@ includes:
   srst2: ./software/SRST2.yml
   tinytex: ./software/TinyTex.yml
   veryfasttree: ./software/VeryFastTree.yml
+  yadm: ./software/yadm.yml
   yq: ./software/yq.yml
 
 vars:
@@ -64,6 +65,7 @@ tasks:
     - task: srst2
     - task: tinytex
     - task: veryfasttree
+    - task: yadm
     - task: yq
 
   # ~*~
@@ -95,6 +97,9 @@ tasks:
     - task: spades
     - task: srst2
     - task: veryfasttree
+
+  admin:
+    - task: yadm
 
   data:
     - task: duckdb
@@ -208,6 +213,9 @@ tasks:
 
   veryfasttree:
     - task: veryfasttree:install_py
+
+  yadm:
+    - task: yadm:install
 
   yq:
     - task: yq:install
