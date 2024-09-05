@@ -23,10 +23,12 @@ includes:
   resfinder: ./software/ResFinder.yml
   rust: ./software/Rust.yml
   samtools: ./software/SAMtools.yml
+  samtools_bcftools_htslib: ./software/SAMtools-bcftools-htslib.yml
   snpsites: ./software/SNPsites.yml
   spades: ./software/SPAdes.yml
   srst2: ./software/SRST2.yml
   tinytex: ./software/TinyTex.yml
+  vcftools: ./software/VCFtools.yml
   veryfasttree: ./software/VeryFastTree.yml
   yadm: ./software/yadm.yml
   yq: ./software/yq.yml
@@ -60,10 +62,12 @@ tasks:
     - task: resfinder
     - task: rust
     - task: samtools
+    - task: samtools_bcftools_htslib
     - task: snpsites
     - task: spades
     - task: srst2
     - task: tinytex
+    - task: vcftools
     - task: veryfasttree
     - task: yadm
     - task: yq
@@ -77,8 +81,10 @@ tasks:
     - task: ncbi_datasets
     - task: python
     - task: samtools
+    - task: samtools_bcftools_htslib
     - task: snpsites
     - task: srst2
+    - task: vcftools
 
   bio:
     - task: ariba
@@ -93,10 +99,12 @@ tasks:
     - task: ncbi_datasets
     - task: resfinder
     - task: samtools
+    - task: samtools_bcftools_htslib
     - task: snpsites
     - task: spades
     - task: srst2
     - task: veryfasttree
+    - task: vcftools
 
   admin:
     - task: yadm
@@ -202,6 +210,12 @@ tasks:
   rust:
     - task: rust:install
 
+  samtools:
+    - task: samtools:install
+
+  samtools_bcftools_htslib:
+    - task: samtools_bcftools_htslib:install
+
   snpsites:
     - task: snpsites:install
 
@@ -210,6 +224,9 @@ tasks:
 
   tinytex:
     - task: tinytex:install
+
+  vcftools:
+    - task: vcftools:install
 
   veryfasttree:
     - task: veryfasttree:install_py

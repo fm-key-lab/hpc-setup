@@ -1,0 +1,28 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    prompt: Install in $GROUP_HOME/{{.APP}}/{{.VERSION}}?
+    cmds:
+      - for: { var: APPS, as: APP }
+        task: group_install:build-from-source-vanilla
+        vars:
+          APP: '{{.APP}}'
+          PREFIX: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
+          STATUS: '-d $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}/bin'
+          URL: https://github.com/samtools/{{.APP}}/releases/download/{{.VERSION}}/{{.APP}}-{{.VERSION}}.tar.bz2
+          VERSION: '{{.VERSION}}'
+      - for: { var: APPS, as: APP }
+        task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          EXE: '{{.APP}}'
+          RELPATH_EXE: '/bin/'
+      - rm -f $GROUP_HOME/bin/htslib # TODO: Link to tabix instead
+    vars:
+      APPS: samtools bcftools htslib
+      VERSION: '{{.VERSION | default "1.20"}}'

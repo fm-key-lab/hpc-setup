@@ -1,0 +1,36 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    dir: $GROUP_HOME/{{.APP}}/{{.VERSION}}
+    cmds:
+      - task: build
+        vars:
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          EXE: '{{.APP}}'
+          RELPATH_EXE: '/bin/'
+    vars:
+      APP: vcftools
+      VERSION: '{{.VERSION | default "0.1.16"}}'
+  
+  build:
+    dir: $GROUP_HOME/{{.SUBDIR}}
+    prompt: Install in $GROUP_HOME/{{.SUBDIR}}?
+    cmds:
+      - git clone https://github.com/vcftools/vcftools.git
+      - |
+        cd vcftools
+        ./autogen.sh
+        ./configure --prefix=$GROUP_HOME/{{.SUBDIR}}
+        make; make install
+    requires:
+      vars: [SUBDIR]
+    status:
+      - test -f $GROUP_HOME/{{.SUBDIR}}/bin/vcftools

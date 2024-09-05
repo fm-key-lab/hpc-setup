@@ -56,7 +56,6 @@ tasks:
       vars: [APP, PREFIX, STATUS, URL, VERSION]
 
   build_in_venv:
-    cmds:
       - echo ""
 
   check_software:
