@@ -1,7 +1,7 @@
 version: '3'
 
 includes:
-  create_env: ./tasks/envs/EnvsTasks.yml
+  envs: ./tasks/envs/EnvsTasks.yml
   install: ./tasks/InstallTasks.yml
   download: ./tasks/PublicDataTasks.yml
 

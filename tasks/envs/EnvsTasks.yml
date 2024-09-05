@@ -1,5 +1,8 @@
 version: '3'
 
+includes:
+  run_utils: ../utils/Run.yml
+
 vars:
   GROUP_VENVS: $GROUP_HOME/envs/venv
   PYTHON_MODULE: python-waterboa/2024.06
@@ -7,34 +10,29 @@ vars:
 
 tasks:
   # TODO: Graceful exits when errors
+  # TODO: Use `uv init` instead with a config
   create_venv:
     dir: '{{.GROUP_VENVS}}/{{.NAME}}'
-    cmds:
-      # TODO: Use `uv init` instead with a config
-      - |
-        bash -c '
-        module purge;
-        module load {{.UV_MODULE}};
-        uv venv --python={{.PYTHON}};
-        source .venv/bin/activate;
-        uv pip install {{.REQUIREMENTS}};
-        deactivate;
-        module unload {{.UV_MODULE}}'
     prompt: Create environment {{.GROUP_VENVS}}/{{.NAME}}?
+    cmds:
+      - task: run_utils:run-in-module
+        vars:
+          CMDS: 'cd {{.GROUP_VENVS}}/{{.NAME}} && uv venv --python={{.PYTHON}} && source .venv/bin/activate && uv pip install {{.PIP_INSTALL}} && deactivate'
+          MODULE: '{{.UV_MODULE}}'
+    vars:
+      PYTHON: '{{.PYTHON | default "$GROUP_HOME/opt/python/python/bin/python3.12"}}'
     requires:
-      vars: [NAME, PYTHON, REQUIREMENTS]
-    # preconditions:
-    #   - test -f {{.REQUIREMENTS}}
+      vars: [NAME, PIP_INSTALL]
     status:
       - test -f {{.GROUP_VENVS}}/{{.NAME}}/.venv/bin/activate
 
   create_venv_modulefile:
     dir: $GROUP_HOME/Modules/modulefiles/{{.NAME}}
     cmds:
-      - bash -c '
-        module load {{.PYTHON_MODULE}} &&
-        python {{.ROOT_DIR}}/tasks/scripts/write_modulefile.py --NAME {{.NAME}} --VERSION {{.VERSION}} --template venv &&
-        module unload {{.PYTHON_MODULE}}'
+      - task: run_utils:run-in-module
+        vars:
+          CMDS: 'python {{.ROOT_DIR}}/tasks/scripts/write_modulefile.py --NAME {{.NAME}} --VERSION {{.VERSION}} --template venv'
+          MODULE: '{{.PYTHON_MODULE}}'
     vars:
       DEFAULT_VERSION: 0.0.1-alpha
       VERSION: '{{.DEFAULT_VERSION}}'
@@ -46,11 +44,10 @@ tasks:
   add_jupyter_kernel:
     dir: '{{.GROUP_VENVS}}/{{.NAME}}'
     cmds:
-      - |
-        bash -c '
-        source .venv/bin/activate;
-        python -m ipykernel install --user --name group-venv-{{.NAME}} --display-name "Python ({{.NAME}}), group venvs"
-        deactivate'
+      - task: run_utils:run-in-venv
+        vars:
+          CMDS: 'python -m ipykernel install --user --name group-venv-{{.NAME}} --display-name "Python ({{.NAME}}), group venvs"'
+          DIRECTORY: '{{.GROUP_VENVS}}/{{.NAME}}'
     status:
       - test -d $HOME/.local/share/jupyter/kernels/group-venv-{{.NAME}}
     requires:
@@ -59,15 +56,30 @@ tasks:
   sandbox_venv:
     vars:
       NAME: sandbox
+      PYTHON_VERSION: 3.12
     cmds:
       - task: create_venv
         vars:
           NAME: '{{.NAME}}'
-          PYTHON: $GROUP_HOME/opt/python/python/bin/python3.12
-          REQUIREMENTS: -r '{{.ROOT_DIR}}/tasks/envs/sandbox-requirements.txt'
+          PYTHON: $GROUP_HOME/opt/python/python/bin/python{{.PYTHON_VERSION}}
+          PIP_INSTALL: -r '{{.ROOT_DIR}}/tasks/envs/sandbox-requirements.txt'
       - task: create_venv_modulefile
         vars:
           NAME: '{{.NAME}}'
       - task: add_jupyter_kernel
+        vars:
+          NAME: '{{.NAME}}'
+
+  python_packaging_venv:
+    vars:
+      NAME: python_packaging
+      PYTHON_VERSION: 3.12
+    cmds:
+      - task: create_venv
+        vars:
+          NAME: '{{.NAME}}'
+          PYTHON: $GROUP_HOME/opt/python/python/bin/python{{.PYTHON_VERSION}}
+          PIP_INSTALL: -r '{{.ROOT_DIR}}/tasks/envs/{{.NAME}}-requirements.txt'
+      - task: create_venv_modulefile
         vars:
           NAME: '{{.NAME}}'

@@ -18,6 +18,13 @@ tasks:
       - task: module-exists
         vars: '{{.MODULE}}'
   
+  run-in-venv:
+    dir: '{{.DIRECTORY}}'
+    cmds:
+      - bash -c 'source .venv/bin/activate; {{.CMDS}}; deactivate'
+    required:
+      vars: [CMDS, DIRECTORY]
+
   module-exists:
     run: once
     status:
