@@ -3,20 +3,25 @@ version: '3'
 includes:
   aria2: ./software/Aria2.yml
   ariba: ./software/ARIBA.yml
+  bedtools: ./software/bedtools.yml
   blast: ./software/BLAST.yml
   bowtie2: ./software/Bowtie2.yml
   cdhit: ./software/CD-HIT.yml
+  d4tools: ./software/D4.yml
   direnv: ./software/direnv.yml
   duckdb: ./software/DuckDB.yml
   fasttree: ./software/FastTree.yml
+  gatk: ./software/GATK.yml
   gnumeric: ./software/Gnumeric.yml
   gubbins: ./software/Gubbins.yml
   jq: ./software/jq.yml
   kma: ./software/KMA.yml
   kmerresistance: ./software/KmerResistance.yml
+  mosdepth: ./software/mosdepth.yml
   mummer: ./software/MUMmer.yml
   ncbi_datasets: ./software/NCBIDatasetsCLI.yml
   ncurses: ./software/Ncurses.yml
+  nim: ./software/Nim.yml
   pandoc: ./software/Pandoc.yml
   perl: ./software/Perl.yml
   python: ./software/Python.yml
@@ -42,20 +47,25 @@ tasks:
   all:
     - task: aria2
     - task: ariba
+    - task: bedtools
     - task: blast
     - task: bowtie2
     - task: cdhit
+    - task: d4tools
     - task: direnv
     - task: duckdb
     - task: fasttree
+    - task: gatk
     - task: gnumeric
     - task: gubbins
     - task: jq
     - task: kma
     - task: kmerresistance
+    - task: mosdepth
     - task: mummer
     - task: ncbi_datasets
     - task: ncurses
+    - task: nim
     - task: pandoc
     - task: perl
     - task: python
@@ -75,8 +85,10 @@ tasks:
   # ~*~
 
   core:
+    - task: bedtools
     - task: blast
     - task: bowtie2
+    - task: gatk
     - task: gubbins
     - task: ncbi_datasets
     - task: python
@@ -88,13 +100,17 @@ tasks:
 
   bio:
     - task: ariba
+    - task: bedtools
     - task: blast
     - task: bowtie2
+    - task: d4tools
     - task: cdhit
     - task: fasttree
+    - task: gatk
     - task: gubbins
     - task: kma
     - task: kmerresistance
+    - task: mosdepth
     - task: mummer
     - task: ncbi_datasets
     - task: resfinder
@@ -110,6 +126,7 @@ tasks:
     - task: yadm
 
   data:
+    - task: d4tools
     - task: duckdb
     - task: gnumeric
     - task: jq
@@ -127,6 +144,7 @@ tasks:
     - task: python
 
   compilers:
+    - task: nim
     - task: rust
 
   # ~*~
@@ -137,6 +155,9 @@ tasks:
   ariba:
     - task: ariba:install
 
+  bedtools:
+    - task: bedtools:install
+
   blast:
     - task: blast:install
 
@@ -145,6 +166,9 @@ tasks:
 
   cdhit:
     - task: cdhit:install
+
+  d4tools:
+    - task: d4tools:install
 
   direnv:
     - task: direnv:install
@@ -157,6 +181,9 @@ tasks:
     - task: fasttree:install
     - task: fasttree:install_dbl
     - task: fasttree:install_openmp
+
+  gatk:
+    - task: gatk:install
 
   gnumeric:
     - task: gnumeric:install
@@ -173,6 +200,9 @@ tasks:
   kmerresistance:
     - task: kmerresistance:install
 
+  mosdepth:
+    - task: mosdepth:install
+
   mummer:
     - task: mummer:install
 
@@ -181,6 +211,9 @@ tasks:
 
   ncurses:
     - task: ncurses:install
+
+  nim:
+    - task: nim:install
 
   pandoc:
     - task: pandoc:install

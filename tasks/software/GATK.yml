@@ -1,0 +1,38 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    cmds:
+      - task: download
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          EXE: '{{.APP}}'
+          RELPATH_EXE: '/gatk-{{.VERSION}}/'
+      - echo -e '\n\nset-alias gatk "${basedir}/gatk/{{.VERSION}}/gatk-{{.VERSION}}/gatk"' >> $GROUP_HOME/Modules/modulefiles/{{.APP}}/{{.VERSION}}
+    vars:
+      APP: gatk
+      VERSION: '{{.VERSION | default "4.6.0.0"}}'
+    status:
+      - test -f $GROUP_HOME/Modules/modulefiles/{{.APP}}/{{.VERSION}}
+  
+  download:
+    dir: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
+    prompt: Download in $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - unzip $(basename ${{.URL}})
+    vars:
+      URL: https://github.com/broadinstitute/gatk/releases/download/{{.VERSION}}/gatk-{{.VERSION}}.zip
+    requires:
+      vars: [APP, VERSION]
+    status:
+      - test -f $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}/gatk-{{.VERSION}}/gatk

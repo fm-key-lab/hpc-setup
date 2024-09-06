@@ -5,7 +5,6 @@ includes:
 
 tasks:
   install:
-    prompt: Install in $GROUP_HOME/{{.APP}}/{{.VERSION}}?
     cmds:
       - for: { var: APPS, as: APP }
         task: group_install:build-from-source-vanilla
@@ -26,3 +25,7 @@ tasks:
     vars:
       APPS: samtools bcftools htslib
       VERSION: '{{.VERSION | default "1.20"}}'
+    status:
+      - test -f $GROUP_HOME/opt/samtools/{{.VERSION}}/bin/samtools
+      - test -f $GROUP_HOME/opt/bcftools/{{.VERSION}}/bin/bcftools
+      - test -f $GROUP_HOME/opt/htslib/{{.VERSION}}/bin/tabix

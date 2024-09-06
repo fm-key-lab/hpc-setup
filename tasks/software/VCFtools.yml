@@ -5,7 +5,6 @@ includes:
 
 tasks:
   install:
-    dir: $GROUP_HOME/{{.APP}}/{{.VERSION}}
     cmds:
       - task: build
         vars:
@@ -21,7 +20,7 @@ tasks:
       VERSION: '{{.VERSION | default "0.1.16"}}'
   
   build:
-    dir: $GROUP_HOME/{{.SUBDIR}}
+    dir: $GROUP_HOME/opt/{{.SUBDIR}}
     prompt: Install in $GROUP_HOME/{{.SUBDIR}}?
     cmds:
       - git clone https://github.com/vcftools/vcftools.git
@@ -33,4 +32,4 @@ tasks:
     requires:
       vars: [SUBDIR]
     status:
-      - test -f $GROUP_HOME/{{.SUBDIR}}/bin/vcftools
+      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bin/vcftools

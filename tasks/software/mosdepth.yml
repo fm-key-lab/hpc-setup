@@ -1,0 +1,60 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+  run_utils: ../utils/Run.yml
+  htslib: SAMtools-bcftools-htslib.yml
+  nim: Nim.yml
+
+tasks:
+  install:
+    desc: Install mosdepth
+    summary: |
+      Install mosdepth
+
+      URLs
+      ----
+      - https://github.com/brentp/mosdepth/blob/master/scripts/install.sh
+    cmds:
+      - task: build
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          HTSLIB: '{{.HTSLIB}}'
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          EXE: '{{.APP}}'
+          RELPATH_EXE: '/mosdepth-{{.VERSION}}/'
+      - echo -e '\n\nsetenv LD_LIBRARY_PATH "${basedir}/{{.HTSLIB}}"' >> $GROUP_HOME/Modules/modulefiles/{{.APP}}/{{.VERSION}}
+    vars:
+      APP: mosdepth
+      VERSION: '{{.VERSION | default "0.3.9"}}'
+      HTSLIB: htslib/1.20/htslib-1.20 # Must be parent dir of `libhts.so`
+    status:
+      - test -f $GROUP_HOME/Modules/modulefiles/{{.APP}}/{{.VERSION}}
+  
+  build:
+    dir: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
+    prompt: Download in $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}?
+    deps:
+      - task: nim:install
+      - task: htslib:install
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+      - task: run_utils:run-in-module
+        vars:
+          CMDS: 'cd mosdepth-{{.VERSION}} && nimble install -y && nim c -d:release mosdepth.nim'
+          MODULE: 'nim/2.0.8 d4tools/0.3.10'
+    vars:
+      HTSLIB_ABS: $GROUP_HOME/opt/{{.HTSLIB}} # Must be parent dir of `libhts.so`
+      URL: https://github.com/brentp/mosdepth/archive/refs/tags/v{{.VERSION}}.tar.gz
+    env:
+      LD_LIBRARY_PATH: '{{.HTSLIB_ABS}}'
+    requires:
+      vars: [APP, HTSLIB, VERSION]
+    status:
+      - test -f $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}/mosdepth-{{.VERSION}}/mosdepth

@@ -1,0 +1,48 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install bedtools
+    summary: |
+      Install bedtools
+
+      URLs
+      ----
+      - https://bedtools.readthedocs.io
+    cmds:
+      - task: build
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          EXE: '{{.APP}}'
+          RELPATH_EXE: /bedtools2/bin/
+    vars:
+      APP: bedtools
+      VERSION: '{{.VERSION | default "2.31.1"}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
+    prompt: Install in $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+      - |
+        cd bedtools2
+        # make PYTHON={{.PYTHON}} HTSDIR={{.HTSLIB}} # NOTE: won't compile (missing headers)
+        make PYTHON={{.PYTHON}}
+    vars:
+      HTSLIB: $GROUP_HOME/opt/htslib/1.20/htslib-1.20 # Must be parent dir of `htslib.mk`
+      PYTHON: $GROUP_HOME/opt/python/3.12.4/bin/python3.12
+      URL: https://github.com/arq5x/bedtools2/releases/download/v{{.VERSION}}/bedtools-{{.VERSION}}.tar.gz
+    requires:
+      vars: [APP, VERSION]
+    status:
+      - test -f $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}/bedtools2/bin/bedtools

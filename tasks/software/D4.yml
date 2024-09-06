@@ -1,0 +1,50 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+  run_utils: ../utils/Run.yml
+  rust: Rust.yml
+
+tasks:
+  install:
+    desc: Install D4
+    summary: |
+      Install D4
+
+      URLs
+      ----
+      - https://github.com/38/d4-format
+    cmds:
+      - task: build
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          EXE: '{{.APP}}'
+          RELPATH_EXE: '/d4-format-{{.VERSION}}/target/debug/'
+    vars:
+      APP: d4tools
+      VERSION: '{{.VERSION | default "0.3.10"}}'
+
+  build:
+    dir: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
+    prompt: Install in $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}?
+    deps:
+      - task: rust:install
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+      - task: run_utils:run-in-module
+        vars:
+          CMDS: 'cd d4-format-{{.VERSION}}/d4tools && cargo rustc --bin d4tools -- -C relocation-model=static'
+          MODULE: 'rust/1.80.1 gcc/10 clang/18'
+    vars:
+      URL: https://github.com/38/d4-format/archive/refs/tags/v{{.VERSION}}.tar.gz
+    requires:
+      vars: [APP, VERSION]
+    status:
+      - test -f $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}/d4-format-{{.VERSION}}/target/debug/d4tools

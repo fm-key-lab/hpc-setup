@@ -1,0 +1,43 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install Nim
+    summary: |
+      Install Nim
+
+      URLs
+      ----
+      - https://nim-lang.org/
+    cmds:
+      - task: download
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          EXE: nim nimble
+          RELPATH_EXE: '/nim-{{.VERSION}}/bin/'
+    vars:
+      APP: nim
+      VERSION: '{{.VERSION | default "2.0.8"}}'
+
+  download:
+    dir: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
+    prompt: Install in $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+    vars:
+      URL: https://nim-lang.org/download/nim-{{.VERSION}}-linux_x64.tar.xz
+    requires:
+      vars: [APP, VERSION]
+    status:
+      - test -f $GROUP_HOME/opt/nim/{{.VERSION}}/nim-{{.VERSION}}/bin/nim
+      - test -f $GROUP_HOME/opt/nim/{{.VERSION}}/nim-{{.VERSION}}/bin/nimble
