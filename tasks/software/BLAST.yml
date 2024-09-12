@@ -9,7 +9,7 @@ tasks:
       - task: _install
         vars:
           APP: blast
-          VERSION: 2.16.0
+          VERSION: '{{.VERSION}}'
           EXE: blastn
 
   _install:
@@ -26,6 +26,8 @@ tasks:
           VERSION: '{{.VERSION}}'
           RELPATH_EXE: '/ncbi-blast-{{.VERSION}}+/bin/'
           EXE: '{{.EXE}}'
+    vars:
+      VERSION: '{{.VERSION | default "2.16.0"}}'
 
   build:
     dir: $GROUP_HOME/opt/{{.SUBDIR}}

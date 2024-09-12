@@ -7,9 +7,17 @@
         "accession": "GCF_000008865.2",
         "taxon": "Escherichia_coli"
     },
+    "ASM1042v1": {
+        "accession": "GCF_000010425.1",
+        "taxon": "Bifidobacterium_adolescentis"
+    },
     "ASM102517v1": {
         "accession": "GCF_001025175.1",
         "taxon": "Bifidobacterium_breve"
+    },
+    "ASM19655v1": {
+        "accession": "GCF_000196555.1",
+        "taxon": "Bifidobacterium_longum"
     },
     "45889_C01": {
         "accession": "GCA_900636985.1",
