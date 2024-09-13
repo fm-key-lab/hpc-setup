@@ -1,0 +1,52 @@
+version: '3'
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install KrakenUniq
+    summary: |
+      Install KrakenUniq
+
+      URLs
+      ----
+      - Releases:
+        https://github.com/fbreitwieser/krakenuniq/releases
+    cmds:
+      - task: build
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: /
+          EXE: |
+            krakenuniq 
+            krakenuniq-build 
+            krakenuniq-download 
+            krakenuniq-extract-reads 
+            krakenuniq-filter 
+            krakenuniq-mpa-report 
+            krakenuniq-report 
+            krakenuniq-translate
+    vars:
+      APP: krakenuniq
+      VERSION: '{{.VERSION | default "1.0.4"}}'
+
+  build:
+    dir: '{{.DIR}}'
+    prompt: 'Build in {{.DIR}}?'
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+      - |
+        cd krakenuniq-{{.VERSION}}
+        . install_krakenuniq.sh {{.DIR}}
+    vars:
+      DIR: $GROUP_HOME/opt/krakenuniq/{{.VERSION}}
+      URL: https://github.com/fbreitwieser/krakenuniq/archive/refs/tags/v{{.VERSION}}.tar.gz
+    status:
+      - test -f {{.DIR}}/krakenuniq

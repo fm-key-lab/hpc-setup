@@ -1,0 +1,45 @@
+version: '3'
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install LZ4
+    summary: |
+      Install LZ4
+
+      URLs
+      ----
+      - Releases:
+        https://github.com/lz4/lz4/releases
+    cmds:
+      - task: build
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: /bin/
+          EXE: '{{.APP}}'
+    vars:
+      APP: lz4
+      VERSION: '{{.VERSION | default "1.10.0"}}'
+
+  build:
+    dir: '{{.DIR}}'
+    prompt: 'Build in {{.DIR}}?'
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+      - |
+        cd lz4-{{.VERSION}}
+        make prefix={{.DIR}}
+        make install prefix={{.DIR}}
+    vars:
+      DIR: $GROUP_HOME/opt/lz4/{{.VERSION}}
+      URL: https://github.com/lz4/lz4/releases/download/v{{.VERSION}}/lz4-{{.VERSION}}.tar.gz
+    status:
+      - test -f {{.DIR}}/bin/lz4

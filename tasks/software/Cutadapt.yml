@@ -1,0 +1,35 @@
+version: '3'
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+  env: ../envs/EnvsTasks.yml
+
+tasks:
+  install:
+    desc: Install Cutadapt
+    summary: |
+      Install Cutadapt
+
+      URLs
+      ----
+      - Shared installation (on a cluster)
+        https://cutadapt.readthedocs.io/en/v4.9/installation.html#shared-installation-on-a-cluster
+    cmds:
+      - task: cutadapt-venv
+        vars:
+          VERSION: '{{.VERSION}}'
+    vars:
+      APP: cutadapt
+      VERSION: '{{.VERSION | default "4.9"}}'
+
+  cutadapt-venv:
+    cmds:
+      - task: env:create_venv
+        vars:
+          NAME: cutadapt
+          PIP_INSTALL: cutadapt=={{.VERSION}}
+          EXTRA_MODULES: gcc
+      - task: env:create_venv_modulefile
+        vars:
+          NAME: cutadapt
+          VERSION: '{{.VERSION}}'

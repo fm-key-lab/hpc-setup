@@ -1,0 +1,44 @@
+version: '3'
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install sickle
+    summary: |
+      Install sickle
+
+      URLs
+      ----
+      - GitHub:
+        https://github.com/najoshi/sickle
+    cmds:
+      - task: build
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: /sickle-{{.VERSION}}/
+          EXE: '{{.APP}}'
+    vars:
+      APP: sickle
+      VERSION: '{{.VERSION | default "1.33"}}'
+
+  build:
+    dir: '{{.DIR}}'
+    prompt: 'Build in {{.DIR}}?'
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+      - |
+        cd sickle-{{.VERSION}}
+        make
+    vars:
+      DIR: $GROUP_HOME/opt/sickle/{{.VERSION}}
+      URL: https://github.com/najoshi/sickle/archive/refs/tags/v{{.VERSION}}.tar.gz
+    status:
+      - test -f {{.DIR}}/sickle-{{.VERSION}}/sickle

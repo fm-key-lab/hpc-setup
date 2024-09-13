@@ -6,7 +6,9 @@ includes:
   bedtools: ./software/bedtools.yml
   blast: ./software/BLAST.yml
   bowtie2: ./software/Bowtie2.yml
+  bracken: ./software/Bracken.yml
   cdhit: ./software/CD-HIT.yml
+  cutadapt: ./software/Cutadapt.yml
   d4tools: ./software/D4.yml
   direnv: ./software/direnv.yml
   duckdb: ./software/DuckDB.yml
@@ -17,6 +19,9 @@ includes:
   jq: ./software/jq.yml
   kma: ./software/KMA.yml
   kmerresistance: ./software/KmerResistance.yml
+  kraken2: ./software/Kraken2.yml
+  krakenuniq: ./software/KrakenUniq.yml
+  lz4: ./software/LZ4.yml
   mosdepth: ./software/mosdepth.yml
   mummer: ./software/MUMmer.yml
   ncbi_datasets: ./software/NCBIDatasetsCLI.yml
@@ -29,6 +34,7 @@ includes:
   rust: ./software/Rust.yml
   samtools: ./software/SAMtools.yml
   samtools_bcftools_htslib: ./software/SAMtools-bcftools-htslib.yml
+  sickle: ./software/Sickle.yml
   snpsites: ./software/SNPsites.yml
   spades: ./software/SPAdes.yml
   srst2: ./software/SRST2.yml
@@ -50,7 +56,9 @@ tasks:
     - task: bedtools
     - task: blast
     - task: bowtie2
+    - task: bracken
     - task: cdhit
+    - task: cutadapt
     - task: d4tools
     - task: direnv
     - task: duckdb
@@ -61,6 +69,9 @@ tasks:
     - task: jq
     - task: kma
     - task: kmerresistance
+    - task: kraken2
+    - task: krakenuniq
+    - task: lz4
     - task: mosdepth
     - task: mummer
     - task: ncbi_datasets
@@ -73,6 +84,7 @@ tasks:
     - task: rust
     - task: samtools
     - task: samtools_bcftools_htslib
+    - task: sickle
     - task: snpsites
     - task: spades
     - task: srst2
@@ -88,8 +100,10 @@ tasks:
     - task: bedtools
     - task: blast
     - task: bowtie2
+    - task: bracken
     - task: gatk
     - task: gubbins
+    - task: kraken2
     - task: ncbi_datasets
     - task: python
     - task: samtools
@@ -103,19 +117,24 @@ tasks:
     - task: bedtools
     - task: blast
     - task: bowtie2
-    - task: d4tools
+    - task: bracken
     - task: cdhit
+    - task: cutadapt
+    - task: d4tools
     - task: fasttree
     - task: gatk
     - task: gubbins
     - task: kma
     - task: kmerresistance
+    - task: kraken2
+    - task: krakenuniq
     - task: mosdepth
     - task: mummer
     - task: ncbi_datasets
     - task: resfinder
     - task: samtools
     - task: samtools_bcftools_htslib
+    - task: sickle
     - task: snpsites
     - task: spades
     - task: srst2
@@ -135,6 +154,7 @@ tasks:
   utils:
     - task: aria2
     - task: direnv
+    - task: lz4
     - task: ncurses
     - task: pandoc
     - task: tinytex
@@ -164,8 +184,14 @@ tasks:
   bowtie2:
     - task: bowtie2:install
 
+  bracken:
+    - task: bracken:install
+
   cdhit:
     - task: cdhit:install
+
+  cutadapt:
+    - task: cutadapt:install
 
   d4tools:
     - task: d4tools:install
@@ -200,6 +226,15 @@ tasks:
   kmerresistance:
     - task: kmerresistance:install
 
+  kraken2:
+    - task: kraken2:install
+
+  krakenuniq:
+    - task: krakenuniq:install
+
+  lz4:
+    - task: lz4:install
+
   mosdepth:
     - task: mosdepth:install
 
@@ -227,6 +262,9 @@ tasks:
 
   samtools:
     - task: samtools:install
+
+  sickle:
+    - task: sickle:install
 
   snpsites:
     - task: snpsites:install

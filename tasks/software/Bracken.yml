@@ -1,0 +1,48 @@
+version: '3'
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+  kraken2: Kraken2.yml
+
+tasks:
+  install:
+    desc: Install Bracken
+    summary: |
+      Install Bracken
+
+      URLs
+      ----
+      - GitHub:
+        https://github.com/jenniferlu717/Bracken
+    deps:
+      - task: kraken2:install
+    cmds:
+      - task: build
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: /Bracken-{{.VERSION}}/
+          EXE: bracken bracken-build
+    vars:
+      APP: bracken
+      VERSION: '{{.VERSION | default "2.9"}}'
+
+  build:
+    dir: '{{.DIR}}'
+    prompt: 'Build in {{.DIR}}?'
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+      - |
+        cd Bracken-{{.VERSION}}
+        . install_bracken.sh
+    vars:
+      DIR: $GROUP_HOME/opt/bracken/{{.VERSION}}
+      URL: https://github.com/jenniferlu717/Bracken/archive/refs/tags/v{{.VERSION}}.tar.gz
+    status:
+      - test -f {{.DIR}}/Bracken-{{.VERSION}}/bracken
+      - test -f {{.DIR}}/Bracken-{{.VERSION}}/bracken-build
