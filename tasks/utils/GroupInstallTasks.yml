@@ -18,7 +18,7 @@ tasks:
   symlink:
     dir: $GROUP_HOME/bin
     cmds:
-      - ln -s ../opt/{{.SUBDIR}}{{.RELPATH_EXE}}{{.EXE}} {{.EXE}}
+      - ln -s "../opt/{{.SUBDIR}}{{.RELPATH_EXE}}{{.EXE}}" {{.EXE}}
     status:
       - test -L $GROUP_HOME/bin/{{.EXE}}
     requires:
@@ -32,7 +32,7 @@ tasks:
     cmds:
       - bash -c '
         module load {{.PYTHON_MODULE}} &&
-        python {{.ROOT_DIR}}/tasks/scripts/write_modulefile.py --APP {{.APP}} --VERSION {{.VERSION}} --RELPATH_EXE {{.RELPATH_EXE}} &&
+        python {{.ROOT_DIR}}/tasks/scripts/write_modulefile.py --APP {{.APP}} --VERSION {{.VERSION}} --RELPATH_EXE "{{.RELPATH_EXE}}" &&
         module unload {{.PYTHON_MODULE}}'
     status:
       - test -f $GROUP_HOME/Modules/modulefiles/{{.APP}}/{{.VERSION}}

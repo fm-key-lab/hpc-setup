@@ -13,6 +13,7 @@ includes:
   direnv: ./software/direnv.yml
   duckdb: ./software/DuckDB.yml
   fasttree: ./software/FastTree.yml
+  figtree: ./software/FigTree.yml
   gatk: ./software/GATK.yml
   gnumeric: ./software/Gnumeric.yml
   gubbins: ./software/Gubbins.yml
@@ -63,6 +64,7 @@ tasks:
     - task: direnv
     - task: duckdb
     - task: fasttree
+    - task: figtree
     - task: gatk
     - task: gnumeric
     - task: gubbins
@@ -122,6 +124,7 @@ tasks:
     - task: cutadapt
     - task: d4tools
     - task: fasttree
+    - task: figtree
     - task: gatk
     - task: gubbins
     - task: kma
@@ -207,6 +210,9 @@ tasks:
     - task: fasttree:install
     - task: fasttree:install_dbl
     - task: fasttree:install_openmp
+
+  figtree:
+    - task: figtree:install
 
   gatk:
     - task: gatk:install

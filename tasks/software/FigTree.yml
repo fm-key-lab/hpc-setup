@@ -1,0 +1,46 @@
+version: 3
+
+# TODO: https://github.com/rambaut/figtree/blob/37472950c83720abfd80cca0cc0b3806c03fa7eb/release/Linux/scripts/figtree
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    cmds:
+      - task: download
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '/FigTree v{{.VERSION}}_pre/lib/'
+          EXE: 'figtree.jar'
+      - |
+        echo '
+        
+        depends-on jdk/21
+        
+        set-function figtree {
+          java -Xms64m -Xmx512m -jar "${basedir}/{{.APP}}/{{.VERSION}}/FigTree v{{.VERSION}}_pre/lib/figtree.jar" "$@"
+        }' >> $GROUP_HOME/Modules/modulefiles/{{.APP}}/{{.VERSION}}
+    vars:
+      APP: figtree
+      VERSION: '{{.VERSION | default "1.4.5"}}'
+
+  download:
+    dir: '{{.DIR}}'
+    prompt: 'Download in {{.DIR}}?'
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename ${{.URL}})
+      - unzip $(basename ${{.URL}})
+    vars:
+      DIR: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
+      URL: https://github.com/rambaut/figtree/releases/download/v{{.VERSION}}pre/FigTree.v{{.VERSION}}_pre.zip
+    requires:
+      vars: [APP, VERSION]
+    status:
+      - test -f "{{.DIR}}/FigTree v{{.VERSION}}_pre/lib/figtree.jar"
