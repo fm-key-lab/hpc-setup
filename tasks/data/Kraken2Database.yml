@@ -1,6 +1,5 @@
 version: 3
 
-# TODO: See also databases at https://benlangmead.github.io/aws-indexes/k2
 vars:
   AWS_S3_KRAKEN: https://genome-idx.s3.amazonaws.com/kraken
 
