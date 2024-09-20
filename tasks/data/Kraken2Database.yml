@@ -15,7 +15,7 @@ tasks:
         - https://ccb.jhu.edu/data/eupathDB/
     dir: $GROUP_HOME/public_data/databases/kraken2/ccbjhu_eupathdb48_{{.VERSION}}
     cmds:
-      - wget {{.URL_CONTENTS}}
+      # - wget {{.URL_CONTENTS}} # TODO: Hangs on datatransfer partition?
       - wget {{.URL_DB}}
       - defer: rm -f $(basename {{.URL_DB}})
       - tar -xzvf $(basename {{.URL_DB}})
