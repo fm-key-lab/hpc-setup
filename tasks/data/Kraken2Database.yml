@@ -1,0 +1,67 @@
+version: 3
+
+# TODO: See also databases at https://benlangmead.github.io/aws-indexes/k2
+vars:
+  AWS_S3_KRAKEN: https://genome-idx.s3.amazonaws.com/kraken
+
+tasks:
+  download-ccbjhu:
+    desc: Download Kraken2 database EuPathDB48
+    summary: |
+      Download Kraken2 database EuPathDB48
+
+      URLs
+      ----
+        - https://ccb.jhu.edu/data/eupathDB/
+    dir: $GROUP_HOME/public_data/databases/kraken2/ccbjhu_eupathdb48_{{.VERSION}}
+    cmds:
+      - wget {{.URL_CONTENTS}}
+      - wget {{.URL_DB}}
+      - defer: rm -f $(basename {{.URL_DB}})
+      - tar -xzvf $(basename {{.URL_DB}})
+    vars:
+      VERSION: '{{.VERSION | default "20201113"}}'
+      URL_DB: '{{.AWS_S3_KRAKEN}}/k2_eupathdb48_{{.VERSION}}.tar.gz'
+      URL_CONTENTS: ftp://ftp.ccb.jhu.edu/pub/data/EuPathDB46/EuPathDB46_Contents.txt
+
+  download-other-dbs:
+    desc: Download other Kraken2 databases
+    summary: |
+      Download other Kraken2 databases
+
+      URLs
+      ----
+        - https://benlangmead.github.io/aws-indexes/k2
+    cmds:
+      - for: { var: DB_NAMES }
+        task: download-langmead-db
+        vars:
+          K2_DB_NAME: '{{.ITEM}}'
+    vars:
+      DB_NAMES: |
+        eupathdb48_20230407
+        nt_20240530
+        standard_20240605
+
+  download-langmead-db:
+    dir: $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}
+    cmds:
+      - wget {{.AWS_S3_KRAKEN}}/k2_{{.K2_DB_NAME}}.tar.gz
+      - defer: rm -f k2_{{.K2_DB_NAME}}.tar.gz
+      - tar xf k2_{{.K2_DB_NAME}}.tar.gz
+      - for : { var: ASSETS }
+        task: safe-wget
+        vars:
+          URL: '{{.AWS_S3_KRAKEN}}/{{.K2_DB_NAME}}/{{.ITEM}}'
+    requires:
+      vars: [K2_DB_NAME]
+    vars:
+      ASSETS: |
+        inspect.txt 
+        kraken2inspect_output.txt 
+        library_report.tsv 
+        standard.md5 
+        nt.md5
+
+  safe-wget:
+    - wget -q --spider {{.URL}} || true

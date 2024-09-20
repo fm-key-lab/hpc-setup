@@ -1,0 +1,67 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+  envmodules: ../../../lab-tasks/tasks/EnvironmentModules.yml
+
+tasks:
+  install:
+    desc: Install KronaTools
+    summary: |
+      Install KronaTools
+
+      Krona allows hierarchical data to be explored with zooming, multi-layered 
+      pie charts. Krona charts can be created using an Excel template or 
+      KronaTools, which includes support for several bioinformatics tools and 
+      raw data formats.
+
+      URLs
+      ----
+      - https://github.com/marbl/Krona/wiki
+      - https://hpc.nih.gov/apps/kronatools.html
+      - https://nf-co.re/hgtseq
+    cmds:
+      - task: download
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+      - task: run-install-script
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+    vars:
+      APP: kronatools
+      VERSION: '{{.VERSION | default "2.8.1"}}'
+
+  run-install-script:
+    dir: '{{.DIR}}'
+    cmds:
+      - task: envmodules:run-inside
+        vars:
+          CMDS: perl {{.DIR}}/Krona-{{.VERSION}}/KronaTools/install.pl --prefix {{.DIR}} --taxonomy $GROUP_HOME/public_data/databases/kronatools/taxonomy
+          MODULE: perl/5.40.0
+      - |
+        cd {{.DIR}}/bin
+        scripts=$(ls)
+        for script in $scripts; do
+          rm -f $script
+          ln -s "../{{.SCRIPTS}}/${script:2}.pl" $script
+        done
+    vars:
+      DIR: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
+      SCRIPTS: 'Krona-{{.VERSION}}/KronaTools/scripts'
+    requires:
+      vars: [APP, VERSION]
+
+  download:
+    dir: '{{.DIR}}'
+    prompt: 'Download in {{.DIR}}?'
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+    vars:
+      DIR: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
+      URL: https://github.com/marbl/Krona/archive/refs/tags/v{{.VERSION}}.tar.gz
+    status:
+      - test -d {{.DIR}}/Krona-{{.VERSION}}

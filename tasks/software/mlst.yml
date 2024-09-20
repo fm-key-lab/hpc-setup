@@ -1,0 +1,108 @@
+version: 3
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+  envmodules: ../../../lab-tasks/tasks/EnvironmentModules.yml
+  blast: BLAST.yml
+  perl: Perl.yml
+
+tasks:
+  install:
+    desc: Install mlst
+    summary: |
+      Install mlst: Scan contig files against PubMLST typing schemes
+    deps:
+      - task: blast:install
+        vars:
+          VERSION: '{{.VERSION_BLAST}}'
+      - task: install-any2fasta
+        vars:
+          # NOTE: Installed in `mlst` directory
+          DIR: '$GROUP_HOME/opt/{{.APP}}/{{.VERSION}}'
+          VERSION: '{{.VERSION_ANY2FASTA}}'
+      - task: mlst-perl-modules
+        vars:
+          VERSION: '{{.VERSION_PERL}}'
+    cmds:
+      - task: download
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+      - task: symlink-any2fasta
+        vars:
+          VERSION_ANY2FASTA: '{{.VERSION_ANY2FASTA}}'
+          VERSION_MLST: '{{.VERSION}}'
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '/mlst-{{.VERSION}}/bin/'
+          EXE: 'any2fasta {{.APP}}'
+      - echo -e '\ndepends-on perl/{{.VERSION_PERL}}\ndepends-on blast/{{.VERSION_BLAST}}' >> $GROUP_HOME/Modules/modulefiles/{{.APP}}/{{.VERSION}}
+    vars:
+      APP: mlst
+      VERSION: '{{.VERSION | default "2.23.0"}}'
+      VERSION_ANY2FASTA: '{{.VERSION_ANY2FASTA | default "0.4.2"}}'
+      VERSION_BLAST: '{{.VERSION_BLAST | default "2.16.0"}}'
+      VERSION_PERL: '{{.VERSION_PERL | default "5.40.0"}}'
+    status:
+      - test -f $GROUP_HOME/Modules/modulefiles/{{.APP}}/{{.VERSION}}
+
+  download:
+    dir: '{{.DIR}}'
+    prompt: 'Download in {{.DIR}}?'
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+    vars:
+      DIR: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
+      URL: https://github.com/tseemann/mlst/archive/refs/tags/v{{.VERSION}}.tar.gz
+    requires:
+      vars: [APP, VERSION]
+    status:
+      - test -f {{.DIR}}/mlst-{{.VERSION}}/bin/mlst
+
+  symlink-any2fasta:
+    cmds:
+      - ln -s {{.PATH_ANY2FASTA}}/any2fasta {{.PATH_MLST}}/any2fasta
+    vars:
+      PATH_ANY2FASTA: ../../any2fasta-{{.VERSION_ANY2FASTA}}
+      PATH_MLST: $GROUP_HOME/opt/mlst/{{.VERSION_MLST}}/mlst-{{.VERSION_MLST}}/bin/
+    requires:
+      vars: [VERSION_ANY2FASTA, VERSION_MLST]
+    status:
+      - test -f {{.PATH_MLST}}/any2fasta
+
+  mlst-perl-modules:
+    deps:
+      - task: perl:install
+        vars:
+          VERSION: '{{.VERSION}}'
+    cmds:
+      - task: envmodules:run-inside
+        vars:
+          CMDS: cpan Moo List::MoreUtils JSON
+          MODULE: perl/{{.VERSION}}
+    vars:
+      VERSION: '{{.VERSION | default "5.40.0"}}'
+    status:
+      - test -d $GROUP_HOME/opt/perl/{{.VERSION}}/lib/site_perl/{{.VERSION}}/Moo
+      - test -d $GROUP_HOME/opt/perl/{{.VERSION}}/lib/site_perl/{{.VERSION}}/List/MoreUtils
+      - test -d $GROUP_HOME/opt/perl/{{.VERSION}}/lib/site_perl/{{.VERSION}}/JSON
+
+  install-any2fasta:
+    dir: '{{.DIR}}'
+    desc: Install any2fasta
+    summary: |
+      Install any2fasta: Convert various sequence formats to FASTA
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename ${{.URL}})
+      - tar xf $(basename ${{.URL}})
+    vars:
+      URL: https://github.com/tseemann/any2fasta/archive/refs/tags/v{{.VERSION}}.tar.gz
+    requires:
+      vars: [DIR, VERSION]
+    status:
+      - test -f {{.DIR}}/any2fasta-{{.VERSION}}/any2fasta

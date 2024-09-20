@@ -22,7 +22,9 @@ includes:
   kmerresistance: ./software/KmerResistance.yml
   kraken2: ./software/Kraken2.yml
   krakenuniq: ./software/KrakenUniq.yml
+  kronatools: ./software/KronaTools.yml
   lz4: ./software/LZ4.yml
+  mlst: ./software/mlst.yml
   mosdepth: ./software/mosdepth.yml
   mummer: ./software/MUMmer.yml
   ncbi_datasets: ./software/NCBIDatasetsCLI.yml
@@ -73,7 +75,9 @@ tasks:
     - task: kmerresistance
     - task: kraken2
     - task: krakenuniq
+    - task: kronatools
     - task: lz4
+    - task: mlst
     - task: mosdepth
     - task: mummer
     - task: ncbi_datasets
@@ -131,6 +135,8 @@ tasks:
     - task: kmerresistance
     - task: kraken2
     - task: krakenuniq
+    - task: kronatools
+    - task: mlst
     - task: mosdepth
     - task: mummer
     - task: ncbi_datasets
@@ -169,6 +175,26 @@ tasks:
   compilers:
     - task: nim
     - task: rust
+
+  kraken-suite:
+    desc: Install Kraken software suite
+    summary: |
+      Install Kraken software suite
+
+      The Kraken suite is an end-to-end pipeline for the classification, 
+      quantification and visualization of metagenomic datasets.
+
+      URLs
+      ----
+        - https://doi.org/10.1038/s41596-022-00738-y
+        - https://ccb.jhu.edu/data/kraken2_protocol/
+        - https://github.com/martin-steinegger/kraken-protocol/
+    cmds:
+      - task: kraken2
+      - task: bracken
+      # - task: krakentools
+      # - task: pavian
+      - task: bowtie2
 
   # ~*~
 
@@ -238,8 +264,14 @@ tasks:
   krakenuniq:
     - task: krakenuniq:install
 
+  kronatools:
+    - task: kronatools:install
+
   lz4:
     - task: lz4:install
+
+  mlst:
+    - task: mlst:install
 
   mosdepth:
     - task: mosdepth:install
@@ -260,7 +292,14 @@ tasks:
     - task: pandoc:install
 
   perl:
-    - task: perl:install
+    cmds:
+      - for: { var: VERSIONS }
+        task: perl:install
+        vars:
+          VERSION: '{{.ITEM}}'
+    vars:
+      VERSION: '{{.VERSION | default "5.40.0 5.24.4"}}'
+      VERSIONS: '{{.VERSIONS | default .VERSION}}'
 
   python:
     - task: python:install_3_12

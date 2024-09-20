@@ -13,38 +13,33 @@ tasks:
       -----
       - https://www.cpan.org/src/README.html
     cmds:
-      - task: _install
-        vars:
-          APP: perl
-          VERSION: 5.24.4
-          RELPATH_EXE: /bin/
-
-  _install:
-    internal: true
-    deps:
       - task: build
         vars:
-          SUBDIR: '{{.APP}}/{{.VERSION}}'
+          APP: '{{.APP}}'
           VERSION: '{{.VERSION}}'
-    cmds:
       - task: group_install:complete
         vars:
           APP: '{{.APP}}'
           VERSION: '{{.VERSION}}'
-          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          RELPATH_EXE: /bin/
           EXE: '{{.APP}}'
+    vars:
+      APP: perl
+      VERSION: '{{.VERSION | default "5.40.0"}}'
 
   build:
-    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    dir: '{{.DIR}}'
+    prompt: 'Download in {{.DIR}}?'
     cmds:
       - wget {{.URL}}
       - defer: rm -f $(basename ${{.URL}})
       - tar -xzf $(basename ${{.URL}})
       - |
         cd perl-{{.VERSION}}
-        ./Configure -des -Dprefix=$GROUP_HOME/opt/{{.SUBDIR}}
+        ./Configure -des -Dprefix={{.DIR}}
         make; make install
     vars:
+      DIR: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
       URL: https://www.cpan.org/src/5.0/perl-{{.VERSION}}.tar.gz
     status:
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bin/perl
+      - test -f {{.DIR}}/bin/perl

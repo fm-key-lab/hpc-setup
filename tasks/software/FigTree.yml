@@ -19,10 +19,8 @@ tasks:
           RELPATH_EXE: '/FigTree v{{.VERSION}}_pre/lib/'
           EXE: 'figtree.jar'
       - |
-        echo '
-        
+        echo -e '\n
         depends-on jdk/21
-        
         set-function figtree {
           java -Xms64m -Xmx512m -jar "${basedir}/{{.APP}}/{{.VERSION}}/FigTree v{{.VERSION}}_pre/lib/figtree.jar" "$@"
         }' >> $GROUP_HOME/Modules/modulefiles/{{.APP}}/{{.VERSION}}

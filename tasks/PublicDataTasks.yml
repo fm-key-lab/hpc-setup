@@ -2,6 +2,7 @@ version: 3
 
 includes:
   igenomes: ./data/iGenomes.yml
+  kraken2: ./data/Kraken2Database.yml
   ncbi_reference: ./data/NCBIReference.yml
   ncbi_taxonomy: ./data/NCBITaxonomy.yml
   pubmlst: ./data/PubMLST.yml
@@ -11,6 +12,7 @@ tasks:
     - task: igenome_reference_genomes
     - task: ncbi_reference_genomes
     - task: ncbi_taxranks
+    - task: kraken2-db
     - task: pubmlst
   
   igenome_reference_genomes:
@@ -21,6 +23,10 @@ tasks:
 
   ncbi_taxranks:
     - task: ncbi_taxonomy:download
+
+  kraken2-db:
+    - task: kraken2:download-ccbjhu
+    - task: kraken2:download-other-dbs
   
   pubmlst:
     - task: pubmlst:ariba_db
