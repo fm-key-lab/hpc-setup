@@ -6,7 +6,7 @@ includes:
 vars:
   JQ: $GROUP_HOME/bin/jq
   NCBI_REFERENCE_URL: https://ftp.ncbi.nlm.nih.gov/genomes/
-  NCBI_DATASETS_MODULE: ncbi_datasets/2
+  NCBI_DATASETS_MODULE: ncbi_datasets/16.29.0
 
 tasks:
   download-reference:

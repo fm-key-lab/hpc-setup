@@ -24,6 +24,7 @@ includes:
   krakenuniq: ./software/KrakenUniq.yml
   kronatools: ./software/KronaTools.yml
   lz4: ./software/LZ4.yml
+  magic-blast: ./software/Magic-BLAST.yml
   mlst: ./software/mlst.yml
   mosdepth: ./software/mosdepth.yml
   mummer: ./software/MUMmer.yml
@@ -40,6 +41,7 @@ includes:
   sickle: ./software/Sickle.yml
   snpsites: ./software/SNPsites.yml
   spades: ./software/SPAdes.yml
+  sratoolkit: ./software/SRAToolkit.yml
   srst2: ./software/SRST2.yml
   tinytex: ./software/TinyTex.yml
   vcftools: ./software/VCFtools.yml
@@ -77,6 +79,7 @@ tasks:
     - task: krakenuniq
     - task: kronatools
     - task: lz4
+    - task: magic-blast
     - task: mlst
     - task: mosdepth
     - task: mummer
@@ -93,6 +96,7 @@ tasks:
     - task: sickle
     - task: snpsites
     - task: spades
+    - task: sratoolkit
     - task: srst2
     - task: tinytex
     - task: vcftools
@@ -136,6 +140,7 @@ tasks:
     - task: kraken2
     - task: krakenuniq
     - task: kronatools
+    - task: magic-blast
     - task: mlst
     - task: mosdepth
     - task: mummer
@@ -146,6 +151,7 @@ tasks:
     - task: sickle
     - task: snpsites
     - task: spades
+    - task: sratoolkit
     - task: srst2
     - task: veryfasttree
     - task: vcftools
@@ -270,6 +276,9 @@ tasks:
   lz4:
     - task: lz4:install
 
+  magic-blast:
+    - task: magic-blast:install
+
   mlst:
     - task: mlst:install
 
@@ -316,6 +325,9 @@ tasks:
   
   spades:
     - task: spades:install
+
+  sratoolkit:
+    - task: sratoolkit:install
 
   srst2:
     - task: srst2:install
