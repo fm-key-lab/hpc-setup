@@ -8,6 +8,11 @@ tasks:
     desc: Install Magic-BLAST
     summary: |
       Install Magic-BLAST
+
+      URLs
+      ----
+       - https://ncbi.github.io/magicblast/
+       - https://ftp.ncbi.nlm.nih.gov/blast/executables/magicblast/README
     cmds:
       - task: build
         vars:
