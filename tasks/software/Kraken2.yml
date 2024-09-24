@@ -37,7 +37,7 @@ tasks:
     cmds:
       - wget {{.URL}}
       - defer: rm -f $(basename {{.URL}})
-      - tar xf $(basename ${{.URL}})
+      - tar xf $(basename {{.URL}})
       - |
         cd kraken2-{{.VERSION}}
         . install_kraken2.sh {{.DIR}}

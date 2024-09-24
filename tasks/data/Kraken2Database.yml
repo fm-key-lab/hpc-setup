@@ -1,9 +1,116 @@
 version: 3
 
 vars:
-  AWS_S3_KRAKEN: https://genome-idx.s3.amazonaws.com/kraken
+  AWS_S3_KRAKEN2: https://genome-idx.s3.amazonaws.com/kraken
+  MODULE_BRACKEN: bracken/2.9
+  MODULE_KRAKEN2: kraken2/2.1.3
+
+includes:
+  envmodules: ../../../lab-tasks/tasks/EnvironmentModules.yml
 
 tasks:
+  build-lab-db:
+    desc: Build custom lab Kraken2 db
+    summary: |
+      Build custom lab Kraken2 db
+
+      Usage
+      -----
+      Should run on cluster with ~64 cores and ~120GB, eg
+      $ srun -p datatransfer --mem=120000MB --cpus-per-task=64 --time=1:29:59 --pty bash
+      $ ml task
+      $ task -t $GROUP_HOME/tools/hpc-setup/ download:kraken2:build-lab-db
+    cmds:
+      - task: run-lab-db-build
+        vars:
+          DIR: $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}
+          KMER_LENGTH: '{{.KMER_LENGTH}}'
+          READ_LENGTH: '{{.READ_LENGTH}}'
+          THREADS: '{{.THREADS}}'
+    vars:
+      VERSION:
+        sh: date +"%Y%m%d"
+      K2_DB_NAME: 'custom_{{.VERSION}}'
+      THREADS:
+        sh: echo $SLURM_CPUS_PER_TASK
+      KMER_LENGTH: '{{.KMER_LENGTH | default 35}}'
+      READ_LENGTH: '{{.READ_LENGTH | default 100}}'
+
+  run-lab-db-build:
+    dir: '{{.DIR}}'
+    cmds:
+      - task: kraken2-build-taxonomy
+        vars:
+          K2_DB_NAME: '{{.DIR}}'
+      - for: { var: K2_BUILD_LIBS }
+        task: kraken2-build-lib
+        vars:
+          K2_BUILD_LIB: '{{.ITEM}}'
+          K2_DB_NAME: '{{.DIR}}'
+      - task: kraken2-build
+        vars:
+          K2_DB_NAME: '{{.DIR}}'
+          THREADS: '{{.THREADS}}'
+      - task: bracken-build
+        vars:
+          K2_DB_NAME: '{{.DIR}}'
+          KMER_LENGTH: '{{.KMER_LENGTH}}'
+          READ_LENGTH: '{{.READ_LENGTH}}'
+          THREADS: '{{.THREADS}}'
+    vars:
+      K2_BUILD_LIBS: |
+        bacteria
+        archaea
+        plasmid
+        viral
+        human
+        fungi
+        protozoa
+        UniVec
+        UniVec_Core
+
+  bracken-build:
+    summary: |
+      
+      Notes
+      -----
+      - read-length is dependent on the sequencing data; min read length might 
+        be best (untested, see https://github.com/jenniferlu717/Bracken/issues/60)
+    cmds:
+      - task: envmodules:run-inside
+        vars:
+          CMDS: bracken-build -d {{.K2_DB_NAME}} -t {{.THREADS}} -k {{.KMER_LENGTH}} -l {{.READ_LENGTH}}
+          MODULE: '{{.MODULE_BRACKEN}}'
+    requires:
+      vars: [K2_DB_NAME, KMER_LENGTH, READ_LENGTH, THREADS]
+
+  kraken2-build:
+    cmds:
+      - task: envmodules:run-inside
+        vars:
+          CMDS: kraken2-build --build --threads {{.THREADS}} --db {{.K2_DB_NAME}}
+          MODULE: '{{.MODULE_KRAKEN2}}'
+    requires:
+      vars: [K2_DB_NAME, THREADS]
+
+  kraken2-build-taxonomy:
+    cmds:
+      - task: envmodules:run-inside
+        vars:
+          CMDS: kraken2-build --download-taxonomy --db {{.K2_DB_NAME}}
+          MODULE: '{{.MODULE_KRAKEN2}}'
+    requires:
+      vars: [K2_DB_NAME]
+
+  kraken2-build-lib:
+    cmds:
+      - task: envmodules:run-inside
+        vars:
+          CMDS: kraken2-build --download-library {{.K2_BUILD_LIB}} --db {{.K2_DB_NAME}}
+          MODULE: '{{.MODULE_KRAKEN2}}'
+    requires:
+      vars: [K2_BUILD_LIB, K2_DB_NAME]
+
   download-ccbjhu:
     desc: Download Kraken2 database EuPathDB48
     summary: |
@@ -12,7 +119,7 @@ tasks:
       URLs
       ----
         - https://ccb.jhu.edu/data/eupathDB/
-    dir: $GROUP_HOME/public_data/databases/kraken2/ccbjhu_eupathdb48_{{.VERSION}}
+    dir: $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}
     cmds:
       # - wget {{.URL_CONTENTS}} # TODO: Hangs on datatransfer partition?
       - wget {{.URL_DB}}
@@ -20,8 +127,14 @@ tasks:
       - tar -xzvf $(basename {{.URL_DB}})
     vars:
       VERSION: '{{.VERSION | default "20201113"}}'
-      URL_DB: '{{.AWS_S3_KRAKEN}}/k2_eupathdb48_{{.VERSION}}.tar.gz'
+      K2_DB_NAME: 'ccbjhu_eupathdb48_{{.VERSION}}'
+      URL_DB: '{{.AWS_S3_KRAKEN2}}/k2_eupathdb48_{{.VERSION}}.tar.gz'
       URL_CONTENTS: ftp://ftp.ccb.jhu.edu/pub/data/EuPathDB46/EuPathDB46_Contents.txt
+    status:
+      - test -f $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}/hash.k2d
+      - test -f $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}/opts.k2d
+      - test -f $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}/taxo.k2d
+      - test -f $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}/database100mers.kmer_distrib
 
   download-other-dbs:
     desc: Download other Kraken2 databases
@@ -45,13 +158,13 @@ tasks:
   download-langmead-db:
     dir: $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}
     cmds:
-      - wget {{.AWS_S3_KRAKEN}}/k2_{{.K2_DB_NAME}}.tar.gz
+      - wget {{.AWS_S3_KRAKEN2}}/k2_{{.K2_DB_NAME}}.tar.gz
       - defer: rm -f k2_{{.K2_DB_NAME}}.tar.gz
       - tar xf k2_{{.K2_DB_NAME}}.tar.gz
       - for : { var: ASSETS }
         task: safe-wget
         vars:
-          URL: '{{.AWS_S3_KRAKEN}}/{{.K2_DB_NAME}}/{{.ITEM}}'
+          URL: '{{.AWS_S3_KRAKEN2}}/{{.K2_DB_NAME}}/{{.ITEM}}'
     requires:
       vars: [K2_DB_NAME]
     vars:
@@ -61,6 +174,11 @@ tasks:
         library_report.tsv 
         standard.md5 
         nt.md5
+    status:
+      - test -f $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}/hash.k2d
+      - test -f $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}/opts.k2d
+      - test -f $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}/taxo.k2d
+      - test -f $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}/database100mers.kmer_distrib
 
   safe-wget:
     - wget -q --spider {{.URL}} || true

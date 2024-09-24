@@ -1,0 +1,43 @@
+version: '3'
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install Magic-BLAST
+    summary: |
+      Install Magic-BLAST
+    cmds:
+      - task: build
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: '/ncbi-magicblast-{{.VERSION}}-src/c++/ReleaseMT/bin/'
+          EXE: makeblastdb magicblast
+    vars:
+      APP: magic_blast
+      VERSION: '{{.VERSION | default "1.7.2"}}'
+
+  build:
+    dir: '{{.DIR}}'
+    prompt: 'Build in {{.DIR}}?'
+    cmds:
+      - wget {{.MD5}}
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+      - |
+        cd ncbi-magicblast-{{.VERSION}}-src/c++
+        ./configure --prefix=$GROUP_HOME/opt/magic_blast/1.7.2
+        make
+    vars:
+      DIR: $GROUP_HOME/opt/magic_blast/{{.VERSION}}
+      URL: https://ftp.ncbi.nlm.nih.gov/blast/executables/magicblast/{{.VERSION}}/ncbi-magicblast-{{.VERSION}}-src.tar.gz
+      MD5: '{{.URL}}.md5'
+    status:
+      - test -f {{.DIR}}/ncbi-magicblast-{{.VERSION}}-src/c++/ReleaseMT/bin/makeblastdb
+      - test -f {{.DIR}}/ncbi-magicblast-{{.VERSION}}-src/c++/ReleaseMT/bin/magicblast

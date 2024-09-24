@@ -1,0 +1,39 @@
+version: '3'
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install SRA Toolkit
+    summary: |
+      Install SRA Toolkit
+    cmds:
+      - task: download-compiled-binaries
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: group_install:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: /sratoolkit.{{.VERSION}}-centos_linux64/bin/
+          EXE: cache-mgr fasterq-dump fastq-dump prefetch sff-dump srapath vdb-config vdb-dump vdb-validate
+    vars:
+      APP: sratoolkit
+      VERSION: '{{.VERSION | default "3.1.1"}}'
+
+  download-compiled-binaries:
+    dir: '{{.DIR}}'
+    prompt: 'Download to {{.DIR}}?'
+    cmds:
+      - wget {{.MD5}}
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+    vars:
+      DIR: $GROUP_HOME/opt/sratoolkit/{{.VERSION}}
+      URL: https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/{{.VERSION}}/sratoolkit.{{.VERSION}}-centos_linux64.tar.gz
+      MD5: https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/{{.VERSION}}/md5sum.txt
+    status:
+      # - cd {{.DIR}} && md5sum -b
+      - test -d {{.DIR}}/sratoolkit.{{.VERSION}}-centos_linux64/bin

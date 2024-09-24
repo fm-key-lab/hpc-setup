@@ -1,15 +1,15 @@
 {
-    "ASM584v2": {
-        "accession": "GCA_000005845.2",
-        "taxon": "Escherichia_coli"
-    },
-    "ASM886v2": {
-        "accession": "GCF_000008865.2",
-        "taxon": "Escherichia_coli"
+    "ASM1828913v1": {
+        "accession": "GCA_018289135.1",
+        "taxon": "Bacteroides_xylanisolvens"
     },
     "ASM1042v1": {
         "accession": "GCF_000010425.1",
         "taxon": "Bifidobacterium_adolescentis"
+    },
+    "ASM102513v1": {
+        "accession": "GCA_001025135.1",
+        "taxon": "Bifidobacterium_bifidum"
     },
     "ASM102517v1": {
         "accession": "GCF_001025175.1",
@@ -19,16 +19,36 @@
         "accession": "GCF_000196555.1",
         "taxon": "Bifidobacterium_longum"
     },
-    "45889_C01": {
-        "accession": "GCA_900636985.1",
-        "taxon": "Klebsiella_oxytoca"
-    },
-    "ASM1828913v1": {
-        "accession": "GCA_018289135.1",
-        "taxon": "Bacteroides_xylanisolvens"
+    "ASM834v1": {
+        "accession": "GCF_000008345.1",
+        "taxon": "Cutibacterium_acnes"
     },
     "Ente_faec_T5_V1": {
         "accession": "GCF_000393015.1",
         "taxon": "Enterococcus_faecalis"
+    },
+    "ASM1686425v1": {
+        "accession": "GCF_016864255.1",
+        "taxon": "Enterococcus_faecium"
+    },
+    "ASM584v2": {
+        "accession": "GCA_000005845.2",
+        "taxon": "Escherichia_coli"
+    },
+    "ASM886v2": {
+        "accession": "GCF_000008865.2",
+        "taxon": "Escherichia_coli"
+    },
+    "45889_C01": {
+        "accession": "GCA_900636985.1",
+        "taxon": "Klebsiella_oxytoca"
+    },
+    "ASM1602883v1": {
+        "accession": "GCF_016028835.1",
+        "taxon": "Lactococcus_lactis"
+    },
+    "ASM2417840v1": {
+        "accession": "GCA_024178405.1",
+        "taxon": "Staphylococcus_aureus"
     }
 }
