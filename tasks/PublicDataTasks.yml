@@ -9,19 +9,19 @@ includes:
 
 tasks:
   all:
-    - task: igenome_reference_genomes
-    - task: ncbi_reference_genomes
-    - task: ncbi_taxranks
+    - task: igenome-reference-genomes
+    - task: ncbi-reference-genomes
+    - task: ncbi-taxranks
     - task: kraken2-db
     - task: pubmlst
   
-  igenome_reference_genomes:
+  igenome-reference-genomes:
     - task: igenomes:download_ecoli
   
-  ncbi_reference_genomes:
+  ncbi-reference-genomes:
     - task: ncbi_reference:download-core-reference-genomes
 
-  ncbi_taxranks:
+  ncbi-taxranks:
     - task: ncbi_taxonomy:download
 
   kraken2-db:

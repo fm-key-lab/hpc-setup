@@ -1,0 +1,87 @@
+version: '3'
+
+includes:
+  group_install: ../utils/GroupInstallTasks.yml
+  envmodules: ../../../lab-tasks/tasks/EnvironmentModules.yml
+  rust: Rust.yml
+
+tasks:
+  install:
+    desc: Install qsv
+    platforms: [linux/amd64]
+    deps:
+      - task: rust:install
+        vars:
+          VERSION: '{{.RUST_VERSION}}'
+    summary: |
+      Install qsv: Blazing-fast CSV data-wrangling toolkit
+
+      URLs
+      ----
+       - https://github.com/jqnatividad/qsv
+    vars:
+      APP: 'qsv'
+      CLANG_MODULE: '{{.CLANG_MODULE | default "clang/18"}}'
+      # qsv v0.135.0 requires >=1.81
+      RUST_VERSION: 1.81.0
+      PYO3_CROSS_LIB_DIR: $GROUP_HOME/opt/python/3.12.4/lib
+      # qsv v0.89.0 combatible with GNU libc (v2.31)
+      VERSION: '{{.VERSION | default "0.89.0"}}'
+    cmds:
+      # - task: compile-from-source
+      #   vars:
+      #     CLANG_MODULE: '{{.CLANG_MODULE}}'
+      #     RUST_MODULE: 'rust/{{.RUST_VERSION}}'
+      #     PYO3_CROSS_LIB_DIR: '{{.PYO3_CROSS_LIB_DIR}}'
+      #     VERSION: '{{.VERSION}}'
+      - task: download-prebuilt-binaries
+        vars:
+          VERSION: '{{.VERSION}}'
+
+  download-prebuilt-binaries:
+    dir: '{{.DIR}}'
+    prompt: Download to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - unzip $(basename ${{.URL}})
+    vars:
+      DIR: $GROUP_HOME/opt/qsv/{{.VERSION}}
+      URL: https://github.com/jqnatividad/qsv/releases/download/{{.VERSION}}/qsv-{{.VERSION}}-x86_64-unknown-linux-gnu.zip
+    requires:
+      vars: [VERSION]
+  
+  compile-from-source:
+    vars:
+      DIR: $GROUP_HOME/opt/qsv/{{.VERSION}}
+      URL: https://github.com/jqnatividad/qsv/archive/refs/tags/{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Install in {{.DIR}}?
+    cmds:
+      - task: download-source
+        vars:
+          DIR: '{{.DIR}}'
+          VERSION: '{{.VERSION}}'
+      - task: envmodules:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}}/qsv-{{.VERSION}} && 
+            export PYO3_CROSS_LIB_DIR="{{.PYO3_CROSS_LIB_DIR}}" && 
+            cargo build --target x86_64-unknown-linux-gnu --release --locked --bin qsv --features all_features
+          MODULE: '{{.CLANG_MODULE}} {{.RUST_MODULE}}'
+    requires:
+      vars: [CLANG_MODULE, RUST_MODULE, PYO3_CROSS_LIB_DIR, VERSION]
+  
+  download-source:
+    vars:
+      URL: https://github.com/jqnatividad/qsv/archive/refs/tags/{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    silent: true
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+    requires:
+      vars: [DIR, VERSION]
+    status:
+      - test -d {{.DIR}}/qsv-{{.VERSION}}

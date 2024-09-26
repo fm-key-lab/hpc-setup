@@ -34,6 +34,7 @@ includes:
   pandoc: ./software/Pandoc.yml
   perl: ./software/Perl.yml
   python: ./software/Python.yml
+  qsv: ./software/qsv.yml
   resfinder: ./software/ResFinder.yml
   rust: ./software/Rust.yml
   samtools: ./software/SAMtools.yml
@@ -89,6 +90,7 @@ tasks:
     - task: pandoc
     - task: perl
     - task: python
+    - task: qsv
     - task: resfinder
     - task: rust
     - task: samtools
@@ -164,6 +166,7 @@ tasks:
     - task: duckdb
     - task: gnumeric
     - task: jq
+    - task: qsv
     - task: yq
 
   utils:
@@ -314,8 +317,24 @@ tasks:
     - task: python:install_3_12
     - task: python:install_2_7
 
+  qsv:
+    - task: qsv:install
+      vars:
+        VERSION: '{{.VERSION | default "0.89.0"}}'
+
+  resfinder:
+    - task: resfinder:install
+
+  rust:
+    - task: rust:install
+      vars:
+        VERSION: '{{.VERSION | default "1.81.0"}}'
+
   samtools:
     - task: samtools:install
+
+  samtools_bcftools_htslib:
+    - task: samtools_bcftools_htslib:install
 
   sickle:
     - task: sickle:install
@@ -328,24 +347,6 @@ tasks:
 
   sratoolkit:
     - task: sratoolkit:install
-
-  srst2:
-    - task: srst2:install
-
-  resfinder:
-    - task: resfinder:install
-
-  rust:
-    - task: rust:install
-
-  samtools:
-    - task: samtools:install
-
-  samtools_bcftools_htslib:
-    - task: samtools_bcftools_htslib:install
-
-  snpsites:
-    - task: snpsites:install
 
   srst2:
     - task: srst2:install

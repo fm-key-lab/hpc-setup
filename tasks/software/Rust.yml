@@ -9,49 +9,58 @@ tasks:
     summary: |
       Install Rust compiler
 
-      Note:
+      Notes
+      -----
       # To get started you need Cargo's bin directory 
-      # ($GROUP_HOME/opt/rust/1.80.1/bin) in your PATH
+      # ({{.DIR}}/bin) in your PATH
       # environment variable. This has not been done automatically.
 
       # To configure your current shell, you need to source
-      # the corresponding env file under $GROUP_HOME/opt/rust/1.80.1.
+      # the corresponding env file under {{.DIR}}.
 
       # This is usually done by running one of the following (note the leading DOT):
-      # . "$GROUP_HOME/opt/rust/1.80.1/env"            # For 
+      # . "{{.DIR}}/env"            # For 
       # sh/bash/zsh/ash/dash/pdksh
-      # source "$GROUP_HOME/opt/rust/1.80.1/env.fish"  # For fish
-    cmds:
-      - task: _install
-        vars:
-          APP: rust
-          VERSION: 1.80.1
-          RELPATH_EXE: /bin/
-          EXE: rustc rustup cargo
+      # source "{{.DIR}}/env.fish"  # For fish
 
-  _install:
-    internal: true
-    deps:
-      - task: build
-        vars:
-          SUBDIR: '{{.APP}}/{{.VERSION}}'
+      URLs
+      ----
+       - https://www.rust-lang.org/tools/install
     cmds:
+      - task: using-rustup
+        vars:
+          VERSION: '{{.VERSION}}'
       - task: group_install:complete
         vars:
           APP: '{{.APP}}'
           VERSION: '{{.VERSION}}'
-          RELPATH_EXE: '{{.RELPATH_EXE}}'
-          EXE: '{{.EXE}}'
+          RELPATH_EXE: /bin/
+          EXE: rustc rustup cargo
+    vars:
+      APP: rust
+      VERSION: '{{.VERSION | default "1.81.0"}}'
 
-  build:
-    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+  using-rustup:
+    dir: '{{.DIR}}'
+    prompt: Install in {{.DIR}}?
     cmds:
+      # - echo $CARGO_HOME $RUSTUP_HOME # NOTE: for troubleshooting
       - mkdir -p bin
       - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --no-modify-path -y
+    vars:
+      GROUP_HOME:
+        sh: echo $GROUP_HOME
+      DIR: '{{.GROUP_HOME}}/opt/rust/{{.VERSION}}'
+    requires:
+      vars: [VERSION]
     env:
-      # Will look for a `bin` directory in these locations
-      RUSTUP_HOME: $GROUP_HOME/opt/rust/1.80.1
-      CARGO_HOME: $GROUP_HOME/opt/rust/1.80.1
+      # Will look for a `bin` directory in these locations; when the environment 
+      # variables do not look like absolute paths (e.g., $HOME/rust), then the 
+      # executables are placed in {{.DIR}}/$CARGO_HOME, {{.DIR}}/$RUSTUP_HOME
+      #
+      # However, if no value or '' is provided, will default to $HOME/.cargo/bin
+      CARGO_HOME: '{{.DIR}}'
+      RUSTUP_HOME: '{{.DIR}}'
     status:
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bin/rustc
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bin/cargo
+      - test -f {{.DIR}}/bin/rustc
+      - test -f {{.DIR}}/bin/cargo

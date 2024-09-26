@@ -1,5 +1,7 @@
 version: 3
 
+# TODO: `kraken2-build` is just a perl wrapper of rsync, should just download outside script
+
 vars:
   AWS_S3_KRAKEN2: https://genome-idx.s3.amazonaws.com/kraken
   MODULE_BRACKEN: bracken/2.9

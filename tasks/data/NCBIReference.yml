@@ -13,6 +13,7 @@ tasks:
     dir: $GROUP_HOME/public_data/reference_genomes/{{.TAXON}}/{{.ACCESSION}}/{{.SOURCE}}
 
   download-core-reference-genomes:
+    desc: Download core reference genomes from NCBI
     vars:
       REF_JSON_PATH: '{{.TASKFILE_DIR}}/core-reference-genomes.json'
       REF_KEYS:
