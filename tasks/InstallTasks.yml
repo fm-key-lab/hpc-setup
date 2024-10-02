@@ -25,6 +25,7 @@ includes:
   kronatools: ./software/KronaTools.yml
   lz4: ./software/LZ4.yml
   magic-blast: ./software/Magic-BLAST.yml
+  micromamba: ./software/Micromamba.yml
   mlst: ./software/mlst.yml
   mosdepth: ./software/mosdepth.yml
   mummer: ./software/MUMmer.yml
@@ -45,6 +46,7 @@ includes:
   sratoolkit: ./software/SRAToolkit.yml
   srst2: ./software/SRST2.yml
   tinytex: ./software/TinyTex.yml
+  vcf2parquet: ./software/vcf2parquet.yml
   vcftools: ./software/VCFtools.yml
   veryfasttree: ./software/VeryFastTree.yml
   yadm: ./software/yadm.yml
@@ -81,6 +83,7 @@ tasks:
     - task: kronatools
     - task: lz4
     - task: magic-blast
+    - task: micromamba
     - task: mlst
     - task: mosdepth
     - task: mummer
@@ -101,6 +104,7 @@ tasks:
     - task: sratoolkit
     - task: srst2
     - task: tinytex
+    - task: vcf2parquet
     - task: vcftools
     - task: veryfasttree
     - task: yadm
@@ -116,6 +120,7 @@ tasks:
     - task: gatk
     - task: gubbins
     - task: kraken2
+    - task: micromamba
     - task: ncbi_datasets
     - task: python
     - task: samtools
@@ -156,6 +161,7 @@ tasks:
     - task: sratoolkit
     - task: srst2
     - task: veryfasttree
+    - task: vcf2parquet
     - task: vcftools
 
   admin:
@@ -173,6 +179,7 @@ tasks:
     - task: aria2
     - task: direnv
     - task: lz4
+    - task: micromamba
     - task: ncurses
     - task: pandoc
     - task: tinytex
@@ -282,6 +289,11 @@ tasks:
   magic-blast:
     - task: magic-blast:install
 
+  micromamba:
+    - task: micromamba:install
+      vars:
+        VERSION: '{{.VERSION | default "2.0.1-0"}}'
+
   mlst:
     - task: mlst:install
 
@@ -353,6 +365,11 @@ tasks:
 
   tinytex:
     - task: tinytex:install
+
+  vcf2parquet:
+    - task: vcf2parquet:install
+      vars:
+        VERSION: '{{.VERSION | default "0.4.1"}}'
 
   vcftools:
     - task: vcftools:install

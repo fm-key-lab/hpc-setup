@@ -20,7 +20,7 @@ tasks:
       ----
        - https://github.com/jqnatividad/qsv
     vars:
-      APP: 'qsv'
+      APP: qsv
       CLANG_MODULE: '{{.CLANG_MODULE | default "clang/18"}}'
       # qsv v0.135.0 requires >=1.81
       RUST_VERSION: 1.81.0
