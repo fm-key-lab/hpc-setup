@@ -1,7 +1,7 @@
 version: '3'
 
 includes:
-  group_install: ../utils/GroupInstallTasks.yml
+  group-install: ../utils/GroupInstallTasks.yml
 
 tasks:
   install_3_12:
@@ -34,7 +34,7 @@ tasks:
           VERSION: '{{.VERSION}}'
           SUBDIR: '{{.APP}}/{{.VERSION}}'
     cmds:
-      - task: group_install:complete
+      - task: group-install:complete
         vars:
           APP: '{{.APP}}'
           VERSION: '{{.VERSION}}'

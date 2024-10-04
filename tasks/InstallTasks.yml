@@ -8,6 +8,7 @@ includes:
   bowtie2: ./software/Bowtie2.yml
   bracken: ./software/Bracken.yml
   cdhit: ./software/CD-HIT.yml
+  csvkit: ./software/csvkit.yml
   cutadapt: ./software/Cutadapt.yml
   d4tools: ./software/D4.yml
   direnv: ./software/direnv.yml
@@ -46,6 +47,7 @@ includes:
   sratoolkit: ./software/SRAToolkit.yml
   srst2: ./software/SRST2.yml
   tinytex: ./software/TinyTex.yml
+  uv: ./software/uv.yml
   vcf2parquet: ./software/vcf2parquet.yml
   vcftools: ./software/VCFtools.yml
   veryfasttree: ./software/VeryFastTree.yml
@@ -66,6 +68,7 @@ tasks:
     - task: bowtie2
     - task: bracken
     - task: cdhit
+    - task: csvkit
     - task: cutadapt
     - task: d4tools
     - task: direnv
@@ -104,6 +107,7 @@ tasks:
     - task: sratoolkit
     - task: srst2
     - task: tinytex
+    - task: uv
     - task: vcf2parquet
     - task: vcftools
     - task: veryfasttree
@@ -117,6 +121,7 @@ tasks:
     - task: blast
     - task: bowtie2
     - task: bracken
+    - task: csvkit
     - task: gatk
     - task: gubbins
     - task: kraken2
@@ -127,6 +132,7 @@ tasks:
     - task: samtools_bcftools_htslib
     - task: snpsites
     - task: srst2
+    - task: uv
     - task: vcftools
 
   bio:
@@ -168,6 +174,7 @@ tasks:
     - task: yadm
 
   data:
+    - task: csvkit
     - task: d4tools
     - task: duckdb
     - task: gnumeric
@@ -183,6 +190,7 @@ tasks:
     - task: ncurses
     - task: pandoc
     - task: tinytex
+    - task: uv
 
   interpreters:
     - task: perl
@@ -234,6 +242,11 @@ tasks:
 
   cdhit:
     - task: cdhit:install
+
+  csvkit:
+    - task: csvkit:install
+      vars:
+        VERSION: '{{.VERSION | default "2.0.1"}}'
 
   cutadapt:
     - task: cutadapt:install
@@ -365,6 +378,9 @@ tasks:
 
   tinytex:
     - task: tinytex:install
+
+  uv:
+    - task: uv:install
 
   vcf2parquet:
     - task: vcf2parquet:install

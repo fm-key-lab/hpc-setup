@@ -1,0 +1,9 @@
+version: '3'
+
+# stub
+
+tasks:
+  install:
+    desc: Install uv
+    status:
+      - test -f $GROUP_HOME/opt/uv/0.2.34/bin/uv

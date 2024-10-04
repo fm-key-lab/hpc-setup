@@ -1,0 +1,56 @@
+version: '3'
+
+includes:
+  group-install: ../utils/GroupInstallTasks.yml
+  envmodules: ../../../lab-tasks/tasks/EnvironmentModules.yml
+  # python: Python.yml # TODO: debug
+  uv: uv.yml
+
+tasks:
+  install:
+    desc: Install csvkit
+    summary: |
+      Install csvkit
+
+      URLs
+      ----
+       - GitHub: https://github.com/wireservice/csvkit
+       - Docs: https://csvkit.readthedocs.io/en/latest/index.html
+    vars:
+      APP: csvkit
+      VERSION: '{{.VERSION | default "2.0.1"}}'
+      PYTHON_MODULE: python/3.12
+      UV_MODULE: uv/0.2.34
+    cmds:
+      - task: install-virtual-environment
+        vars:
+          PYTHON_MODULE: '{{.PYTHON_MODULE}}'
+          UV_MODULE: '{{.UV_MODULE}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-install:modulefile
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          EXE: csvcut csvjoin csvlook csvstack csvstat in2csv
+          RELPATH_EXE: /.venv/bin/
+
+  install-virtual-environment:
+    deps:
+      # - task: python:install_3_12 # TODO: debug
+      - task: uv:install
+    vars:
+      DIR: $GROUP_HOME/opt/csvkit/{{.VERSION}}
+    dir: '{{.DIR}}'
+    prompt: Create environment in {{.DIR}}?
+    cmds:
+      - task: envmodules:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}} && 
+            uv venv && 
+            uv pip install csvkit=={{.VERSION}}
+          MODULE: '{{.UV_MODULE}} {{.PYTHON_MODULE}}'
+    requires:
+      vars: [PYTHON_MODULE, UV_MODULE, VERSION]
+    status:
+      - test -d {{.DIR}}/.venv/bin/activate
