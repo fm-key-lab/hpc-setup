@@ -1,0 +1,83 @@
+version: '3'
+
+includes:
+  group-install: ../utils/GroupInstallTasks.yml
+  envmodules: ../../../lab-tasks/tasks/EnvironmentModules.yml
+
+tasks:
+  install:
+    desc: Install ggtree
+    summary: |
+      Install ggtree
+
+      Notes
+      -----
+       - Installing an R kernelspec requires having jupyter in PATH
+
+      URLs
+      ----
+       - Docs: https://yulab-smu.top/treedata-book/index.html
+       - Releases: https://www.bioconductor.org/packages/release/bioc/html/ggtree.html
+    vars:
+      APP: ggtree
+      VERSION: '{{.VERSION | default "3.19"}}'
+      JUPYTER_MODULE: anaconda/3/2023.03
+      R_MODULE: R/4.4
+    cmds:
+      - task: install-R-libs
+        vars:
+          VERSION: '{{.VERSION}}'
+          JUPYTER_MODULE: '{{.JUPYTER_MODULE}}'
+          R_MODULE: '{{.R_MODULE}}'
+      - task: group-install:modulefile
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          EXE: '{{.APP}}'
+          RELPATH_EXE: / # TODO: doesn't do anything
+      - task: append-modulefile
+        vars:
+          VERSION: '{{.VERSION}}'
+          JUPYTER_MODULE: '{{.JUPYTER_MODULE}}'
+          R_MODULE: '{{.R_MODULE}}'
+    status:
+      - test -f $GROUP_HOME/Modules/modulefiles/ggtree/{{.VERSION}}
+
+  install-R-libs:
+    vars:
+      DIR: $GROUP_HOME/opt/ggtree/{{.VERSION}}
+    dir: '{{.DIR}}'
+    prompt: Install R libraries in {{.DIR}}?
+    cmds:
+      - task: envmodules:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}} && 
+            mkdir -p R_libs && 
+            Rscript - <<EOF
+            .libPaths("R_libs")
+            options(repos = c(CRAN = "https://cran.rstudio.com/"))
+
+            install.packages("BiocManager", lib = "R_libs")
+            BiocManager::install("ggtree", version = "{{.VERSION}}", lib = "R_libs")
+            BiocManager::install("ggtreeExtra", lib = "R_libs")
+
+            install.packages(c("ape", "ggplot2", "cowplot", "patchwork", "ggpubr"), lib = "R_libs")
+            install.packages(c("RColorBrewer", "viridis", "scales"), lib = "R_libs")
+            install.packages("IRkernel", lib = "R_libs")
+
+            library(IRkernel)
+            IRkernel::installspec(name = "ir44_ggtree", displayname = "{{.R_MODULE}} (ggtree)", user = TRUE)
+            q()
+            EOF
+          MODULE: '{{.JUPYTER_MODULE}} {{.R_MODULE}}'
+    requires:
+      vars: [JUPYTER_MODULE, R_MODULE, VERSION]
+    status:
+      - test -d {{.DIR}}/R_libs/ggtree
+      - test -d {{.DIR}}/R_libs/IRkernel
+
+  append-modulefile:
+    - echo -e '\ndepends-on {{.JUPYTER_MODULE}}' >> $GROUP_HOME/Modules/modulefiles/ggtree/{{.VERSION}}
+    - echo -e '\ndepends-on {{.R_MODULE}}' >> $GROUP_HOME/Modules/modulefiles/ggtree/{{.VERSION}}
+    - echo -e '\nsetenv R_LIBS_SITE "${basedir}/opt/ggtree/{{.VERSION}}/R_libs"' >> $GROUP_HOME/Modules/modulefiles/ggtree/{{.VERSION}}

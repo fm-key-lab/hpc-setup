@@ -16,6 +16,7 @@ includes:
   fasttree: ./software/FastTree.yml
   figtree: ./software/FigTree.yml
   gatk: ./software/GATK.yml
+  ggtree: ./software/ggtree.yml
   gnumeric: ./software/Gnumeric.yml
   gubbins: ./software/Gubbins.yml
   jq: ./software/jq.yml
@@ -76,6 +77,7 @@ tasks:
     - task: fasttree
     - task: figtree
     - task: gatk
+    - task: ggtree
     - task: gnumeric
     - task: gubbins
     - task: jq
@@ -147,6 +149,7 @@ tasks:
     - task: fasttree
     - task: figtree
     - task: gatk
+    - task: ggtree
     - task: gubbins
     - task: kma
     - task: kmerresistance
@@ -271,6 +274,11 @@ tasks:
 
   gatk:
     - task: gatk:install
+
+  ggtree:
+    - task: ggtree:install
+      vars:
+        VERSION: '{{.VERSION | default "3.19"}}'
 
   gnumeric:
     - task: gnumeric:install
