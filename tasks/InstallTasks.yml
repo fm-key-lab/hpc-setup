@@ -41,7 +41,7 @@ includes:
   resfinder: ./software/ResFinder.yml
   rust: ./software/Rust.yml
   samtools: ./software/SAMtools.yml
-  samtools_bcftools_htslib: ./software/SAMtools-bcftools-htslib.yml
+  samtools-bcftools-htslib: ./software/SAMtools-bcftools-htslib.yml
   sickle: ./software/Sickle.yml
   snpsites: ./software/SNPsites.yml
   spades: ./software/SPAdes.yml
@@ -101,8 +101,8 @@ tasks:
     - task: qsv
     - task: resfinder
     - task: rust
-    - task: samtools
-    - task: samtools_bcftools_htslib
+    - task: samtools-legacy
+    - task: samtools-bcftools-htslib
     - task: sickle
     - task: snpsites
     - task: spades
@@ -130,8 +130,8 @@ tasks:
     - task: micromamba
     - task: ncbi_datasets
     - task: python
-    - task: samtools
-    - task: samtools_bcftools_htslib
+    - task: samtools-legacy
+    - task: samtools-bcftools-htslib
     - task: snpsites
     - task: srst2
     - task: uv
@@ -162,8 +162,8 @@ tasks:
     - task: mummer
     - task: ncbi_datasets
     - task: resfinder
-    - task: samtools
-    - task: samtools_bcftools_htslib
+    - task: samtools-legacy
+    - task: samtools-bcftools-htslib
     - task: sickle
     - task: snpsites
     - task: spades
@@ -363,11 +363,13 @@ tasks:
       vars:
         VERSION: '{{.VERSION | default "1.81.0"}}'
 
-  samtools:
+  samtools-legacy:
     - task: samtools:install
+      vars:
+        VERSION: '{{.VERSION | default "0.1.18"}}'
 
-  samtools_bcftools_htslib:
-    - task: samtools_bcftools_htslib:install
+  samtools-bcftools-htslib:
+    - task: samtools-bcftools-htslib:install
 
   sickle:
     - task: sickle:install

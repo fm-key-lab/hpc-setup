@@ -1,47 +1,49 @@
 version: 3
 
 includes:
-  group_install: ../utils/GroupInstallTasks.yml
+  group-install: ../utils/GroupInstallTasks.yml
+  envmodules: ../../../lab-tasks/tasks/EnvironmentModules.yml
+  ncurses: Ncurses.yml
 
 tasks:
   install:
+    vars:
+      APP: samtools
+      VERSION: '{{.VERSION | default "0.1.18"}}'
+      NCURSES_MODULE: ncurses/6.5
     cmds:
-      - task: _install
-        vars:
-          APP: samtools
-          VERSION: 0.1.18
-          RELPATH_EXE: /samtools-0.1.18/
-          EXE: samtools
-
-  _install:
-    internal: true
-    deps:
       - task: build
         vars:
-          SUBDIR: '{{.APP}}/{{.VERSION}}'
-    cmds:
+          NCURSES_MODULE: '{{.NCURSES_MODULE}}'
+          VERSION: '{{.VERSION}}'
       # NOTE: Added /misc/ to path too
-      - task: group_install:complete
+      - task: group-install:complete
         vars:
           APP: '{{.APP}}'
           VERSION: '{{.VERSION}}'
-          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          RELPATH_EXE: /samtools-{{.VERSION}}/
           EXE: '{{.APP}}'
 
   build:
-    dir: $GROUP_HOME/opt/{{.SUBDIR}}
-    cmds:
-      - wget {{.BINARY}}
-      - defer: rm -f $(basename {{.BINARY}})
-      - tar xf $(basename {{.BINARY}})
-      - cd $(basename {{.BINARY}} .tar.bz2)
-      - bash -c '
-        module load {{.NCURSES_MODULE}}
-        make LIBCURSES="-lncursesw"
-        module unload {{.NCURSES_MODULE}}'
+    deps:
+      - task: ncurses:install
     vars:
-      NCURSES_MODULE: ncurses/6.5
-      BINARY: https://sourceforge.net/projects/samtools/files/samtools/0.1.18/samtools-0.1.18.tar.bz2
+      DIR: $GROUP_HOME/opt/samtools/{{.VERSION}}
+      URL: https://sourceforge.net/projects/samtools/files/samtools{{.VERSION}}/samtools-{{.VERSION}}.tar.bz2
+    dir: '{{.DIR}}'
+    prompt: Build in {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+      - task: envmodules:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}}/samtools-{{.VERSION}} && 
+            make LIBCURSES="-lncursesw"
+          MODULE: '{{.NCURSES_MODULE}}'
+    requires:
+      vars: [NCURSES_MODULE, VERSION]
     status:
       - test -f $GROUP_HOME/opt/{{.SUBDIR}}/samtools-0.1.18/samtools
       - test -f $GROUP_HOME/opt/{{.SUBDIR}}/samtools-0.1.18/misc/maq2sam-long
