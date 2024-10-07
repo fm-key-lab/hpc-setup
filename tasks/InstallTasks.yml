@@ -370,6 +370,8 @@ tasks:
 
   samtools-bcftools-htslib:
     - task: samtools-bcftools-htslib:install
+      vars:
+        VERSION: '{{.VERSION | default "1.20"}}'
 
   sickle:
     - task: sickle:install
