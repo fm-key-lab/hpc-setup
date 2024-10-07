@@ -1,0 +1,80 @@
+version: '3'
+
+includes:
+  group-install: ../utils/GroupInstallTasks.yml
+  envmodules: ../../../lab-tasks/tasks/EnvironmentModules.yml
+  micromamba: Micromamba.yml
+  samtools-bcftools-htslib: SAMtools-bcftools-htslib.yml
+
+tasks:
+  install:
+    desc: Install pyGenomeTracks
+    summary: |
+      Install pyGenomeTracks
+
+      Install pyGenomeTracks and fork of it with Jupyter utilities, CoolBox.
+
+      URLs
+      ----
+       - GitHub (pyGenomeTracks): https://github.com/deeptools/pyGenomeTracks
+       - Docs (pyGenomeTracks): https://pygenometracks.readthedocs.io/en/latest/
+       - GitHub (CoolBox): https://github.com/GangCaoLab/CoolBox
+       - Docs (CoolBox): https://gangcaolab.github.io/CoolBox/index.html
+    vars:
+      APP: pygenometracks
+      VERSION: '{{.VERSION | default "3.9"}}'
+      COOLBOX_VERSION: '{{.COOLBOX_VERSION | default "0.3.8"}}'
+      MICROMAMBA_MODULE: micromamba/2.0.1-0
+      SAMTOOLS_MODULES: bcftools/1.20 htslib/1.20 samtools/1.20
+    cmds:
+      - task: install-conda-environment
+        vars:
+          VERSION: '{{.VERSION}}'
+          COOLBOX_VERSION: '{{.COOLBOX_VERSION}}'
+          MICROMAMBA_MODULE: '{{.MICROMAMBA_MODULE}}'
+          SAMTOOLS_MODULES: '{{.SAMTOOLS_MODULES}}'
+      - task: group-install:modulefile
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          EXE: coolbox pyGenomeTracks make_tracks_file
+          RELPATH_EXE: /envs/coolbox/bin/
+      - task: append-modulefile
+        vars:
+          VERSION: '{{.VERSION}}'
+          MICROMAMBA_MODULE: '{{.MICROMAMBA_MODULE}}'
+          SAMTOOLS_MODULES: '{{.SAMTOOLS_MODULES}}'
+
+  # TODO: Change location of kernelspec
+  install-conda-environment:
+    deps:
+      - task: micromamba:install
+      - task: samtools-bcftools-htslib:install
+    vars:
+      DIR: $GROUP_HOME/opt/pygenometracks/{{.VERSION}}
+    dir: '{{.DIR}}'
+    prompt: Create environment in {{.DIR}}?
+    cmds:
+      - task: envmodules:run-inside
+        vars:
+          CMDS: |
+            export MAMBA_ROOT_PREFIX={{.DIR}} &&
+            micromamba create -n coolbox bioconda::pygenometracks={{.VERSION}} bioconda::coolbox={{.COOLBOX_VERSION}} -y &&
+            {{.DIR}}/envs/coolbox/bin/python -m ipykernel install --user --name py312_coolbox --display-name "Python 3.12 (coolbox)"
+          MODULE: '{{.MICROMAMBA_MODULE}} {{.SAMTOOLS_MODULES}}'
+    requires:
+      vars: [COOLBOX_VERSION, MICROMAMBA_MODULE, SAMTOOLS_MODULES, VERSION]
+    status:
+      - test -f {{.DIR}}/envs/coolbox/bin/coolbox
+      - test -f {{.DIR}}/envs/coolbox/bin/pyGenomeTracks
+      - test -f {{.DIR}}/envs/coolbox/bin/make_tracks_file
+
+  append-modulefile:
+    vars:
+      MODULEFILE: $GROUP_HOME/Modules/modulefiles/pygenometracks/{{.VERSION}}
+    cmds:
+      - echo -e '\ndepends-on {{.MICROMAMBA_MODULE}}' >> {{.MODULEFILE}}
+      - for: { var: SAMTOOLS_MODULES }
+        cmd: echo -e '\ndepends-on {{.ITEM}}' >> {{.MODULEFILE}}
+    requires:
+      vars: [SAMTOOLS_MODULES, VERSION]

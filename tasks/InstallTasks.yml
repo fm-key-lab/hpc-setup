@@ -36,6 +36,7 @@ includes:
   nim: ./software/Nim.yml
   pandoc: ./software/Pandoc.yml
   perl: ./software/Perl.yml
+  pygenometracks: ./software/pyGenomeTracks.yml
   python: ./software/Python.yml
   qsv: ./software/qsv.yml
   resfinder: ./software/ResFinder.yml
@@ -97,6 +98,7 @@ tasks:
     - task: nim
     - task: pandoc
     - task: perl
+    - task: pygenometracks
     - task: python
     - task: qsv
     - task: resfinder
@@ -161,6 +163,7 @@ tasks:
     - task: mosdepth
     - task: mummer
     - task: ncbi_datasets
+    - task: pygenometracks
     - task: resfinder
     - task: samtools-legacy
     - task: samtools-bcftools-htslib
@@ -345,6 +348,11 @@ tasks:
     vars:
       VERSION: '{{.VERSION | default "5.40.0 5.24.4"}}'
       VERSIONS: '{{.VERSIONS | default .VERSION}}'
+
+  pygenometracks:
+    - task: pygenometracks:install
+      vars:
+        VERSION: '{{.VERSION | default "3.9"}}'
 
   python:
     - task: python:install_3_12
