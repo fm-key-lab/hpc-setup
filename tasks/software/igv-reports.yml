@@ -1,0 +1,51 @@
+version: '3'
+
+includes:
+  group-install: ../utils/GroupInstallTasks.yml
+  venv: ../../../lab-tasks/tasks/Venv.yml
+
+tasks:
+  install:
+    desc: Install igv-reports
+    summary: |
+      Install igv-reports
+
+      igv-reports - A Python application to generate self-contained HTML 
+      reports for variant review and other genomic applications. Reports 
+      consist of a table of genomic sites and an embedded IGV genome browser 
+      for viewing data for each site. The tool extracts slices of data for 
+      each site and embeds the data as blobs in the HTML report file. The 
+      report can be opened in a web browser as a static page, with no 
+      depenency on the original input files.
+
+      URLs
+      ----
+       - GitHub: https://github.com/igvteam/igv-reports
+    vars:
+      APP: igv_reports
+      VERSION: '{{.VERSION | default "1.12.0"}}'
+    cmds:
+      - task: create-python-virtualenv
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: group-install:modulefile
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          EXE: create_datauri create_report
+          RELPATH_EXE: /.venv/bin/
+
+  # TODO: VERSION variable is only the lowest possible version
+  create-python-virtualenv:
+    vars:
+      DIR: $GROUP_HOME/opt/igv_reports/{{.VERSION}}
+    cmds:
+      - task: venv:create
+        vars:
+          INSTALL: '"igv-reports>={{.VERSION}}"'
+          PREFIX: '{{.DIR}}'
+    requires:
+      vars: [VERSION]
+    status:
+      - test -f {{.DIR}}/.venv/bin/create_datauri
+      - test -f {{.DIR}}/.venv/bin/create_report

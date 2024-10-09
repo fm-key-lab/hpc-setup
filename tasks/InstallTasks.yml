@@ -19,6 +19,7 @@ includes:
   ggtree: ./software/ggtree.yml
   gnumeric: ./software/Gnumeric.yml
   gubbins: ./software/Gubbins.yml
+  igv-reports: ./software/igv-reports.yml
   jq: ./software/jq.yml
   kma: ./software/KMA.yml
   kmerresistance: ./software/KmerResistance.yml
@@ -82,6 +83,7 @@ tasks:
     - task: ggtree
     - task: gnumeric
     - task: gubbins
+    - task: igv-reports
     - task: jq
     - task: kma
     - task: kmerresistance
@@ -155,6 +157,7 @@ tasks:
     - task: gatk
     - task: ggtree
     - task: gubbins
+    - task: igv-reports
     - task: kma
     - task: kmerresistance
     - task: kraken2
@@ -291,6 +294,11 @@ tasks:
 
   gubbins:
     - task: gubbins:install
+
+  igv-reports:
+    - task: igv-reports:install
+      vars:
+        VERSION: '{{.VERSION | default "1.12.0"}}'
 
   jq:
     - task: jq:install
