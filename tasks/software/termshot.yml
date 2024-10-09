@@ -1,0 +1,57 @@
+version: '3'
+
+includes:
+  group-install: ../utils/GroupInstallTasks.yml
+
+tasks:
+  install:
+    desc: Install termshot
+    summary: |
+      Install termshot: Creates screenshots based on terminal command output
+
+      Terminal screenshot tool, which takes the console output and renders an 
+      output image that resembles a user interface window.
+
+      URLs
+      ----
+       - GitHub: https://github.com/homeport/termshot
+    vars:
+      APP: termshot
+      VERSION: '{{.VERSION | default "0.2.10"}}'
+      # TODO: Remove hard-coding of cmdtools modulefile (and frozen version)
+      CMDTOOLS_MODULEFILE: $GROUP_HOME/Modules/modulefiles/cmdtools/0.0.1-alpha
+    cmds:
+      - task: download-precompiled-binary
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: group-install:symlink
+        vars:
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+          RELPATH_EXE: /
+          EXE: termshot
+      - task: append-cmdtools-modulefile
+        vars:
+          VERSION: '{{.VERSION}}'
+          CMDTOOLS_MODULEFILE: '{{.CMDTOOLS_MODULEFILE}}'
+
+  download-precompiled-binary:
+    platforms: [linux/amd64]
+    vars:
+      DIR: $GROUP_HOME/opt/termshot/{{.VERSION}}
+      URL: https://github.com/homeport/termshot/releases/download/v{{.VERSION}}/termshot_{{.VERSION}}_linux_amd64.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Create environment in {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+    requires:
+      vars: [VERSION]
+    status:
+      - test -f {{.DIR}}/termshot
+  
+  append-cmdtools-modulefile:
+    cmds:
+      - echo -e '\nprepend-path PATH "${basedir}/termshot/{{.VERSION}}"' >> {{.CMDTOOLS_MODULEFILE}}
+    requires:
+      vars: [VERSION, CMDTOOLS_MODULEFILE]

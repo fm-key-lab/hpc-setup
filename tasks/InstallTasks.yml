@@ -48,6 +48,7 @@ includes:
   spades: ./software/SPAdes.yml
   sratoolkit: ./software/SRAToolkit.yml
   srst2: ./software/SRST2.yml
+  termshot: ./software/termshot.yml
   tinytex: ./software/TinyTex.yml
   uv: ./software/uv.yml
   vcf2parquet: ./software/vcf2parquet.yml
@@ -110,6 +111,7 @@ tasks:
     - task: spades
     - task: sratoolkit
     - task: srst2
+    - task: termshot
     - task: tinytex
     - task: uv
     - task: vcf2parquet
@@ -195,6 +197,7 @@ tasks:
     - task: micromamba
     - task: ncurses
     - task: pandoc
+    - task: termshot
     - task: tinytex
     - task: uv
 
@@ -395,6 +398,9 @@ tasks:
 
   srst2:
     - task: srst2:install
+
+  termshot:
+    - task: termshot:install
 
   tinytex:
     - task: tinytex:install
