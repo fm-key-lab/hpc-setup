@@ -1,0 +1,3 @@
+[submodule "lab-tasks"]
+	path = lab-tasks
+	url = git@github.com:fm-key-lab/lab-tasks.git
