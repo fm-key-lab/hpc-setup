@@ -1,0 +1,35 @@
+version: '3'
+
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: "{{.GROUP_HOME}}/opt"
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+
+tasks:
+  install:
+    vars:
+      APP: task
+      VERSION: '{{.VERSION | default "3.39.2"}}'
+    cmds:
+      - task: download-binary
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION_CLI}}'
+          RELPATH_EXE: '/'
+          EXE: '{{.EXE}}'
+
+  download-binary:
+    vars:
+      DIR: '{{.OPT_DIR}}/task/{{.VERSION}}'
+      URL: https://github.com/go-task/task/releases/download/v3.39.2/task_linux_amd64.tar.gz
+    dir: '{{.DIR}}'
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})

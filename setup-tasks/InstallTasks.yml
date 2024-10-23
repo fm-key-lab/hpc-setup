@@ -49,6 +49,7 @@ includes:
   spades: ./software/SPAdes.yml
   sratoolkit: ./software/SRAToolkit.yml
   srst2: ./software/SRST2.yml
+  taskfile: ./software/Task.yml
   termshot: ./software/termshot.yml
   tinytex: ./software/TinyTex.yml
   uv: ./software/uv.yml
@@ -113,6 +114,7 @@ tasks:
     - task: spades
     - task: sratoolkit
     - task: srst2
+    - task: taskfile
     - task: termshot
     - task: tinytex
     - task: uv
@@ -140,6 +142,7 @@ tasks:
     - task: samtools-bcftools-htslib
     - task: snpsites
     - task: srst2
+    - task: taskfile
     - task: uv
     - task: vcftools
 
@@ -200,6 +203,7 @@ tasks:
     - task: micromamba
     - task: ncurses
     - task: pandoc
+    - task: taskfile
     - task: termshot
     - task: tinytex
     - task: uv
@@ -406,6 +410,11 @@ tasks:
 
   srst2:
     - task: srst2:install
+
+  taskfile:
+    - task: taskfile:install
+      vars:
+        VERSION: '{{.VERSION | default "3.39.2"}}'
 
   termshot:
     - task: termshot:install

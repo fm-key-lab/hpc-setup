@@ -25,12 +25,10 @@ tasks:
     cmds:
       - task: download-github-docs
         vars:
-          APP: '{{.APP}}'
           VERSION: '{{.VERSION_DOCS}}'
           VERSION_CLI: '{{.VERSION_CLI}}'
       - task: download-github-cli
         vars:
-          APP: '{{.APP}}'
           VERSION: '{{.VERSION_CLI}}'
       - task: group-installs:complete
         vars:
@@ -44,7 +42,7 @@ tasks:
     vars:
       VERSION: '{{.VERSION | default "16.30.0"}}'
       VERSION_CLI: '{{.VERSION_CLI | default "16.29.0"}}'
-      DIR: '{{.OPT_DIR}}/{{.APP}}/{{.VERSION_CLI}}'
+      DIR: '{{.OPT_DIR}}/ncbi_datasets/{{.VERSION_CLI}}'
       URL: https://github.com/ncbi/datasets/archive/refs/tags/v{{.VERSION}}.tar.gz
     dir: '{{.DIR}}'
     prompt: Download docs to {{.DIR}}?
@@ -59,7 +57,7 @@ tasks:
   download-github-cli:
     vars:
       VERSION: '{{.VERSION | default "16.29.0"}}'
-      DIR: '{{.OPT_DIR}}/{{.APP}}/{{.VERSION}}'
+      DIR: '{{.OPT_DIR}}/ncbi_datasets/{{.VERSION}}'
       URL: https://github.com/ncbi/datasets/releases/download/v{{.VERSION}}/linux-amd64.cli.package.zip
     dir: '{{.DIR}}'
     prompt: Download CLI to {{.DIR}}?
@@ -74,7 +72,7 @@ tasks:
   download-ftp:
     vars:
       VERSION: '{{.VERSION | default "2"}}'
-      DIR: '{{.OPT_DIR}}/{{.APP}}/{{.VERSION}}'
+      DIR: '{{.OPT_DIR}}/ncbi_datasets/{{.VERSION}}'
       URLS: |
         https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/v{{.VERSION}}/linux-amd64/datasets
         https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/v{{.VERSION}}/linux-amd64/dataformat
@@ -86,5 +84,5 @@ tasks:
           wget {{.URL}}
           chmod +x $(basename ${{.URL}})
     status:
-      - test -f {{.OPT_DIR}}/{{.APP}}/{{.VERSION}}/datasets
-      - test -f {{.OPT_DIR}}/{{.APP}}/{{.VERSION}}/dataformat
+      - test -f {{.OPT_DIR}}/ncbi_datasets/{{.VERSION}}/datasets
+      - test -f {{.OPT_DIR}}/ncbi_datasets/{{.VERSION}}/dataformat
