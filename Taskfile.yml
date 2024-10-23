@@ -1,13 +1,74 @@
 version: '3'
 
+dotenv: ['{{.TASKFILE_DIR}}/.env', '{{.HOME}}/.env']
+
 includes:
-  envs: ./setup-tasks/envs/EnvsTasks.yml
-  install: ./setup-tasks/InstallTasks.yml
-  download: ./setup-tasks/PublicDataTasks.yml
+  envs: ./tasks/envs/EnvsTasks.yml
+  install: ./tasks/InstallTasks.yml
+  download: ./tasks/PublicDataTasks.yml
+
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  SHELL:
+    sh: echo "$SHELL"
+  BASHRC: ~/.bashrc
+
+# TODO: Write os.environ["GROUP_HOME"] + '/config/public_data.json'
+# TODO: Write Taskfile or Makefile for setting up remotes (directory creation, rclone, etc.)
+# TODO: Create some Python environments:
+#       - sandbox
+#       - packaging
+# TODO: Re-define "install:core" based on WideVariant and download:all
+#       - bcftools
+#       - bracken
+#       - datasets (NCBI)
+#       - duckdb
+#       - jq
+#       - kraken2
+#       - nextflow
+#       - raxml-ng
+#       - snakemake
+#       - snp-sites
+#       - srst2
+#       - taskfile
+#       - tinytex
+#       - vcf2parquet
+#       - yq
+# TODO: Create containers
+# TODO: Download local versions of nf-core pipelines
+# TODO: Back up srst2 database somewhere (?) and copy over to viper
 
 tasks:
-  setup:
+  default:
     prompt: Are you setting up a new HPC?
     cmds:
-      - task: install:core
-      - task: download:all
+      - task: furnish-group-home
+      - task: minimal-tmp-shell-profile
+      # - task: install:core
+      # - task: download:all
+
+  furnish-group-home:
+    desc: Group home directory structure
+    vars:
+      GROUP_HOME_DIRS: opt Modules/modulefiles
+    dir: '{{.GROUP_HOME}}'
+    prompt: Is {{.GROUP_HOME}} correct?
+    cmds:
+      - mkdir -p {{.GROUP_HOME_DIRS}}
+    # Check that group home exists. Its creation should be managed by HPC admins.
+    preconditions:
+      - test -d "{{.GROUP_HOME}}"
+    requires:
+      vars: [GROUP_HOME]
+    status:
+      - test -d {{.GROUP_HOME}}/opt
+      - test -d {{.GROUP_HOME}}/Modules/modulefiles
+
+  minimal-tmp-shell-profile:
+    desc: Create minimal profile
+    cmds:
+      - echo -e '\n\nexport GROUP_HOME="{{.GROUP_HOME}}"' >> {{.BASHRC}}
+      - echo -e 'export MODULE_BASEDIR="$GROUP_HOME/opt"' >> {{.BASHRC}}
+      - echo -e '\nmodule use --append "$GROUP_HOME/Modules/modulefiles"' >> {{.BASHRC}}
+      - '{{.SHELL}} -c "exec {{.SHELL}}"'
