@@ -1,0 +1,53 @@
+version: '3'
+
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  GROUP_BIN: '{{.GROUP_HOME}}/bin'
+  GROUP_MODULEFILES: '{{.GROUP_HOME}}/Modules/modulefiles'
+
+includes:
+  utils: ../../lab-tasks
+
+tasks:
+  complete:
+    - for: { var: EXE }
+      task: symlink-to-group-bin
+      vars:
+        EXE: '{{.ITEM}}'
+        RELPATH_EXE: '{{.RELPATH_EXE}}'
+        SUBDIR: '{{.APP}}/{{.VERSION}}'
+    - task: write-modulefile-stub
+      vars:
+        APP: '{{.APP}}'
+        RELPATH_EXE: '{{.RELPATH_EXE}}'
+        VERSION: '{{.VERSION}}'
+
+  symlink-to-group-bin:
+    vars:
+      DIR: '{{.DIR | default .GROUP_BIN}}'
+    dir: '{{.DIR}}'
+    cmds:
+      - ln -s "../opt/{{.SUBDIR}}{{.RELPATH_EXE}}{{.EXE}}" {{.EXE}}
+    requires:
+      vars: [EXE, RELPATH_EXE, SUBDIR]
+    status:
+      - test -L {{.DIR}}/{{.EXE}}
+  
+  # TODO: Move to lab-tasks
+  # TODO: Use only major.minor versioning?
+  write-modulefile-stub:
+    vars:
+      DIR: '{{.GROUP_MODULEFILES}}/{{.APP}}'
+      MODULEFILE_SCRIPT: '{{.ROOT_DIR}}/tasks/scripts/write_modulefile.py'
+      PYTHON_MODULE: python-waterboa/2024.06
+    dir: '{{.DIR}}'
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: python {{.MODULEFILE_SCRIPT}} --APP {{.APP}} --VERSION {{.VERSION}} --RELPATH_EXE "{{.RELPATH_EXE}}"
+          MODULE: '{{.PYTHON_MODULE}}'
+    requires:
+      vars: [APP, RELPATH_EXE, VERSION]
+    status:
+      - test -f {{.DIR}}/{{.VERSION}}

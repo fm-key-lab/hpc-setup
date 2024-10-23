@@ -1,26 +1,30 @@
 version: '3'
 
 vars:
-  JQ: $GROUP_HOME/bin/jq
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  GROUP_BIN: '{{.GROUP_HOME}}/bin'
+  GROUP_REF_GENOMES: '{{.GROUP_HOME}}/public_data/reference_genomes'
+  
+  JQ: '{{.GROUP_BIN}}/jq'
+  
   NCBI_REFERENCE_URL: https://ftp.ncbi.nlm.nih.gov/genomes/
-  NCBI_DATASETS_MODULE: ncbi_datasets/16.29.0
-
+  NCBI_DATASETS: '{{.GROUP_BIN}}/datasets'
+  NCBI_DATASETS_VERSION: 16.29.0
+  NCBI_DATASETS_MODULE: 'ncbi_datasets/{{.NCBI_DATASETS_VERSION}}'
+  
   # NOTE: Must be JSON
-  DEFAULT_REFS_CFG: '{{.ROOT_DIR}}/config/core-reference-genomes.json'  
-  # DEFAULT_REFS_CFG: '{{.TASKFILE_DIR}}/core-reference-genomes.json'
+  DEFAULT_REFS_CFG: '{{.ROOT_DIR}}/config/core-reference-genomes.json' # Deprecate
   REFS_CFG: '{{.REFS_CFG | default .DEFAULT_REFS_CFG}}'
-
-  LAB_PUBLIC_DATA_DIR:
-    sh: echo "$GROUP_HOME/public_data"  
-  REF_GENOMES_DIR: '{{.LAB_PUBLIC_DATA_DIR}}/reference_genomes'
 
 includes:
   utils: ../../lab-tasks
   jq: ../software/jq.yml
+  datasets: ../software/NCBIDatasetsCLI.yml
 
 tasks:
   download-reference:
-    dir: '{{.REF_GENOMES_DIR}}/{{.TAXON}}/{{.ACCESSION}}/{{.SOURCE}}'
+    dir: '{{.GROUP_REF_GENOMES}}/{{.TAXON}}/{{.ACCESSION}}/{{.SOURCE}}'
 
   download-core-reference-genomes:
     desc: Download core reference genomes from NCBI
@@ -41,13 +45,17 @@ tasks:
           TAXON: '{{index .REF_ENTRIES_MAP .ITEM "taxon"}}'
 
   download-ncbi-reference-genome:
+    deps:
+      - task: datasets:install
+        vars:
+          VERSION_CLI: '{{.NCBI_DATASETS_VERSION}}'
     vars:
-      PREFIX: '{{.REF_GENOMES_DIR}}/{{.TAXON}}/{{.ACCESSION}}/NCBI'
-    dir: '{{.REF_GENOMES_DIR}}/{{.TAXON}}/{{.ACCESSION}}/NCBI'
+      PREFIX: '{{.GROUP_REF_GENOMES}}/{{.TAXON}}/{{.ACCESSION}}/NCBI'
+    dir: '{{.GROUP_REF_GENOMES}}/{{.TAXON}}/{{.ACCESSION}}/NCBI'
     cmds:
       - task: utils:envmodule:run-inside
         vars:
-          CMDS: datasets download genome accession {{.ACCESSION}} --filename {{.PREFIX}}/ncbi_dataset.zip --include gff3,rna,cds,protein,genome,seq-report
+          CMDS: '{{.NCBI_DATASETS}} download genome accession {{.ACCESSION}} --filename {{.PREFIX}}/ncbi_dataset.zip --include gff3,rna,cds,protein,genome,seq-report'
           MODULE: '{{.NCBI_DATASETS_MODULE}}'
       - defer: rm -f {{.PREFIX}}/ncbi_dataset.zip
       - unzip {{.PREFIX}}/ncbi_dataset.zip

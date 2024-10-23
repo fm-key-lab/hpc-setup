@@ -1,6 +1,12 @@
 version: '3'
 
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: "{{.GROUP_HOME}}/opt"
+
 includes:
+  group-installs: ../utils/GroupInstalls.yml
   utils: ../../lab-tasks
 
 tasks:
@@ -16,7 +22,7 @@ tasks:
       ```bash
       ----------------------------------------------------------------------
       Libraries have been installed in:
-        $GROUP_HOME/opt/jq/1.7.1/lib
+        {{.OPT_DIR}}/jq/1.7.1/lib
 
       If you ever happen to want to link against installed libraries
       in a given directory, LIBDIR, you must either use libtool, and
@@ -41,14 +47,13 @@ tasks:
       APP: jq
       VERSION: '{{.VERSION | default "1.7.1"}}'
     cmds:
-      - task: group_install:build-from-source-vanilla
+      - task: utils:install:vanilla-build
         vars:
           APP: '{{.APP}}'
-          PREFIX: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
-          STATUS: '-f $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}/bin/jq'
+          BUILD_DIR: '{{.OPT_DIR}}/{{.APP}}/{{.VERSION}}'
           URL: https://github.com/jqlang/jq/releases/download/jq-{{.VERSION}}/jq-{{.VERSION}}.tar.gz
           VERSION: '{{.VERSION}}'
-      - task: group_install:symlink
+      - task: group-installs:symlink-to-group-bin
         vars:
           EXE: '{{.APP}}'
           RELPATH_EXE: '/bin/'
