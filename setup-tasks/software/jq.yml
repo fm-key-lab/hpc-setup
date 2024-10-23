@@ -37,6 +37,9 @@ tasks:
       URLs
       ----
       - https://jqlang.github.io/jq
+    vars:
+      APP: jq
+      VERSION: '{{.VERSION | default "1.7.1"}}'
     cmds:
       - task: group_install:build-from-source-vanilla
         vars:
@@ -50,6 +53,3 @@ tasks:
           EXE: '{{.APP}}'
           RELPATH_EXE: '/bin/'
           SUBDIR: '{{.APP}}/{{.VERSION}}'
-    vars:
-      APP: jq
-      VERSION: '{{.VERSION | default "1.7.1"}}'

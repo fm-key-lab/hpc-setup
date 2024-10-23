@@ -1,4 +1,4 @@
-version: 3
+version: '3'
 
 tasks:
   complete:
@@ -55,7 +55,7 @@ tasks:
     requires:
       vars: [APP, PREFIX, STATUS, URL, VERSION]
 
-  build_in_venv:
+  build-in-venv:
       - echo ""
 
   check_software:

@@ -1,9 +1,9 @@
 version: '3'
 
 includes:
-  envs: ./tasks/envs/EnvsTasks.yml
-  install: ./tasks/InstallTasks.yml
-  download: ./tasks/PublicDataTasks.yml
+  envs: ./setup-tasks/envs/EnvsTasks.yml
+  install: ./setup-tasks/InstallTasks.yml
+  download: ./setup-tasks/PublicDataTasks.yml
 
 tasks:
   setup:

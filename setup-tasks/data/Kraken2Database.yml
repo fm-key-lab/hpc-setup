@@ -1,14 +1,18 @@
-version: 3
-
-# TODO: `kraken2-build` is just a perl wrapper of rsync, should just download outside script
+version: '3'
 
 vars:
   AWS_S3_KRAKEN2: https://genome-idx.s3.amazonaws.com/kraken
   MODULE_BRACKEN: bracken/2.9
   MODULE_KRAKEN2: kraken2/2.1.3
+  
+  LAB_PUBLIC_DATA_DIR:
+    sh: echo "$GROUP_HOME/public_data"
+  K2_DIR: '{{.LAB_PUBLIC_DATA_DIR}}/databases/kraken2'
 
 includes:
-  envmodules: ../../../lab-tasks/tasks/EnvironmentModules.yml
+  utils: ../../lab-tasks
+
+# TODO: `kraken2-build` is just a perl wrapper of rsync, should just download outside script
 
 tasks:
   build-lab-db:
@@ -21,11 +25,11 @@ tasks:
       Should run on cluster with ~64 cores and ~120GB, eg
       $ srun -p datatransfer --mem=120000MB --cpus-per-task=64 --time=1:29:59 --pty bash
       $ ml task
-      $ task -t $GROUP_HOME/tools/hpc-setup/ download:kraken2:build-lab-db
+      $ task download:kraken2:build-lab-db
     cmds:
       - task: run-lab-db-build
         vars:
-          DIR: $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}
+          DIR: '{{.K2_DIR}}/{{.K2_DB_NAME}}'
           KMER_LENGTH: '{{.KMER_LENGTH}}'
           READ_LENGTH: '{{.READ_LENGTH}}'
           THREADS: '{{.THREADS}}'
@@ -79,7 +83,7 @@ tasks:
       - read-length is dependent on the sequencing data; min read length might 
         be best (untested, see https://github.com/jenniferlu717/Bracken/issues/60)
     cmds:
-      - task: envmodules:run-inside
+      - task: utils:envmodule:run-inside
         vars:
           CMDS: bracken-build -d {{.K2_DB_NAME}} -t {{.THREADS}} -k {{.KMER_LENGTH}} -l {{.READ_LENGTH}}
           MODULE: '{{.MODULE_BRACKEN}}'
@@ -88,7 +92,7 @@ tasks:
 
   kraken2-build:
     cmds:
-      - task: envmodules:run-inside
+      - task: utils:envmodule:run-inside
         vars:
           CMDS: kraken2-build --build --threads {{.THREADS}} --db {{.K2_DB_NAME}}
           MODULE: '{{.MODULE_KRAKEN2}}'
@@ -97,7 +101,7 @@ tasks:
 
   kraken2-build-taxonomy:
     cmds:
-      - task: envmodules:run-inside
+      - task: utils:envmodule:run-inside
         vars:
           CMDS: kraken2-build --download-taxonomy --db {{.K2_DB_NAME}}
           MODULE: '{{.MODULE_KRAKEN2}}'
@@ -106,7 +110,7 @@ tasks:
 
   kraken2-build-lib:
     cmds:
-      - task: envmodules:run-inside
+      - task: utils:envmodule:run-inside
         vars:
           CMDS: kraken2-build --download-library {{.K2_BUILD_LIB}} --db {{.K2_DB_NAME}}
           MODULE: '{{.MODULE_KRAKEN2}}'
@@ -121,7 +125,7 @@ tasks:
       URLs
       ----
         - https://ccb.jhu.edu/data/eupathDB/
-    dir: $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}
+    dir: '{{.K2_DIR}}/{{.K2_DB_NAME}}'
     cmds:
       # - wget {{.URL_CONTENTS}} # TODO: Hangs on datatransfer partition?
       - wget {{.URL_DB}}
@@ -133,10 +137,10 @@ tasks:
       URL_DB: '{{.AWS_S3_KRAKEN2}}/k2_eupathdb48_{{.VERSION}}.tar.gz'
       URL_CONTENTS: ftp://ftp.ccb.jhu.edu/pub/data/EuPathDB46/EuPathDB46_Contents.txt
     status:
-      - test -f $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}/hash.k2d
-      - test -f $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}/opts.k2d
-      - test -f $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}/taxo.k2d
-      - test -f $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}/database100mers.kmer_distrib
+      - test -f {{.K2_DIR}}/{{.K2_DB_NAME}}/hash.k2d
+      - test -f {{.K2_DIR}}/{{.K2_DB_NAME}}/opts.k2d
+      - test -f {{.K2_DIR}}/{{.K2_DB_NAME}}/taxo.k2d
+      - test -f {{.K2_DIR}}/{{.K2_DB_NAME}}/database100mers.kmer_distrib
 
   download-other-dbs:
     desc: Download other Kraken2 databases
@@ -158,7 +162,7 @@ tasks:
         standard_20240605
 
   download-langmead-db:
-    dir: $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}
+    dir: '{{.K2_DIR}}/{{.K2_DB_NAME}}'
     cmds:
       - wget {{.AWS_S3_KRAKEN2}}/k2_{{.K2_DB_NAME}}.tar.gz
       - defer: rm -f k2_{{.K2_DB_NAME}}.tar.gz
@@ -177,10 +181,10 @@ tasks:
         standard.md5 
         nt.md5
     status:
-      - test -f $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}/hash.k2d
-      - test -f $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}/opts.k2d
-      - test -f $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}/taxo.k2d
-      - test -f $GROUP_HOME/public_data/databases/kraken2/{{.K2_DB_NAME}}/database100mers.kmer_distrib
+      - test -f {{.K2_DIR}}/{{.K2_DB_NAME}}/hash.k2d
+      - test -f {{.K2_DIR}}/{{.K2_DB_NAME}}/opts.k2d
+      - test -f {{.K2_DIR}}/{{.K2_DB_NAME}}/taxo.k2d
+      - test -f {{.K2_DIR}}/{{.K2_DB_NAME}}/database100mers.kmer_distrib
 
   safe-wget:
     - wget -q --spider {{.URL}} || true
