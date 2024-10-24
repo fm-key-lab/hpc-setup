@@ -1,0 +1,50 @@
+version: '3'
+
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: '{{.GROUP_HOME}}/opt'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+  micromamba: ./Micromamba.yml
+
+tasks:
+  install:
+    desc: Install Snakemake
+    summary: |
+      Install Snakemake
+
+      Create mamba env with Snakemake and utils.
+    vars:
+      MICROMAMBA_VERSION: '{{.MICROMAMBA_VERSION | default "2.0.1-0"}}'
+      # TODO: Represents minimum version
+      VERSION: '{{.VERSION | default "8.16"}}'
+    cmds:
+      - task: create-mamba-env
+        vars:
+          MICROMAMBA_VERSION: '{{.MICROMAMBA_VERSION}}'
+          VERSION: '{{.VERSION}}'
+
+  create-mamba-env:
+    # NOTE: Must let mamba create the prefix
+    deps:
+      - task: micromamba:install
+        vars:
+          VERSION: '{{.MICROMAMBA_VERSION}}'
+    vars:
+      DIR: '{{.OPT_DIR}}/snakemake'
+      OTHER_PKGS: snakemake-executor-plugin-slurm snakemake-wrapper-utils snakefmt snakedeploy openpyxl
+    dir: '{{.DIR}}'
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            micromamba create -c conda-forge -c bioconda -p {{.DIR}}/{{.VERSION}} "snakemake>={{.VERSION}}" pip -y && \
+            micromamba run -p {{.DIR}}/{{.VERSION}} pip install {{.OTHER_PKGS}}
+          MODULE: 'micromamba/{{.MICROMAMBA_VERSION}}'
+    requires:
+      vars: [MICROMAMBA_VERSION, OPT_DIR, VERSION]
+    status:
+      - test -d {{.DIR}}/{{.VERSION}}

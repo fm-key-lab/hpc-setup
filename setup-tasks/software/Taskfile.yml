@@ -45,6 +45,7 @@ includes:
   samtools-legacy: ./SAMtools-legacy.yml
   samtools-bcftools-htslib: ./SAMtools-bcftools-htslib.yml
   sickle: ./Sickle.yml
+  snakemake: ./Snakemake.yml
   snpsites: ./SNPsites.yml
   spades: ./SPAdes.yml
   sratoolkit: ./SRAToolkit.yml
@@ -110,6 +111,7 @@ tasks:
     - task: samtools-legacy
     - task: samtools-bcftools-htslib
     - task: sickle
+    - task: snakemake
     - task: snpsites
     - task: spades
     - task: sratoolkit
@@ -138,6 +140,7 @@ tasks:
     - task: ncbi-datasets
     - task: python
     - task: samtools-bcftools-htslib
+    - task: snakemake
     - task: snpsites
     - task: srst2
     - task: taskfile
@@ -203,6 +206,7 @@ tasks:
     - task: micromamba
     - task: ncurses
     - task: pandoc
+    - task: snakemake
     - task: taskfile
     - task: termshot
     - task: tinytex
@@ -423,6 +427,12 @@ tasks:
 
   sickle:
     - task: sickle:install
+
+  snakemake:
+    - task: snakemake:install
+      vars:
+        MICROMAMBA_VERSION: '{{.MICROMAMBA_VERSION | default "2.0.1-0"}}'
+        VERSION: '{{.VERSION | default "8.16"}}'
 
   snpsites:
     - task: snpsites:install
