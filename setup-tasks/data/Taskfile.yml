@@ -1,9 +1,10 @@
 version: '3'
 
 vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
+  GROUP_BIN: '{{.GROUP_HOME}}/bin'
   GROUP_DATA: '{{.GROUP_HOME}}/public_data'
+  GROUP_DBS: '{{.GROUP_DATA}}/databases'
+  GROUP_REF_GENOMES: '{{.GROUP_DATA}}/reference_genomes'
 
 includes:
   igenomes: ./iGenomes.yml
@@ -11,6 +12,7 @@ includes:
   ncbi-reference: ./NCBIReference.yml
   ncbi-taxonomy: ./NCBITaxonomy.yml
   pubmlst: ./PubMLST.yml
+  utils: ../../lab-tasks
 
 tasks:
   default:
@@ -24,23 +26,6 @@ tasks:
     - task: ncbi-taxranks
     - task: kraken2-db
     - task: pubmlst
-
-  add-data-manifest:
-    desc: Write public data manifest
-    vars:
-      DIR: '{{.GROUP_HOME}}/config'
-      DATA_MANIFEST_SCRIPT: '{{.ROOT_DIR}}/scripts/write_publicdata_manifest.py'
-      PYTHON_MODULE: python-waterboa/2024.06
-    dir: '{{.DIR}}'
-    cmds:
-      - task: utils:envmodule:run-inside
-        vars:
-          CMDS: python {{.DATA_MANIFEST_SCRIPT}} --GROUP_DATA {{.GROUP_DATA}} --output public_data.json
-          MODULE: '{{.PYTHON_MODULE}}'
-    requires:
-      vars: [GROUP_DATA]
-    status:
-      - test -f {{.DIR}}/public_data.json
 
   igenome-reference-genomes:
     - task: igenomes:download_ecoli
@@ -57,3 +42,20 @@ tasks:
   
   pubmlst:
     - task: pubmlst:ariba_db
+
+  add-data-manifest:
+    desc: Write public data manifest
+    vars:
+      DIR: '{{.GROUP_HOME}}/config'
+      DATA_MANIFEST_SCRIPT: '{{.ROOT_DIR}}/setup-tasks/scripts/write_publicdata_manifest.py'
+      PYTHON_MODULE: python-waterboa/2024.06
+    dir: '{{.DIR}}'
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: python {{.DATA_MANIFEST_SCRIPT}} --GROUP_DATA {{.GROUP_DATA}} --output public_data.json
+          MODULE: '{{.PYTHON_MODULE}}'
+    requires:
+      vars: [GROUP_HOME, GROUP_DATA]
+    status:
+      - test -f {{.DIR}}/public_data.json

@@ -1,10 +1,5 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  OPT_DIR: "{{.GROUP_HOME}}/opt"
-
 includes:
   group-installs: ../utils/GroupInstalls.yml
 
@@ -12,7 +7,6 @@ tasks:
   install:
     platforms: [linux/amd64]
     vars:
-      APP: task
       VERSION: '{{.VERSION | default "3.39.2"}}'
     cmds:
       - task: download-binary
@@ -20,10 +14,10 @@ tasks:
           VERSION: '{{.VERSION}}'
       - task: group-installs:complete
         vars:
-          APP: '{{.APP}}'
-          VERSION: '{{.VERSION_CLI}}'
+          APP: task
+          EXE: task
           RELPATH_EXE: '/'
-          EXE: '{{.EXE}}'
+          VERSION: '{{.VERSION}}'
 
   download-binary:
     platforms: [linux/amd64]
@@ -35,3 +29,7 @@ tasks:
       - wget {{.URL}}
       - defer: rm -f $(basename {{.URL}})
       - tar xf $(basename ${{.URL}})
+    requires:
+      vars: [OPT_DIR, VERSION]
+    status:
+      - test -f {{.DIR}}/task

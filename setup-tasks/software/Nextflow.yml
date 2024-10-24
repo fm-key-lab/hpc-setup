@@ -1,0 +1,98 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install Nextflow
+    summary: |
+      Install Nextflow
+    vars:
+      JAVA_MODULE: jdk/17.0.10
+      MODULEFILE: '{{.GROUP_MODULEFILES}}/nextflow/{{.VERSION}}'
+      VERSION: '{{.VERSION | default "24.04.4"}}'
+    cmds:
+      - task: download
+        vars:
+          JAVA_MODULE: '{{.JAVA_MODULE}}'
+          VERSION: '{{.VERSION}}'
+      - task: download-standalone
+        vars:
+          JAVA_MODULE: '{{.JAVA_MODULE}}'
+          VERSION: '{{.VERSION}}-all'
+      - task: group-installs:complete
+        vars:
+          APP: nextflow
+          EXE: nextflow
+          RELPATH_EXE: /
+          VERSION: '{{.VERSION}}'
+      - task: append-modulefile
+        vars:
+          JAVA_MODULE: '{{.JAVA_MODULE}}'
+          MODULEFILE: '{{.MODULEFILE}}'
+          VERSION: '{{.VERSION}}'
+    requires:
+      vars: [GROUP_MODULEFILES]
+    status:
+      - test -f '{{.MODULEFILE}}' # TODO
+
+  download:
+    vars:
+      DIR: '{{.OPT_DIR}}/nextflow/{{.VERSION}}'
+      URL: https://github.com/nextflow-io/nextflow/releases/download/v{{.VERSION}}/nextflow
+    dir: '{{.DIR}}'
+    prompt: 'Install nextflow in {{.DIR}}?'
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}} && 
+            wget {{.URL}} && 
+            chmod +x nextflow
+          MODULE: '{{.JAVA_MODULE}}'
+    requires:
+      vars: [JAVA_MODULE, OPT_DIR, VERSION]
+    status:
+      - test -f {{.DIR}}/nextflow
+
+  download-standalone:
+    vars:
+      DIR: '{{.OPT_DIR}}/nextflow/{{.VERSION}}'
+      URL: https://github.com/nextflow-io/nextflow/releases/download/v{{.VERSION}}/nextflow-{{.VERSION}}
+    dir: '{{.DIR}}'
+    prompt: 'Install nextflow in {{.DIR}}?'
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}} && 
+            wget {{.URL}} && 
+            chmod +x nextflow-{{.VERSION}} &&
+            ln -s nextflow-{{.VERSION}} nextflow
+          MODULE: '{{.JAVA_MODULE}}'
+    requires:
+      vars: [JAVA_MODULE, OPT_DIR, VERSION]
+    status:
+      - test -f {{.DIR}}/nextflow
+
+  append-modulefile:
+    vars:
+      MODULEFILE_LINES: [
+        '',
+        'depends-on {{.JAVA_MODULE}}',
+        'setenv --set-if-undef NFCORE_NO_VERSION_CHECK 1',
+        '',
+        'setenv NXF_VER "{{.VERSION}}"',
+        'setenv --set-if-undef NXF_OFFLINE false',
+        'setenv --set-if-undef NXF_OPTS "-Xms1g -Xmx4g"',
+        'setenv --set-if-undef NXF_SINGULARITY_CACHEDIR /ptmp/$env(USER)',
+      ]
+    cmds:
+      - for: { var: MODULEFILE_LINES }
+        cmd: echo -e '{{.ITEM}}' >> {{.MODULEFILE}}
+    requires:
+      vars: [JAVA_MODULE, MODULEFILE, VERSION]
+    status:
+      - test -f {{.MODULEFILE}} # TODO

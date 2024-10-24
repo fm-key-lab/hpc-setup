@@ -1,10 +1,5 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  OPT_DIR: '{{.GROUP_HOME}}/opt'
-
 includes:
   group-installs: ../utils/GroupInstalls.yml
 
@@ -55,7 +50,7 @@ tasks:
       - mkdir -p bin
       - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --no-modify-path -y
     requires:
-      vars: [VERSION]
+      vars: [OPT_DIR, VERSION]
     env:
       # Will look for a `bin` directory in these locations; when the environment 
       # variables do not look like absolute paths (e.g., $HOME/rust), then the 

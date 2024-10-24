@@ -1,7 +1,11 @@
 version: '3'
 
+vars:
+  GROUP_VENVS: '{{.GROUP_HOME}}/envs/venv'
+
 includes:
   utils: ../../lab-tasks
+  install: ../software
   python-packaging: ./PythonPackaging.yml
   sandbox: ./Sandbox.yml
 
@@ -11,7 +15,13 @@ tasks:
     - task: create-python-envs-mamba
 
   create-python-envs-uv:
-    - task: python-packaging:create
-    - task: sandbox:create
+    deps:
+      - task: install:python
+      - task: install:uv
+    cmds:
+      - task: python-packaging:create
+      - task: sandbox:create
   
   create-python-envs-mamba:
+    deps:
+      - task: install:micromamba

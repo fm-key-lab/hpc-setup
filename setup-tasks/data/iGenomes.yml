@@ -1,23 +1,18 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  GROUP_DATA: '{{.GROUP_HOME}}/public_data'
-  GROUP_REF_GENOMES: '{{.GROUP_DATA}}/reference_genomes'
-
 tasks:
   download:
     internal: true
-    dir: '{{.GROUP_REF_GENOMES}}/{{.SPECIES}}'
     vars:
+      DIR: '{{.GROUP_REF_GENOMES}}/{{.SPECIES}}'
       URL: https://s3.amazonaws.com/igenomes.illumina.com/{{.GENOME_PATH}}.tar.gz
+    dir: '{{.DIR}}'
     cmds:
       - wget {{.URL}}
       - defer: rm -f $(basename {{.URL}})
-      - tar xf $(basename ${{.URL}})
+      - tar xf $(basename {{.URL}})
     requires:
-      vars: [GENOME_PATH]
+      vars: [GENOME_PATH, GROUP_REF_GENOMES, SPECIES]
 
   download-ecoli:
     vars:

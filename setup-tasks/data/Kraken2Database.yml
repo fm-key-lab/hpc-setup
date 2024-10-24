@@ -4,9 +4,6 @@ vars:
   AWS_S3_KRAKEN2: https://genome-idx.s3.amazonaws.com/kraken
   MODULE_BRACKEN: bracken/2.9
   MODULE_KRAKEN2: kraken2/2.1.3
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  GROUP_DATA: '{{.GROUP_HOME}}/public_data'
   K2_DIR: '{{.GROUP_DATA}}/databases/kraken2'
 
 includes:
@@ -26,6 +23,14 @@ tasks:
       $ srun -p datatransfer --mem=120000MB --cpus-per-task=64 --time=1:29:59 --pty bash
       $ ml task
       $ task download:kraken2:build-lab-db
+    vars:
+      VERSION:
+        sh: date +"%Y%m%d"
+      K2_DB_NAME: 'custom_{{.VERSION}}'
+      THREADS:
+        sh: echo $SLURM_CPUS_PER_TASK # TODO: Use only 1 or a few threads if none
+      KMER_LENGTH: '{{.KMER_LENGTH | default 35}}'
+      READ_LENGTH: '{{.READ_LENGTH | default 100}}'
     cmds:
       - task: run-lab-db-build
         vars:
@@ -33,16 +38,21 @@ tasks:
           KMER_LENGTH: '{{.KMER_LENGTH}}'
           READ_LENGTH: '{{.READ_LENGTH}}'
           THREADS: '{{.THREADS}}'
-    vars:
-      VERSION:
-        sh: date +"%Y%m%d"
-      K2_DB_NAME: 'custom_{{.VERSION}}'
-      THREADS:
-        sh: echo $SLURM_CPUS_PER_TASK
-      KMER_LENGTH: '{{.KMER_LENGTH | default 35}}'
-      READ_LENGTH: '{{.READ_LENGTH | default 100}}'
+    requires:
+      vars: [K2_DIR]
 
   run-lab-db-build:
+    vars:
+      K2_BUILD_LIBS: |
+        bacteria
+        archaea
+        plasmid
+        viral
+        human
+        fungi
+        protozoa
+        UniVec
+        UniVec_Core
     dir: '{{.DIR}}'
     cmds:
       - task: kraken2-build-taxonomy
@@ -63,17 +73,8 @@ tasks:
           KMER_LENGTH: '{{.KMER_LENGTH}}'
           READ_LENGTH: '{{.READ_LENGTH}}'
           THREADS: '{{.THREADS}}'
-    vars:
-      K2_BUILD_LIBS: |
-        bacteria
-        archaea
-        plasmid
-        viral
-        human
-        fungi
-        protozoa
-        UniVec
-        UniVec_Core
+    requires:
+      vars: [DIR, KMER_LENGTH, READ_LENGTH, THREADS]
 
   bracken-build:
     summary: |
@@ -88,7 +89,7 @@ tasks:
           CMDS: bracken-build -d {{.K2_DB_NAME}} -t {{.THREADS}} -k {{.KMER_LENGTH}} -l {{.READ_LENGTH}}
           MODULE: '{{.MODULE_BRACKEN}}'
     requires:
-      vars: [K2_DB_NAME, KMER_LENGTH, READ_LENGTH, THREADS]
+      vars: [K2_DB_NAME, KMER_LENGTH, MODULE_BRACKEN, READ_LENGTH, THREADS]
 
   kraken2-build:
     cmds:
@@ -97,7 +98,7 @@ tasks:
           CMDS: kraken2-build --build --threads {{.THREADS}} --db {{.K2_DB_NAME}}
           MODULE: '{{.MODULE_KRAKEN2}}'
     requires:
-      vars: [K2_DB_NAME, THREADS]
+      vars: [K2_DB_NAME, MODULE_KRAKEN2, THREADS]
 
   kraken2-build-taxonomy:
     cmds:
@@ -106,7 +107,7 @@ tasks:
           CMDS: kraken2-build --download-taxonomy --db {{.K2_DB_NAME}}
           MODULE: '{{.MODULE_KRAKEN2}}'
     requires:
-      vars: [K2_DB_NAME]
+      vars: [K2_DB_NAME, MODULE_KRAKEN2]
 
   kraken2-build-lib:
     cmds:
@@ -115,7 +116,7 @@ tasks:
           CMDS: kraken2-build --download-library {{.K2_BUILD_LIB}} --db {{.K2_DB_NAME}}
           MODULE: '{{.MODULE_KRAKEN2}}'
     requires:
-      vars: [K2_BUILD_LIB, K2_DB_NAME]
+      vars: [K2_BUILD_LIB, K2_DB_NAME, MODULE_KRAKEN2]
 
   download-ccbjhu:
     desc: Download Kraken2 database EuPathDB48
@@ -125,17 +126,19 @@ tasks:
       URLs
       ----
         - https://ccb.jhu.edu/data/eupathDB/
+    vars:
+      VERSION: '{{.VERSION | default "20201113"}}'
+      K2_DB_NAME: 'ccbjhu_eupathdb48_{{.VERSION}}'
+      URL_DB: '{{.AWS_S3_KRAKEN2}}/k2_eupathdb48_{{.VERSION}}.tar.gz'
+      URL_CONTENTS: ftp://ftp.ccb.jhu.edu/pub/data/EuPathDB46/EuPathDB46_Contents.txt
     dir: '{{.K2_DIR}}/{{.K2_DB_NAME}}'
     cmds:
       # - wget {{.URL_CONTENTS}} # TODO: Hangs on datatransfer partition?
       - wget {{.URL_DB}}
       - defer: rm -f $(basename {{.URL_DB}})
       - tar -xzvf $(basename {{.URL_DB}})
-    vars:
-      VERSION: '{{.VERSION | default "20201113"}}'
-      K2_DB_NAME: 'ccbjhu_eupathdb48_{{.VERSION}}'
-      URL_DB: '{{.AWS_S3_KRAKEN2}}/k2_eupathdb48_{{.VERSION}}.tar.gz'
-      URL_CONTENTS: ftp://ftp.ccb.jhu.edu/pub/data/EuPathDB46/EuPathDB46_Contents.txt
+    requires:
+      vars: [AWS_S3_KRAKEN2, K2_DIR]
     status:
       - test -f {{.K2_DIR}}/{{.K2_DB_NAME}}/hash.k2d
       - test -f {{.K2_DIR}}/{{.K2_DB_NAME}}/opts.k2d
@@ -150,18 +153,25 @@ tasks:
       URLs
       ----
         - https://benlangmead.github.io/aws-indexes/k2
-    cmds:
-      - for: { var: DB_NAMES }
-        task: download-langmead-db
-        vars:
-          K2_DB_NAME: '{{.ITEM}}'
     vars:
       DB_NAMES: |
         eupathdb48_20230407
         nt_20240530
         standard_20240605
+    cmds:
+      - for: { var: DB_NAMES }
+        task: download-langmead-db
+        vars:
+          K2_DB_NAME: '{{.ITEM}}'
 
   download-langmead-db:
+    vars:
+      ASSETS: |
+        inspect.txt 
+        kraken2inspect_output.txt 
+        library_report.tsv 
+        standard.md5 
+        nt.md5
     dir: '{{.K2_DIR}}/{{.K2_DB_NAME}}'
     cmds:
       - wget {{.AWS_S3_KRAKEN2}}/k2_{{.K2_DB_NAME}}.tar.gz
@@ -172,19 +182,13 @@ tasks:
         vars:
           URL: '{{.AWS_S3_KRAKEN2}}/{{.K2_DB_NAME}}/{{.ITEM}}'
     requires:
-      vars: [K2_DB_NAME]
-    vars:
-      ASSETS: |
-        inspect.txt 
-        kraken2inspect_output.txt 
-        library_report.tsv 
-        standard.md5 
-        nt.md5
+      vars: [AWS_S3_KRAKEN2, K2_DB_NAME, K2_DIR]
     status:
       - test -f {{.K2_DIR}}/{{.K2_DB_NAME}}/hash.k2d
       - test -f {{.K2_DIR}}/{{.K2_DB_NAME}}/opts.k2d
       - test -f {{.K2_DIR}}/{{.K2_DB_NAME}}/taxo.k2d
       - test -f {{.K2_DIR}}/{{.K2_DB_NAME}}/database100mers.kmer_distrib
 
+  # TODO: Move to utils?
   safe-wget:
     - wget -q --spider {{.URL}} || true

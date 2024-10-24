@@ -12,17 +12,20 @@ includes:
 
 tasks:
   complete:
-    - for: { var: EXE }
-      task: symlink-to-group-bin
-      vars:
-        EXE: '{{.ITEM}}'
-        RELPATH_EXE: '{{.RELPATH_EXE}}'
-        SUBDIR: '{{.APP}}/{{.VERSION}}'
-    - task: write-modulefile-stub
-      vars:
-        APP: '{{.APP}}'
-        RELPATH_EXE: '{{.RELPATH_EXE}}'
-        VERSION: '{{.VERSION}}'
+    cmds:
+      - for: { var: EXE }
+        task: symlink-to-group-bin
+        vars:
+          EXE: '{{.ITEM}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          SUBDIR: '{{.APP}}/{{.VERSION}}'
+      - task: write-modulefile-stub
+        vars:
+          APP: '{{.APP}}'
+          RELPATH_EXE: '{{.RELPATH_EXE}}'
+          VERSION: '{{.VERSION}}'
+    requires:
+      vars: [APP, EXE, RELPATH_EXE, VERSION]
 
   symlink-to-group-bin:
     vars:
@@ -41,13 +44,13 @@ tasks:
   write-modulefile-stub:
     vars:
       DIR: '{{.GROUP_MODULEFILES}}/{{.APP}}'
-      MODULEFILE_SCRIPT: '{{.ROOT_DIR}}/tasks/scripts/write_modulefile.py'
+      MODULEFILE_SCRIPT: '{{.ROOT_DIR}}/setup-tasks/scripts/write_modulefile.py'
       PYTHON_MODULE: python-waterboa/2024.06
     dir: '{{.DIR}}'
     cmds:
       - task: utils:envmodule:run-inside
         vars:
-          CMDS: python {{.MODULEFILE_SCRIPT}} --APP {{.APP}} --VERSION {{.VERSION}} --RELPATH_EXE "{{.RELPATH_EXE}}"
+          CMDS: cd {{.DIR}} && python {{.MODULEFILE_SCRIPT}} --APP {{.APP}} --VERSION {{.VERSION}} --RELPATH_EXE "{{.RELPATH_EXE}}"
           MODULE: '{{.PYTHON_MODULE}}'
     requires:
       vars: [APP, RELPATH_EXE, VERSION]
@@ -57,13 +60,13 @@ tasks:
   write-env-modulefile-stub:
     vars:
       DIR: '{{.GROUP_MODULEFILES}}/{{.NAME}}'
-      MODULEFILE_SCRIPT: '{{.ROOT_DIR}}/tasks/scripts/write_modulefile.py'
+      MODULEFILE_SCRIPT: '{{.ROOT_DIR}}/setup-tasks/scripts/write_modulefile.py'
       PYTHON_MODULE: python-waterboa/2024.06
     dir: '{{.DIR}}'
     cmds:
       - task: utils:envmodule:run-inside
         vars:
-          CMDS: python {{.MODULEFILE_SCRIPT}} --NAME {{.NAME}} --VERSION {{.VERSION}} --template venv
+          CMDS: cd {{.DIR}} && python {{.MODULEFILE_SCRIPT}} --NAME {{.NAME}} --VERSION {{.VERSION}} --template venv
           MODULE: '{{.PYTHON_MODULE}}'
     requires:
       vars: [NAME, VERSION]

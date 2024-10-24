@@ -1,10 +1,5 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  OPT_DIR: '{{.GROUP_HOME}}/opt'
-
 includes:
   group-installs: ../utils/GroupInstalls.yml
   utils: ../../lab-tasks
@@ -22,24 +17,19 @@ tasks:
        - GitHub: https://github.com/wireservice/csvkit
        - Docs: https://csvkit.readthedocs.io/en/latest/index.html
     vars:
-      APP: csvkit
-      VERSION: '{{.VERSION | default "2.0.1"}}'
       EXE: csvcut csvjoin csvlook csvstack csvstat in2csv # TODO: Unused
       PYTHON_VERSION: '{{.PYTHON_VERSION | default "3.12.4"}}'
-      PYTHON_MODULE: python/3.12 # TODO
-      UV_VERSION: '{{.VERSION | default "0.2.34"}}'
-      UV_MODULE: 'uv/{{.UV_VERSION}}'
+      UV_VERSION: '{{.UV_VERSION | default "0.4.26"}}'
+      VERSION: '{{.VERSION | default "2.0.1"}}'
     cmds:
       - task: create-virtual-environment
         vars:
           PYTHON_VERSION: '{{.PYTHON_VERSION}}'
-          PYTHON_MODULE: '{{.PYTHON_MODULE}}'
           UV_VERSION: '{{.UV_VERSION}}'
-          UV_MODULE: '{{.UV_MODULE}}'
           VERSION: '{{.VERSION}}'
       - task: group-installs:write-modulefile-stub
         vars:
-          APP: '{{.APP}}'
+          APP: csvkit
           VERSION: '{{.VERSION}}'
           RELPATH_EXE: /.venv/bin/
 
@@ -56,15 +46,12 @@ tasks:
     dir: '{{.DIR}}'
     prompt: Create environment in {{.DIR}}?
     cmds:
-      # TODO: Replace with the uv create env task
-      - task: utils:envmodule:run-inside
+      - task: utils:venv:create
         vars:
-          CMDS: |
-            cd {{.DIR}} && 
-            uv venv && 
-            uv pip install csvkit=={{.VERSION}}
-          MODULE: '{{.UV_MODULE}} {{.PYTHON_MODULE}}'
+          INSTALL: csvkit=={{.VERSION}}
+          PREFIX: '{{.DIR}}'
+          PYTHON: '{{.OPT_DIR}}/python/{{.PYTHON_VERSION}}/bin/python'
     requires:
-      vars: [PYTHON_MODULE, UV_MODULE, VERSION]
+      vars: [OPT_DIR, PYTHON_VERSION, UV_VERSION, VERSION]
     status:
-      - test -d {{.DIR}}/.venv/bin/activate
+      - test -f {{.DIR}}/.venv/bin/activate

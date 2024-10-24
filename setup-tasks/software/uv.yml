@@ -1,10 +1,5 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  OPT_DIR: '{{.GROUP_HOME}}/opt'
-
 includes:
   group-installs: ../utils/GroupInstalls.yml
   utils: ../../lab-tasks
@@ -35,13 +30,13 @@ tasks:
           VERSION: '{{.RUST_VERSION}}'
     vars:
       DIR: '{{.OPT_DIR}}/uv/{{.VERSION}}'
-      URL: https://github.com/astral-sh/uv/releases/download/{{.VERSION}}/
+      URL: https://astral.sh/uv/{{.VERSION}}/install.sh
     dir: '{{.DIR}}'
     prompt: 'Install uv in {{.DIR}}?'
     cmds:
       - task: utils:envmodule:run-inside
         vars:
-          CMDS: export CARGO_HOME={{.DIR}} && curl --proto '=https' --tlsv1.2 -LsSf {{.URL}} && uv-installer.sh | sh -s -- --no-modify-path
+          CMDS: curl -LsSf {{.URL}} | env INSTALLER_NO_MODIFY_PATH=1 UV_INSTALL_DIR="{{.DIR}}" sh
           MODULE: '{{.RUST_MODULE}}'
     requires:
       vars: [OPT_DIR, RUST_MODULE, VERSION]

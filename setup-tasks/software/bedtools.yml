@@ -1,10 +1,5 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  OPT_DIR: "{{.GROUP_HOME}}/opt"
-
 includes:
   group-installs: ../utils/GroupInstalls.yml
   python: ./Python.yml
@@ -20,23 +15,22 @@ tasks:
       ----
       - https://bedtools.readthedocs.io
     vars:
-      APP: bedtools
       VERSION: '{{.VERSION | default "2.31.1"}}'
       HTSLIB_VERSION: '{{.HTSLIB_VERSION | default "1.20"}}'
       PYTHON_VERSION: '{{.PYTHON_VERSION | default "3.12.4"}}'
     cmds:
       - task: build
         vars:
-          APP: '{{.APP}}'
-          VERSION: '{{.VERSION}}'
+          APP: bedtools
           HTSLIB_VERSION: '{{.HTSLIB_VERSION}}'
           PYTHON_VERSION: '{{.PYTHON_VERSION}}'
+          VERSION: '{{.VERSION}}'
       - task: group-installs:complete
         vars:
-          APP: '{{.APP}}'
-          VERSION: '{{.VERSION}}'
+          APP: bedtools
+          EXE: bedtools
           RELPATH_EXE: /bedtools2/bin/
-          EXE: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
 
   build:
     deps:
@@ -48,7 +42,7 @@ tasks:
           VERSION: '{{.HTSLIB_VERSION}}'
     vars:
       DIR: '{{.OPT_DIR}}/bedtools/{{.VERSION}}'
-      HTSLIB: '{{.OPT_DIR}}/htslib/{{.HTSLIB_VERSION}}/htslib-{{.HTSLIB_VERSION}}' # Must be parent dir of `htslib.mk`
+      HTSLIB: '{{.OPT_DIR}}/htslib/{{.HTSLIB_VERSION}}/htslib-{{.HTSLIB_VERSION}}' # NOTE: Must be parent dir of `htslib.mk`
       PYTHON: '{{.OPT_DIR}}/python/{{.PYTHON_VERSION}}/bin/python3.12' # TODO: major-minor versioning for executable
       URL: https://github.com/arq5x/bedtools2/releases/download/v{{.VERSION}}/bedtools-{{.VERSION}}.tar.gz
     dir: '{{.DIR}}'
@@ -62,6 +56,6 @@ tasks:
         # make PYTHON={{.PYTHON}} HTSDIR={{.HTSLIB}} # NOTE: won't compile (missing headers)
         make PYTHON={{.PYTHON}}
     requires:
-      vars: [VERSION]
+      vars: [OPT_DIR, VERSION]
     status:
       - test -f {{.DIR}}/bedtools2/bin/bedtools

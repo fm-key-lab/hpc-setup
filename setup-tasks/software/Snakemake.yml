@@ -1,10 +1,5 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  OPT_DIR: '{{.GROUP_HOME}}/opt'
-
 includes:
   group-installs: ../utils/GroupInstalls.yml
   utils: ../../lab-tasks
@@ -19,7 +14,7 @@ tasks:
       Create mamba env with Snakemake and utils.
     vars:
       MICROMAMBA_VERSION: '{{.MICROMAMBA_VERSION | default "2.0.1-0"}}'
-      # TODO: Represents minimum version
+      # TODO: Represents minimum, not actual, version
       VERSION: '{{.VERSION | default "8.16"}}'
     cmds:
       - task: create-mamba-env
@@ -38,6 +33,7 @@ tasks:
       OTHER_PKGS: snakemake-executor-plugin-slurm snakemake-wrapper-utils snakefmt snakedeploy openpyxl
     dir: '{{.DIR}}'
     cmds:
+      # TODO: Replace with mamba env creation task
       - task: utils:envmodule:run-inside
         vars:
           CMDS: |

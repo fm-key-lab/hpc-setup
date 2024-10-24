@@ -1,11 +1,5 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  OPT_DIR: '{{.GROUP_HOME}}/opt'
-  GROUP_MODULEFILES: '{{.GROUP_HOME}}/Modules/modulefiles'
-
 includes:
   group-installs: ../utils/GroupInstalls.yml
   utils: ../../lab-tasks
@@ -23,13 +17,14 @@ tasks:
        - Releases: https://github.com/natir/vcf2parquet/releases
     vars:
       VERSION: '{{.VERSION | default "0.4.1"}}'
-      MICROMAMBA_VERSION: '{{.VERSION | default "2.0.1-0"}}'
+      MICROMAMBA_VERSION: '{{.MICROMAMBA_VERSION | default "2.0.1-0"}}'
+      MODULEFILE: '{{.GROUP_MODULEFILES}}/vcf2parquet/{{.VERSION}}'
     cmds:
       - task: micromamba-installation
         vars:
           MICROMAMBA_VERSION: '{{.MICROMAMBA_VERSION}}'
           VERSION: '{{.VERSION}}'
-      - task: group-install:modulefile
+      - task: group-installs:write-modulefile-stub
         vars:
           APP: vcf2parquet
           EXE: vcf2parquet
@@ -38,10 +33,12 @@ tasks:
       - task: append-modulefile
         vars:
           MICROMAMBA_MODULE: 'micromamba/{{.MICROMAMBA_VERSION}}'
-          MODULEFILE: '{{.GROUP_MODULEFILES}}/vcf2parquet/{{.VERSION}}'
+          MODULEFILE: '{{.MODULEFILE}}'
           PREFIX: '{{.OPT_DIR}}/vcf2parquet/{{.VERSION}}/envs/env'
+    requires:
+      vars: [GROUP_MODULEFILES, OPT_DIR]
     status:
-      - test -f {{.GROUP_MODULEFILES}}/vcf2parquet/{{.VERSION}}
+      - test -f {{.MODULEFILE}}
 
   micromamba-installation:
     deps:

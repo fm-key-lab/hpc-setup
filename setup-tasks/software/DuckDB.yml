@@ -1,10 +1,5 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  OPT_DIR: '{{.GROUP_HOME}}/opt'
-
 includes:
   group-installs: ../utils/GroupInstalls.yml
 
@@ -20,15 +15,15 @@ tasks:
     cmds:
       - task: install
         vars:
-          VERSION: nightly
           URL: '{{.URL_NIGHTLY}}'
+          VERSION: nightly
 
   install:
     desc: Install DuckDB
     platforms: [linux/amd64]
     vars:
-      URL: '{{.URL | default .URL_STABLE}}'
       URL_STABLE: https://github.com/duckdb/duckdb/releases/download/v{{.VERSION}}/duckdb_cli-linux-amd64.zip
+      URL: '{{.URL | default .URL_STABLE}}'
       VERSION: '{{.VERSION | default "1.1.2"}}'
     cmds:
       - task: download
@@ -48,16 +43,18 @@ tasks:
 
       Notes
       -----
-        - The nightly build comes with two zips
+        - The nightly build comes with multiple zips
     vars:
       DIR: '{{.OPT_DIR}}/duckdb/{{.VERSION}}'
     dir: '{{.DIR}}'
     prompt: Download to {{.DIR}}?
     cmds:
       - wget {{.URL}}
-      - defer: rm -f *.zip
-      - unzip *.zip
+      - defer: rm -f duckdb_cli-linux-amd64.zip
+      - |
+        unzip *.zip
+        test -e duckdb_cli-linux-amd64.zip && unzip duckdb_cli-linux-amd64.zip
     requires:
-      vars: [URL, VERSION]
+      vars: [OPT_DIR, URL, VERSION]
     status:
       - test -f {{.DIR}}/duckdb

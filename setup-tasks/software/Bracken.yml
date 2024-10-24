@@ -1,10 +1,5 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  OPT_DIR: "{{.GROUP_HOME}}/opt"
-
 includes:
   group-installs: ../utils/GroupInstalls.yml
   kraken2: ./Kraken2.yml
@@ -21,34 +16,37 @@ tasks:
         https://github.com/jenniferlu717/Bracken
     deps:
       - task: kraken2:install
+        vars:
+          VERSION: '{{.KRAKEN2_VERSION}}'
     vars:
-      APP: bracken
       VERSION: '{{.VERSION | default "2.9"}}'
-      KRAKEN2_VERSION: '{{.VERSION | default "2.1.3"}}'
+      KRAKEN2_VERSION: '{{.KRAKEN2_VERSION | default "2.1.3"}}'
     cmds:
       - task: build
         vars:
           VERSION: '{{.VERSION}}'
       - task: group-installs:complete
         vars:
-          APP: '{{.APP}}'
+          APP: bracken
           EXE: bracken bracken-build
           RELPATH_EXE: /Bracken-{{.VERSION}}/
           VERSION: '{{.VERSION}}'
 
   build:
-    dir: '{{.DIR}}'
-    prompt: 'Build in {{.DIR}}?'
     vars:
       DIR: '{{.OPT_DIR}}/bracken/{{.VERSION}}'
       URL: https://github.com/jenniferlu717/Bracken/archive/refs/tags/v{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: 'Build in {{.DIR}}?'
     cmds:
       - wget {{.URL}}
       - defer: rm -f $(basename {{.URL}})
-      - tar xf $(basename ${{.URL}})
+      - tar xf $(basename {{.URL}})
       - |
         cd Bracken-{{.VERSION}}
         . install_bracken.sh
+    requires:
+      vars: [OPT_DIR, VERSION]
     status:
       - test -f {{.DIR}}/Bracken-{{.VERSION}}/bracken
       - test -f {{.DIR}}/Bracken-{{.VERSION}}/bracken-build

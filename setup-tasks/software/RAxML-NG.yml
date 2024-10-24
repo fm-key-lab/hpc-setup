@@ -1,10 +1,5 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  OPT_DIR: '{{.GROUP_HOME}}/opt'
-
 includes:
   group-installs: ../utils/GroupInstalls.yml
 
@@ -21,9 +16,7 @@ tasks:
       ----
        - https://github.com/amkozlov/raxml-ng
     vars:
-      APP: duckdb
       VERSION: '{{.VERSION | default "1.2.2"}}'
-      URL: '{{.URL | default .URL_STABLE}}'
     cmds:
       - task: download-prebuilt-binary
         vars:
@@ -36,7 +29,7 @@ tasks:
           VERSION: '{{.VERSION}}'
       - task: install-mpi
         vars:
-          VERSION: '{{.VERSION}}_MPI'
+          VERSION: '{{.VERSION}}'
       - task: group-installs:write-modulefile-stub
         vars:
           APP: raxml-ng
@@ -51,20 +44,20 @@ tasks:
       You will need `GCC 6.4+` and `CMake 3.0.2+` in order to compile RAxML-NG 
       for your system.
     vars:
-      DIR: '{{.OPT_DIR}}/raxml-ng/{{.VERSION}}'
+      DIR: '{{.OPT_DIR}}/raxml-ng/{{.VERSION}}_MPI'
       URL: https://github.com/amkozlov/raxml-ng/releases/download/{{.VERSION}}/raxml-ng_v{{.VERSION}}_linux_x86_64_MPI.zip
     dir: '{{.DIR}}'
     cmds:
       - wget {{.URL}}
       - defer: rm -f $(basename {{.URL}})
       - unzip $(basename {{.URL}})
-      - mkdir -p bin # NOTE: Believe assumed by install script with defaults
+      - mkdir -p bin # NOTE: iirc assumed by install script using defaults
       - ./install.sh
       # ...
       # [100%] Linking CXX executable ../bin/raxml-ng
       # [100%] Built target raxml_module
     requires:
-      vars: [VERSION]
+      vars: [OPT_DIR, VERSION]
     status:
       - test -f {{.DIR}}/bin/raxml-ng
 
@@ -79,7 +72,7 @@ tasks:
       - defer: rm -f $(basename {{.URL}})
       - unzip $(basename {{.URL}})
     requires:
-      vars: [VERSION]
+      vars: [OPT_DIR, VERSION]
     status:
       - test -f {{.DIR}}/raxml-ng
   
@@ -95,7 +88,8 @@ tasks:
     vars:
       DIR: '{{.OPT_DIR}}/raxml-ng/{{.VERSION}}'
     dir: '{{.DIR}}'
-    vars:
     cmds:
       - raxml-ng --msa data/test.fa --model GTR+G --prefix test
       - rm -f test.raxml.bestModel test.raxml.bestTree test.raxml.log test.raxml.mlTrees test.raxml.rba test.raxml.startTree
+    requires:
+      vars: [OPT_DIR, VERSION]

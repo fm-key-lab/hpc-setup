@@ -1,10 +1,4 @@
-version: 3
-
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  OPT_DIR: '{{.GROUP_HOME}}/opt'
-  GROUP_MODULEFILES: '{{.GROUP_HOME}}/Modules/modulefiles'
+version: '3'
 
 includes:
   group-installs: ../utils/GroupInstalls.yml
@@ -21,11 +15,11 @@ tasks:
         - https://ftp.gnu.org/pub/gnu/ncurses/
     vars:
       VERSION: '{{.VERSION | default "6.5"}}'
+      MODULEFILE: '{{.GROUP_MODULEFILES}}/ncurses/{{.VERSION}}'
     cmds:
       - task: build
         vars:
           VERSION: '{{.VERSION}}'
-      # TODO: Modulefile is further customized
       - task: group-installs:write-modulefile-stub
         vars:
           APP: ncurses
@@ -33,8 +27,12 @@ tasks:
           VERSION: '{{.VERSION}}'
       - task: append-modulefile
         vars:
-          MODULEFILE: '{{.GROUP_MODULEFILES}}/ncurses/{{.VERSION}}'
+          MODULEFILE: '{{.MODULEFILE}}'
           VERSION: '{{.VERSION}}'
+    requires:
+      vars: [GROUP_MODULEFILES]
+    status:
+      - test -f {{.MODULEFILE}}
 
   build:
     summary: |
@@ -62,7 +60,7 @@ tasks:
           URL: '{{.URL}}'
           VERSION: '{{.VERSION}}'
     requires:
-      vars: [VERSION]
+      vars: [OPT_DIR, VERSION]
     status:
       - test -d {{.DIR}}/bin
       - test -d {{.DIR}}/lib
@@ -87,5 +85,3 @@ tasks:
         cmd: echo -e '{{.ITEM}}' >> {{.MODULEFILE}}
     requires:
       vars: [MODULEFILE, OPT_DIR, VERSION]
-    status:
-      - test -f {{.MODULEFILE}} # TODO

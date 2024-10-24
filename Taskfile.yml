@@ -1,5 +1,7 @@
 version: '3'
 
+# Usage: ~/bin/task --concurrency 1 --yes
+
 vars:
   GROUP_HOME:
     sh: echo $GROUP_HOME
@@ -14,20 +16,16 @@ includes:
   envs: ./setup-tasks/envs
   install: ./setup-tasks/software
 
-# TODO: Write Taskfile or Makefile for setting up remotes (directory creation, rclone, etc.)
-# TODO: Re-define "install:core" based on WideVariant and download:all
-#       - nextflow
-# TODO: Create containers
 # TODO: Download local versions of nf-core pipelines
 # TODO: Back up srst2 database somewhere (?) and copy over to viper
 # TODO: Add PubMLST
+# TODO: Add non-standalone nextflow + nf-core utils in conda env
 
 tasks:
   default:
     prompt: Are you setting up a new HPC?
     cmds:
       - task: furnish-group-home
-      - task: minimal-tmp-shell-profile
       - task: install
       - task: envs
       - task: public-data
@@ -35,7 +33,9 @@ tasks:
   furnish-group-home:
     desc: Group home directory structure
     vars:
-      GROUP_HOME_DIRS: opt Modules/modulefiles
+      GROUP_HOME_DIRS: |
+        bin config containers envs fonts lab_data Modules/modulefiles 
+        opt public_data tmp tools
     dir: '{{.GROUP_HOME}}'
     prompt: Is {{.GROUP_HOME}} correct?
     cmds:
@@ -48,11 +48,3 @@ tasks:
     status:
       - test -d {{.GROUP_HOME}}/opt
       - test -d {{.GROUP_HOME}}/Modules/modulefiles
-
-  minimal-tmp-shell-profile:
-    desc: Create minimal profile
-    cmds:
-      - echo -e '\n\nexport GROUP_HOME="{{.GROUP_HOME}}"' >> {{.BASHRC}}
-      - echo -e 'export MODULE_BASEDIR="$GROUP_HOME/opt"' >> {{.BASHRC}}
-      - echo -e '\nmodule use --append "$GROUP_HOME/Modules/modulefiles"' >> {{.BASHRC}}
-      - '{{.SHELL}} -c "exec {{.SHELL}}"'

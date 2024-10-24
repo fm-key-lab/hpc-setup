@@ -1,7 +1,8 @@
-version: 3
+version: '3'
 
 includes:
-  group-install: ../utils/GroupInstallTasks.yml
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
 
 tasks:
   install:
@@ -15,31 +16,33 @@ tasks:
           APP: '{{.APP}}'
           VERSION: '{{.VERSION}}'
       - for: { var: APPS, as: APP }
-        task: group-install:complete
+        task: group-installs:complete
         vars:
           APP: '{{.APP}}'
-          VERSION: '{{.VERSION}}'
           EXE: '{{.APP}}'
-          RELPATH_EXE: '/bin/'
-      - rm -f $GROUP_HOME/bin/htslib # TODO: Link to tabix instead
+          RELPATH_EXE: /bin/
+          VERSION: '{{.VERSION}}'
+      - rm -f {{.GROUP_BIN}}/htslib # TODO: Link to tabix instead
+    requires:
+      vars: [GROUP_BIN]
     status:
-      - test -f $GROUP_HOME/opt/samtools/{{.VERSION}}/bin/samtools
-      - test -f $GROUP_HOME/opt/bcftools/{{.VERSION}}/bin/bcftools
-      - test -f $GROUP_HOME/opt/htslib/{{.VERSION}}/bin/tabix
+      - test -f {{.OPT_DIR}}/samtools/{{.VERSION}}/bin/samtools
+      - test -f {{.OPT_DIR}}/bcftools/{{.VERSION}}/bin/bcftools
+      - test -f {{.OPT_DIR}}/htslib/{{.VERSION}}/bin/tabix
   
   build:
     vars:
-      DIR: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
+      DIR: '{{.OPT_DIR}}/{{.APP}}/{{.VERSION}}'
       URL: https://github.com/samtools/{{.APP}}/releases/download/{{.VERSION}}/{{.APP}}-{{.VERSION}}.tar.bz2
     cmds:
-      - task: group-install:build-from-source-vanilla
+      - task: utils:install:vanilla-build
         vars:
           APP: '{{.APP}}'
-          PREFIX: '{{.DIR}}'
+          BUILD_DIR: '{{.DIR}}'
           STATUS: '-d {{.DIR}}/bin'
           URL: '{{.URL}}'
           VERSION: '{{.VERSION}}'
     requires:
-      vars: [APP, VERSION]
+      vars: [APP, OPT_DIR, VERSION]
     status:
       - test -f {{.DIR}}/bin/{{.APP}}

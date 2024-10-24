@@ -1,11 +1,5 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  OPT_DIR: "{{.GROUP_HOME}}/opt"
-  GROUP_MODULEFILES: '{{.GROUP_HOME}}/Modules/modulefiles'
-
 includes:
   group-installs: ../utils/GroupInstalls.yml
 
@@ -20,23 +14,23 @@ tasks:
        - Releases: https://github.com/mamba-org/micromamba-releases/releases
        - Docs: https://mamba.readthedocs.io/en/latest/user_guide/micromamba.html#
     vars:
-      APP: micromamba
       VERSION: '{{.VERSION | default "2.0.1-0"}}'
+      MODULEFILE: '{{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}'
     cmds:
       - task: manual-installation
         vars:
           VERSION: '{{.VERSION}}'
       - task: group-installs:complete
         vars:
-          APP: '{{.APP}}'
-          VERSION: '{{.VERSION}}'
-          EXE: '{{.APP}}'
+          APP: micromamba
+          EXE: micromamba
           RELPATH_EXE: /bin/
+          VERSION: '{{.VERSION}}'
       - task: append-modulefile
         vars:
-          VERSION: '{{.VERSION}}'
+          MODULEFILE: '{{.MODULEFILE}}'
     status:
-      - test -f {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
+      - test -f {{.MODULEFILE}}
 
   manual-installation:
     platforms: [linux/amd64]
@@ -50,25 +44,25 @@ tasks:
       - defer: rm -f $(basename {{.URL}})
       - tar jxvf $(basename ${{.URL}})
     requires:
-      vars: [VERSION]
+      vars: [OPT_DIR, VERSION]
     status:
       - test -f {{.DIR}}/bin/micromamba
   
   append-modulefile:
-    - echo -e '\n\nconflict anaconda\nconflict python\n' >> {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
-    - echo -e '# Set MAMBA_ROOT_PREFIX to default value if not already set\nif {![info exists env(MAMBA_ROOT_PREFIX)]} {\n    setenv MAMBA_ROOT_PREFIX "$env(GROUP_HOME)/envs/conda"\n}\n' >> {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
-    - echo -e 'if {[module-info mode load]} {' >> {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
-    - echo -e '    puts stderr "micromamba in this module cannot modify the parent shell."' >> {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
-    - echo -e '    puts stderr "If you require activate and deactivate, you must initialize your shell."' >> {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
-    - echo -e '    puts stderr "To initialize the current bash shell, run:"' >> {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
-    - echo -e '    puts stderr "  eval \\"\$(micromamba shell hook --shell bash)\\""' >> {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
-    - echo -e '    puts stderr ""' >> {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
-    - echo -e '    puts stderr "To create environments using `-n` in a location other than the default (\$GROUP_HOME/envs/conda), use"' >> {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
-    - echo -e '    puts stderr "  export MAMBA_ROOT_PREFIX=/path/to/envs"' >> {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
-    - echo -e '}\n' >> {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
-    - echo -e 'if {[module-info mode remove]} {' >> {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
-    - echo -e '    unsetenv MAMBA_ROOT_PREFIX' >> {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
-    - echo -e '    puts stderr "To de-initialize the current bash shell, run:"' >> {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
-    - echo -e '    puts stderr "  micromamba shell deinit"' >> {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
-    - echo -e '    puts stderr "  unset -f micromamba"' >> {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
-    - echo -e '}\n' >> {{.GROUP_MODULEFILES}}/micromamba/{{.VERSION}}
+    - echo -e '\n\nconflict anaconda\nconflict python\n' >> {{.MODULEFILE}}
+    - echo -e '# Set MAMBA_ROOT_PREFIX to default value if not already set\nif {![info exists env(MAMBA_ROOT_PREFIX)]} {\n    setenv MAMBA_ROOT_PREFIX "$env(GROUP_HOME)/envs/conda"\n}\n' >> {{.MODULEFILE}}
+    - echo -e 'if {[module-info mode load]} {' >> {{.MODULEFILE}}
+    - echo -e '    puts stderr "micromamba in this module cannot modify the parent shell."' >> {{.MODULEFILE}}
+    - echo -e '    puts stderr "If you require activate and deactivate, you must initialize your shell."' >> {{.MODULEFILE}}
+    - echo -e '    puts stderr "To initialize the current bash shell, run:"' >> {{.MODULEFILE}}
+    - echo -e '    puts stderr "  eval \\"\$(micromamba shell hook --shell bash)\\""' >> {{.MODULEFILE}}
+    - echo -e '    puts stderr ""' >> {{.MODULEFILE}}
+    - echo -e '    puts stderr "To create environments using `-n` in a location other than the default (\$GROUP_HOME/envs/conda), use"' >> {{.MODULEFILE}}
+    - echo -e '    puts stderr "  export MAMBA_ROOT_PREFIX=/path/to/envs"' >> {{.MODULEFILE}}
+    - echo -e '}\n' >> {{.MODULEFILE}}
+    - echo -e 'if {[module-info mode remove]} {' >> {{.MODULEFILE}}
+    - echo -e '    unsetenv MAMBA_ROOT_PREFIX' >> {{.MODULEFILE}}
+    - echo -e '    puts stderr "To de-initialize the current bash shell, run:"' >> {{.MODULEFILE}}
+    - echo -e '    puts stderr "  micromamba shell deinit"' >> {{.MODULEFILE}}
+    - echo -e '    puts stderr "  unset -f micromamba"' >> {{.MODULEFILE}}
+    - echo -e '}\n' >> {{.MODULEFILE}}

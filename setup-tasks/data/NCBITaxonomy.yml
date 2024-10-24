@@ -1,12 +1,5 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  GROUP_DATA: '{{.GROUP_HOME}}/public_data'
-  GROUP_DBS: '{{.GROUP_DATA}}/databases'
-  TAXRANKS_DIR: '{{.GROUP_DBS}}/ncbi_taxranks'
-
 tasks:
   download:
     desc: Download taxonomic rank file
@@ -20,12 +13,14 @@ tasks:
       - https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump_archive
     vars:
       DATE: '{{.DATE | default "2024-08-01"}}'
-      DIR: '{{.TAXRANKS_DIR}}/{{.DATE}}'
+      DIR: '{{.GROUP_DBS}}/ncbi_taxranks/{{.DATE}}'
       URL: https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump_archive/new_taxdump_{{.DATE}}.zip
     dir: '{{.DIR}}'
     cmds:
       - wget {{.URL}}
       - defer: rm -f $(basename {{.URL}})
       - unzip $(basename {{.URL}})
+    requires:
+      vars: [GROUP_DBS]
     status:
       - test -f {{.DIR}}/rankedlineage.dmp

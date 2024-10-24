@@ -1,7 +1,7 @@
 version: '3'
 
 includes:
-  group_install: ../utils/GroupInstallTasks.yml
+  group-installs: ../utils/GroupInstalls.yml
 
 tasks:
   install:
@@ -19,31 +19,23 @@ tasks:
       - Latest releases on [GH](https://github.com/aria2/aria2/releases)
       - See [here](https://github.com/aria2/aria2?tab=readme-ov-file#dependency)
         for optional dependencies.
+    vars:
+      APP: aria2
+      VERSION: '{{.VERSION | default "1.37.0"}}'
     cmds:
-      - task: _install
+      - task: build-static
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
         vars:
           APP: aria2
-          VERSION: 1.37.0
-          RELPATH_EXE: /bin/
-
-  _install:
-    internal: true
-    deps:
-      - task: build_static
-        vars:
-          APP: '{{.APP}}'
-          VERSION: '{{.VERSION}}'
-    cmds:
-      - task: group_install:complete
-        vars:
-          APP: '{{.APP}}'
-          VERSION: '{{.VERSION}}'
-          RELPATH_EXE: '{{.RELPATH_EXE}}'
           EXE: aria2c
+          RELPATH_EXE: /bin/
+          VERSION: '{{.VERSION}}'
 
   # TODO: Not ideal how this static build is obtained outside of the Taskfile.
 
-  build_static:
+  build-static:
     summary: |
       Install aria2 static build.
 
@@ -51,32 +43,34 @@ tasks:
       -----
       - Static builds are housed in Proton Drive and downloaded in browser
       - Check other static builds [here](https://git.q3aql.dev/q3aql/aria2-static-builds)
-      - Do not use bundled Makefile (i.e., `make install PREFIX=$GROUP_HOME/opt/{{.SUBDIR}}`)
-    dir: $GROUP_HOME/opt/{{.SUBDIR}}
-    prompt: Install aria2 in $GROUP_HOME/opt/{{.SUBDIR}}?
+      - Do not use bundled Makefile (i.e., `make install PREFIX={{.DIR}}`)
+    vars:
+      DIR: '{{.OPT_DIR}}/aria2/{{.VERSION}}'
+      URL: https://drive.proton.me/urls/QKY2M7X7TC#b6YBf4Tl5QiR
+    dir: '{{.DIR}}'
+    prompt: Install aria2 in {{.DIR}}?
     cmds:
       - tar jxvf aria2-{{.VERSION}}-linux-gnu-64bit-build1.tar.bz2
       - defer: rm -f aria2-{{.VERSION}}-linux-gnu-64bit-build1.tar.bz2
       - |
         cd aria2-{{.VERSION}}-linux-gnu-64bit-build1
-        mkdir -p $GROUP_HOME/opt/{{.SUBDIR}}/bin
-        mkdir -p $GROUP_HOME/opt/{{.SUBDIR}}/share/man/man1/
-        cp aria2c $GROUP_HOME/opt/{{.SUBDIR}}/bin
-        cp man-aria2c $GROUP_HOME/opt/{{.SUBDIR}}/share/man/man1/aria2c.1
-        chmod 755 $GROUP_HOME/opt/{{.SUBDIR}}/bin/aria2c
-        chmod 644 $GROUP_HOME/opt/{{.SUBDIR}}/share/man/man1/aria2c.1
-    vars:
-      APP: aria2
-      SUBDIR: '{{.APP}}/{{.VERSION}}'
-      URL: https://drive.proton.me/urls/QKY2M7X7TC#b6YBf4Tl5QiR
+        mkdir -p {{.DIR}}/bin
+        mkdir -p {{.DIR}}/share/man/man1/
+        cp aria2c {{.DIR}}/bin
+        cp man-aria2c {{.DIR}}/share/man/man1/aria2c.1
+        chmod 755 {{.DIR}}/bin/aria2c
+        chmod 644 {{.DIR}}/share/man/man1/aria2c.1
     requires:
-      vars: [VERSION]
+      vars: [OPT_DIR, VERSION]
     status:
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bin/aria2c
+      - test -f {{.DIR}}/bin/aria2c
 
   build:
-    dir: $GROUP_HOME/opt/{{.SUBDIR}}
-    prompt: Install aria2 in $GROUP_HOME/opt/{{.SUBDIR}}?
+    vars:
+      DIR: '{{.OPT_DIR}}/aria2/{{.VERSION}}'
+      URL: https://github.com/aria2/aria2/releases/download/release-{{.VERSION}}/aria2-{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Install aria2 in {{.DIR}}?
     cmds:
       - wget {{.URL}}
       - defer: rm -f $(basename {{.URL}})
@@ -85,17 +79,13 @@ tasks:
         cd $(basename {{.URL}} .tar.gz)
         autoreconf -i
         ./configure \
-          --prefix=$GROUP_HOME/opt/{{.SUBDIR}} \
-          --with-bashcompletiondir=$GROUP_HOME/opt/{{.SUBDIR}}/share/doc/aria2/bash_completion \
+          --prefix={{.DIR}} \
+          --with-bashcompletiondir={{.DIR}}/share/doc/aria2/bash_completion \
           --without-gnutls \
           --with-openssl='/usr/bin/openssl' \
           --with-ca-bundle='{{.CA_BUNDLE}}' \
           --disable-bittorrent \
           --disable-metalink
         make
-    vars:
-      APP: aria2
-      SUBDIR: '{{.APP}}/{{.VERSION}}'
-      URL: https://github.com/aria2/aria2/releases/download/release-{{.VERSION}}/aria2-{{.VERSION}}.tar.gz
     requires:
-      vars: [CA_BUNDLE, VERSION]
+      vars: [CA_BUNDLE, OPT_DIR, VERSION]

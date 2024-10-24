@@ -1,12 +1,20 @@
-version: 3
+version: '3'
+
+# TODO: Mid-refactor ...
+
+vars:
+  BINUTILS_MODULE: binutils/2.42
+  GCC_MODULE: gcc/14  
 
 includes:
-  group_install: ../utils/GroupInstallTasks.yml
-  group_envs: ../envs/EnvsTasks.yml
-  bowtie2: Bowtie2.yml
-  cdhit: CD-HIT.yml
-  mummer: MUMmer.yml
-  spades: SPAdes.yml
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+  bowtie2: ./Bowtie2.yml
+  cdhit: ./CD-HIT.yml
+  mummer: ./MUMmer.yml
+  python: ./Python.yml
+  spades: ./SPAdes.yml
+  uv: ./uv.yml
 
 tasks:
   install:
@@ -24,26 +32,24 @@ tasks:
       URLs
       ----
       - https://github.com/sanger-pathogens/ariba
+    vars:
+      VERSION: '{{.VERSION | default "2.14.7"}}'
+      BOWTIE2_VERSION: '{{.BOWTIE2_VERSION | default "2.1.0"}}'
+      CDHIT_VERSION: '{{.CDHIT_VERSION | default "4.8.1"}}'
+      MUMMER_VERSION: '{{.MUMMER_VERSION | default "3.22"}}'
+      PYMUMMER_VERSION: '{{.PYMUMMER_VERSION | default "0.10.1"}}'
+      PYTHON_VERSION: '{{.PYTHON_VERSION | default "3.12.4"}}'
+      # ARIBA_BOWTIE2: opt/bowtie2/2.1.0/bowtie2-2.1.0/bowtie2
+      # ARIBA_CDHIT: opt/cdhit/4.8.1/bin/cd-hit-est
     cmds:
-      - task: _install
+      - task: create-venv
         vars:
-          APP: ariba
-          VERSION: 2.14.7
-          ARIBA_BOWTIE2: opt/bowtie2/2.1.0/bowtie2-2.1.0/bowtie2
-          ARIBA_CDHIT: opt/cdhit/4.8.1/bin/cd-hit-est
-
-  _install:
-    internal: true
-    deps:
-      - task: build
-        vars:
-          SUBDIR: '{{.APP}}/{{.VERSION}}'
-          ARIBA_BOWTIE2: $GROUP_HOME/{{.ARIBA_BOWTIE2}}
-          ARIBA_CDHIT: $GROUP_HOME/{{.ARIBA_CDHIT}}
-    cmds:
+          VERSION: '{{.VERSION}}'
+          # ARIBA_BOWTIE2: $GROUP_HOME/{{.ARIBA_BOWTIE2}}
+          # ARIBA_CDHIT: $GROUP_HOME/{{.ARIBA_CDHIT}}
       - task: group_envs:create_venv_modulefile
         vars:
-          NAME: '{{.APP}}'
+          NAME: ariba
           VERSION: '{{.VERSION}}'
       - |
         echo '
@@ -54,14 +60,32 @@ tasks:
         setenv --set-if-undef   ARIBA_CDHIT     "${groupdir}/{{.ARIBA_CDHIT}}"
         setenv --set-if-undef   PYTHONWARNINGS    "ignore::SyntaxWarning"' >> $GROUP_HOME/Modules/modulefiles/ariba/0.0.1-alpha
 
-  build:
-    dir: $GROUP_HOME/opt/{{.SUBDIR}}
-    prompt: Install in $GROUP_HOME/opt/{{.SUBDIR}}?
+  # TODO: Factor out complex env
+  create-venv:
     deps:
       - task: bowtie2:install
       - task: cdhit:install
       - task: mummer:install
+      - task: python:install
+        vars:
+          VERSION: '{{.PYTHON_VERSION}}'
       - task: spades:install
+      - task: uv:install
+        vars:
+          VERSION: '{{.UV_VERSION}}'
+    vars:
+      DIR: '{{.OPT_DIR}}/ariba/{{.VERSION}}'
+    dir: '{{.DIR}}'
+    prompt: Create ARIBA environment in {{.DIR}}?
+    cmds:
+      - task: utils:venv:create
+        vars:
+          EXTRA_MODULES: '{{.BINUTILS_MODULE}} {{.GCC_MODULE}} mummer/{{.MUMMER_VERSION}} {{.UV_MODULE}}'
+          INSTALL: '"dendropy>=4.2.0" "matplotlib>=3.1.0" "pyfastaq>=3.12.0" "pysam>=0.9.1" biopython "pymummer>={{.PYMUMMER_VERSION}}" ariba'
+          PREFIX: '{{.DIR}}'
+          PYTHON: '{{.OPT_DIR}}/python/{{.PYTHON_VERSION}}/bin/python'
+
+
     cmds:
       - task: group_envs:create_venv
         vars:
@@ -77,10 +101,6 @@ tasks:
         uv pip install ariba &&
         module purge &&
         deactivate'
-    vars:
-      BINUTILS_MODULE: binutils/2.42
-      GCC_MODULE: gcc/14
-      UV_MODULE: uv/0.2.34
     env:
       ARIBA_BOWTIE2: '{{.ARIBA_BOWTIE2}}'
       ARIBA_CDHIT: '{{.ARIBA_CDHIT}}'

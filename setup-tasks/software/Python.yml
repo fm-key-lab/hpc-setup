@@ -1,46 +1,55 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  OPT_DIR: "{{.GROUP_HOME}}/opt"
-
 includes:
   group-installs: ../utils/GroupInstalls.yml
+
+# TODO: Handle other Python versions more elegantly
 
 tasks:
   install:
     desc: Install Python3
     vars:
-      APP: 'python'
       VERSION: '{{.VERSION | default "3.12.4"}}'      
     cmds:
       - task: build
         vars:
           VERSION: '{{.VERSION}}'
-      # TODO: Check exact items in assets.
-      # - task: group-installs:complete
-      #   vars:
-      #     APP: '{{.APP}}'
-      #     VERSION: '{{.VERSION_CLI}}'
-      #     RELPATH_EXE: /bin/
-      #     EXE: python3.12 pip3.12
+      - task: group-installs:complete
+        vars:
+          APP: python
+          EXE: python3 python pip3 pip
+          RELPATH_EXE: /bin/
+          VERSION: '{{.VERSION}}'
 
   build:
     vars:
       DIR: '{{.OPT_DIR}}/python/{{.VERSION}}'
       URL: https://www.python.org/ftp/python/{{.VERSION}}/Python-{{.VERSION}}.tgz
       ENABLE_OPTIMIZATIONS:
-        sh: '[ "${{{.VERSION}}}" -gt 3 ] && echo "--enable-optimizations" || echo ""'
+        sh: |
+          VERSION_MAJOR=$(echo "{{.VERSION}}" | cut -d'.' -f1)
+          if [ "$VERSION_MAJOR" -ge 3 ]; then
+            echo "--enable-optimizations"
+          fi
     dir: '{{.DIR}}'
     cmds:
       - wget {{.URL}}
-      - defer: rm -f $(basename ${{.URL}})
-      - tar xf $(basename ${{.URL}})
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
       - |
         cd Python-{{.VERSION}}
         ./configure --prefix={{.DIR}} {{.ENABLE_OPTIMIZATIONS}}
         make
         make altinstall
+      # NOTE: Simplify naming
+      # TODO: More robust
+      - |
+        cd {{.DIR}}/bin
+        test -e python3.12 && ln -s python3.12 python3
+        test -e python3.12 && ln -s python3.12 python
+        test -e pip3.12 && ln -s pip3.12 pip3
+        test -e pip3.12 && ln -s pip3.12 pip
+    requires:
+      vars: [OPT_DIR, VERSION]
     status:
-      - test -f {{.DIR}}/bin/python*
+      - ls {{.DIR}}/bin/python*

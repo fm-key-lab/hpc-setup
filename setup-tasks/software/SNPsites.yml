@@ -1,10 +1,5 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  OPT_DIR: "{{.GROUP_HOME}}/opt"
-
 includes:
   group-installs: ../utils/GroupInstalls.yml
 
@@ -20,7 +15,6 @@ tasks:
       - http://sanger-pathogens.github.io/snp-sites/
       - https://github.com/sanger-pathogens/snp-sites
     vars:
-      APP: snp-sites
       VERSION: '{{.VERSION | default "2.5.1"}}'
     cmds:
       - task: build
@@ -28,8 +22,8 @@ tasks:
           VERSION: '{{.VERSION}}'
       - task: group-installs:complete
         vars:
-          APP: '{{.APP}}'
-          EXE: '{{.APP}}'
+          APP: snp-sites
+          EXE: snp-sites
           RELPATH_EXE: /bin/
           VERSION: '{{.VERSION}}'
 
@@ -48,7 +42,7 @@ tasks:
         ./configure --prefix={{.DIR}}
         make
         make install
+    requires:
+      vars: [OPT_DIR, VERSION]
     status:
       - test -f {{.DIR}}/bin/snp-sites
-
-  test: {{.DIR}}/bin/snp-sites -V

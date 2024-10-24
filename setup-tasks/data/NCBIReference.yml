@@ -1,21 +1,15 @@
 version: '3'
 
 vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  GROUP_BIN: '{{.GROUP_HOME}}/bin'
-  GROUP_DATA: '{{.GROUP_HOME}}/public_data'
-  GROUP_REF_GENOMES: '{{.GROUP_DATA}}/reference_genomes'
-  
+  JQ_VERSION: '{{.JQ_VERSION | default "1.7.1"}}'
   JQ: '{{.GROUP_BIN}}/jq'
   
-  NCBI_REFERENCE_URL: https://ftp.ncbi.nlm.nih.gov/genomes/
-  NCBI_DATASETS: '{{.GROUP_BIN}}/datasets'
   NCBI_DATASETS_VERSION: '{{.NCBI_DATASETS_VERSION | default "16.29.0"}}'
+  NCBI_REFERENCE_URL: https://ftp.ncbi.nlm.nih.gov/genomes/
   NCBI_DATASETS_MODULE: 'ncbi_datasets/{{.NCBI_DATASETS_VERSION}}'
   
   # NOTE: Must be JSON
-  DEFAULT_REFS_CFG: '{{.TASKFILE_DIR}}/core-reference-genomes.json' # Deprecate
+  DEFAULT_REFS_CFG: '{{.TASKFILE_DIR}}/core-reference-genomes.json' # TODO: Deprecate?
   REFS_CFG: '{{.REFS_CFG | default .DEFAULT_REFS_CFG}}'
 
 includes:
@@ -31,7 +25,10 @@ tasks:
     desc: Download core reference genomes from NCBI
     deps:
       - task: jq:install
+        vars:
+          VERSION: '{{.JQ_VERSION}}'
     vars:
+      # TODO: 
       REF_KEYS:
         sh: '{{.JQ}} -r "keys[]" {{.REFS_CFG}}'
       REF_ENTRIES:
@@ -44,6 +41,8 @@ tasks:
         vars:
           ACCESSION: '{{index .REF_ENTRIES_MAP .ITEM "accession"}}'
           TAXON: '{{index .REF_ENTRIES_MAP .ITEM "taxon"}}'
+    requires:
+      vars: [JQ, JQ_VERSION, REFS_CFG]
 
   download-ncbi-reference-genome:
     deps:
@@ -56,15 +55,16 @@ tasks:
     cmds:
       - task: utils:envmodule:run-inside
         vars:
-          CMDS: '{{.NCBI_DATASETS}} download genome accession {{.ACCESSION}} --filename {{.PREFIX}}/ncbi_dataset.zip --include gff3,rna,cds,protein,genome,seq-report'
+          CMDS: 'datasets download genome accession {{.ACCESSION}} --filename {{.PREFIX}}/ncbi_dataset.zip --include gff3,rna,cds,protein,genome,seq-report'
           MODULE: '{{.NCBI_DATASETS_MODULE}}'
       - defer: rm -f {{.PREFIX}}/ncbi_dataset.zip
       - unzip {{.PREFIX}}/ncbi_dataset.zip
     requires:
-      vars: [ACCESSION, TAXON]
+      vars: [ACCESSION, GROUP_REF_GENOMES, NCBI_DATASETS_VERSION, TAXON]
     status:
       - test -f {{.PREFIX}}/README.md
+      - test -f {{.PREFIX}}/md5sum.txt
       - test -d {{.PREFIX}}/ncbi_dataset
-      - test -f {{.PREFIX}}/ncbi_dataset/data/assembly_data_report.json
+      - test -f {{.PREFIX}}/ncbi_dataset/data/assembly_data_report.jsonl
       - test -f {{.PREFIX}}/ncbi_dataset/data/dataset_catalog.json
       - test -d {{.PREFIX}}/ncbi_dataset/data/{{.ACCESSION}}

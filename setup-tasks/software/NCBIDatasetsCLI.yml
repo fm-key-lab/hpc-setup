@@ -1,10 +1,5 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  OPT_DIR: "{{.GROUP_HOME}}/opt"
-
 includes:
   group-installs: ../utils/GroupInstalls.yml
 
@@ -38,23 +33,22 @@ tasks:
   # NOTE: Downloads to same directory
   download-github-docs:
     vars:
-      VERSION: '{{.VERSION | default "16.30.0"}}'
-      VERSION_CLI: '{{.VERSION_CLI | default "16.29.0"}}'
       DIR: '{{.OPT_DIR}}/ncbi_datasets/{{.VERSION_CLI}}'
       URL: https://github.com/ncbi/datasets/archive/refs/tags/v{{.VERSION}}.tar.gz
     dir: '{{.DIR}}'
     prompt: Download docs to {{.DIR}}?
     cmds:
       - wget {{.URL}}
-      - defer: rm -f $(basename {{.URL}}) $(basename {{.URL}} .tar.gz)
-      - tar xf $(basename ${{.URL}})
-      - mv dataset-{{.VERSION}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+      # - mv dataset-{{.VERSION}} TODO: ?
+    requires:
+      vars: [OPT_DIR, VERSION, VERSION_CLI]
     status:
       - test -f {{.DIR}}/datasets-{{.VERSION}}/README.md
 
   download-github-cli:
     vars:
-      VERSION: '{{.VERSION | default "16.29.0"}}'
       DIR: '{{.OPT_DIR}}/ncbi_datasets/{{.VERSION}}'
       URL: https://github.com/ncbi/datasets/releases/download/v{{.VERSION}}/linux-amd64.cli.package.zip
     dir: '{{.DIR}}'
@@ -63,10 +57,13 @@ tasks:
       - wget {{.URL}}
       - defer: rm -f $(basename {{.URL}})
       - unzip $(basename ${{.URL}})
+    requires:
+      vars: [OPT_DIR, VERSION]
     status:
       - test -f {{.DIR}}/dataformat
       - test -f {{.DIR}}/datasets
 
+  # NOTE: Unused
   download-ftp:
     vars:
       VERSION: '{{.VERSION | default "2"}}'

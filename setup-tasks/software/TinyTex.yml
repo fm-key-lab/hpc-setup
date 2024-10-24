@@ -1,10 +1,5 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  OPT_DIR: '{{.GROUP_HOME}}/opt'
-
 includes:
   group-installs: ../utils/GroupInstalls.yml
   utils: ../../lab-tasks
@@ -20,23 +15,28 @@ tasks:
       https://github.com/rstudio/tinytex-releases
     vars:
       VERSION: '{{.VERSION | default "2024.07.03"}}'
+      MODULEFILE: '{{.GROUP_MODULEFILES}}/tinytex/{{.VERSION}}'
     cmds:
       - task: download-prebuilt-binary
         vars:
           VERSION: '{{.VERSION}}'
       - task: group-installs:complete
         vars:
-          APP: 'tinytex'
+          APP: tinytex
           EXE: latexmk pdflatex bibtex tlmgr
           RELPATH_EXE: /.TinyTeX/bin/x86_64-linux/
           VERSION: '{{.VERSION}}'
       - task: append-modulefile
         vars:
-          MODULEFILE: '{{.GROUP_MODULEFILES}}/tinytex/{{.VERSION}}'
+          MODULEFILE: '{{.MODULEFILE}}'
           VERSION: '{{.VERSION}}'
       - task: install-latex-packages
         vars:
           VERSION: '{{.VERSION}}'
+    requires:
+      vars: [GROUP_MODULEFILES]
+    status:
+      - test -f {{.MODULEFILE}} # TODO
 
   download-prebuilt-binary:
     platforms: [linux/amd64]
@@ -50,6 +50,8 @@ tasks:
       - wget {{.URL}}
       - defer: rm -f $(basename ${{.URL}})
       - tar xf $(basename ${{.URL}})
+    requires:
+      vars: [OPT_DIR, VERSION]
     status:
       - test -f {{.DIR}}/.TinyTeX/bin/x86_64-linux/latexmk
       - test -f {{.DIR}}/.TinyTeX/bin/x86_64-linux/pdflatex
@@ -92,5 +94,3 @@ tasks:
         cmd: echo -e '{{.ITEM}}' >> {{.MODULEFILE}}
     requires:
       vars: [MODULEFILE, VERSION]
-    status:
-      - test -f {{.MODULEFILE}} # TODO

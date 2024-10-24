@@ -1,9 +1,6 @@
 version: '3'
 
-vars:
-  GROUP_HOME:
-    sh: echo $GROUP_HOME
-  OPT_DIR: '{{.GROUP_HOME}}/opt'
+# TODO: Add Python to build docs
 
 includes:
   group-installs: ../utils/GroupInstalls.yml
@@ -44,17 +41,19 @@ tasks:
       ----
       - https://jqlang.github.io/jq
     vars:
-      APP: jq
       VERSION: '{{.VERSION | default "1.7.1"}}'
     cmds:
       - task: utils:install:vanilla-build
         vars:
-          APP: '{{.APP}}'
-          BUILD_DIR: '{{.OPT_DIR}}/{{.APP}}/{{.VERSION}}'
+          APP: jq
+          BUILD_DIR: '{{.OPT_DIR}}/jq/{{.VERSION}}'
+          STATUS: '-f {{.OPT_DIR}}/jq/{{.VERSION}}/bin/jq'
           URL: https://github.com/jqlang/jq/releases/download/jq-{{.VERSION}}/jq-{{.VERSION}}.tar.gz
           VERSION: '{{.VERSION}}'
       - task: group-installs:symlink-to-group-bin
         vars:
-          EXE: '{{.APP}}'
-          RELPATH_EXE: '/bin/'
-          SUBDIR: '{{.APP}}/{{.VERSION}}'
+          EXE: jq
+          RELPATH_EXE: /bin/
+          SUBDIR: 'jq/{{.VERSION}}'
+    requires:
+      vars: [OPT_DIR, VERSION]
