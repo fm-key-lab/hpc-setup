@@ -1,62 +1,172 @@
-version: 3
+version: '3'
+
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: '{{.GROUP_HOME}}/opt'
+  GROUP_CONTAINERS: '{{.GROUP_HOME}}/containers'
+  GROUP_MODULEFILES: '{{.GROUP_HOME}}/Modules/modulefiles'
 
 includes:
-  group_install: ../utils/GroupInstallTasks.yml
-
-# NOTE: Currently non-functional and not used.
-#       Instead, the `srst2` environment module runs in a container.
+  group-installs: ../utils/GroupInstalls.yml
+  bowtie2: ./Bowtie2.yml
+  samtools: ./SAMtools-legacy.yml
 
 tasks:
   install:
-    - task: _install
-      vars:
-        APP: srst2
-        VERSION: 0.2.0
-
-  _install:
     deps:
-      - task: build
+      - task: bowtie2:install
+        vars:
+          VERSION: '{{.BOWTIE2_VERSION}}'
+      - task: samtools:install
+        vars:
+          VERSION: '{{.SAMTOOLS_VERSION}}'
+    vars:
+      APP: srst2
+      VERSION: '{{.VERSION | default "0.2.0"}}'
+      BOWTIE2_VERSION: '{{.VERSION | default "2.1.0"}}'
+      SAMTOOLS_VERSION: '{{.VERSION | default "0.1.18"}}'
+      APPTAINER_MODULE: apptainer/1.3.2
+      DEFINITION_FILE: '{{.ROOT_DIR}}/keylab-apptainer-definitions/bio/srst2.def'
+      BIND: '/raven/ptmp,/viper/ptmp,/ptmp,/raven/u,/raven/ptmp,/u,/nexus'
+    cmds:
+      - task: get-srst2-data
         vars:
           VERSION: '{{.VERSION}}'
-          SUBDIR: '{{.APP}}/{{.VERSION}}'
+      - task: create-image
+        vars:
+          APPTAINER_MODULE: '{{.APPTAINER_MODULE}}'
+          DEFINITION_FILE: '{{.DEFINITION_FILE}}'
+      - task: group-installs:write-modulefile-stub
+        vars:
+          APP: '{{.APP}}'
+          RELPATH_EXE: /
+          VERSION: '{{.VERSION}}'
+      - task: append-modulefile
+        vars:
+          APPTAINER_MODULE: '{{.APPTAINER_MODULE}}'
+          BIND: '{{.BIND}}'
+          BOWTIE2_VERSION: '{{.BOWTIE2_VERSION}}'
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/srst2/{{.VERSION}}'
+          SAMTOOLS_VERSION: '{{.SAMTOOLS_VERSION}}'
+          SRST2_IMAGE: '{{.GROUP_CONTAINERS}}/{{.APP}}.sif'
+          SRST2_VERSION: '{{.SRST2_VERSION}}'
 
-  build:
-    dir: $GROUP_HOME/opt/{{.SUBDIR}}
-    deps:
-      - task: group_install:check_software
-        vars:
-          SOFTWARE: '{{.BOWTIE2}}'
-      - task: group_install:check_software
-        vars:
-          SOFTWARE: '{{.BOWTIE2_BUILD}}'
-      - task: group_install:check_software
-        vars:
-          SOFTWARE: '{{.SAMTOOLS}}'
-    cmds:
-      - task: git_clone
-        vars:
-          SUBDIR: '{{.SUBDIR}}'
-      - pip install {{.PYTHON_DEPS}}
-      - pip install ./srst2
+  get-srst2-data:
     vars:
-      BOWTIE2: $GROUP_HOME/opt/bowtie2/2.1.0/bowtie2-2.1.0/bowtie2
-      BOWTIE2_BUILD: $GROUP_HOME/opt/bowtie2/2.1.0/bowtie2-2.1.0/bowtie2-build
-      PYTHON_INTERPRETER: $GROUP_HOME/opt/python/2.7.5/bin/python2.7
-      PYTHON_DEPS: scipy biopython
-      SAMTOOLS: $GROUP_HOME/opt/samtools/0.1.18/samtools-0.1.18/samtools # must be < 0.1.19
-      UV_MODULE: uv/0.2.34
-    env:
-      SRST2_BOWTIE2: '{{.BOWTIE2}}'
-      SRST2_BOWTIE2_BUILD: '{{.BOWTIE2_BUILD}}'
-      SRST2_SAMTOOLS: '{{.SAMTOOLS}}'
-    requires:
-      vars: [SUBDIR]
-  
-  git_clone:
-    internal: true
+      DIR: '{{.OPT_DIR}}/srst2/{{.VERSION}}'
+    dir: '{{.DIR}}'
+    prompt: 'Download SRST2 data to {{.DIR}}?'
     cmds:
       - git clone https://github.com/katholt/srst2
     requires:
-      vars: [SUBDIR]
+      vars: [VERSION]
     status:
-      - test -d $GROUP_HOME/opt/{{.SUBDIR}}/srst2
+      - test -d {{.DIR}}/srst2
+
+  create-image:
+    cmds:
+      - task: group-installs:create-apptainer
+        vars:
+          APPTAINER_MODULE: '{{.APPTAINER_MODULE}}'
+          DEFINITION_FILE: '{{.DEFINITION_FILE}}'
+          IMAGE_NAME: 'srst2'
+    requires:
+      vars: [APPTAINER_MODULE, DEFINITION_FILE]
+
+  append-modulefile:
+    vars:
+      MODULEFILE_LINES: [
+        '',
+        'depends-on {{.APPTAINER_MODULE}}',
+        '',
+        'set-function srst2 {',
+        '    apptainer \',
+        '      --quiet exec \',
+        '      --home $PWD \',
+        '      --bind {{.BIND}} \',
+        '      {{.SRST2_IMAGE}} \',
+        '      srst2 \',
+        '      "$@"',
+        '}',
+        '',
+        'set-function "getmlst.py" {',
+        '    apptainer \',
+        '      --quiet exec \',
+        '      --home $PWD \',
+        '      --bind {{.BIND}} \',
+        '      {{.SRST2_IMAGE}} \',
+        '      getmlst.py \',
+        '      "$@"',
+        '}',
+        '',
+        'set-function "slurm_srst2.py" {',
+        '    apptainer \',
+        '      --quiet exec \',
+        '      --home $PWD \',
+        '      --bind {{.BIND}} \',
+        '      {{.SRST2_IMAGE}} \',
+        '      slurm_srst2.py \',
+        '      "$@"',
+        '}',
+        '',
+        '# "The downloaded directory also contains things that might be useful for SRST2 users:"',
+        'setenv SRST2_DATA                   "${basedir}/srst2/{{.SRST2_VERSION}}/srst2/data"',
+        'setenv SRST2_DATABASE_CLUSTERING    "${basedir}/srst2/{{.SRST2_VERSION}}/srst2/database_clustering"',
+        '',
+        'setenv SRST2_SAMTOOLS               "${basedir}/samtools/{{.SAMTOOLS_VERSION}}/samtools-{{.SAMTOOLS_VERSION}}/samtools"',
+        'setenv SRST2_BOWTIE2                "${basedir}/bowtie2/{{.BOWTIE2_VERSION}}/bowtie2-{{.BOWTIE2_VERSION}}/bowtie2"',
+        'setenv SRST2_BOWTIE2_BUILD          "${basedir}/bowtie2/{{.BOWTIE2_VERSION}}/bowtie2-{{.BOWTIE2_VERSION}}/bowtie2-build"',
+      ]
+    cmds:
+      - for: { var: MODULEFILE_LINES }
+        cmd: echo -e '{{.ITEM}}' >> {{.MODULEFILE}}
+    requires:
+      vars: [APPTAINER_MODULE, MODULEFILE, SRST2_IMAGE, SRST2_VERSION, BOWTIE2_VERSION, SAMTOOLS_VERSION]
+    status:
+      - test -f {{.MODULEFILE}} # TODO
+
+  # TODO:
+
+  # build:
+  #   vars:
+  #     DIR: '{{.OPT_DIR}}/srst2/{{.VERSION}}'
+  #     VERSION: ''
+  #     BOWTIE2_VERSION: '2.1.0'
+  #     PYTHON_VERSION: '2.7.5'
+  #     SAMTOOLS_VERSION: '0.1.18'
+  #     BOWTIE2: '{{.OPT_DIR}}/bowtie2/{{.BOWTIE2_VERSION}}/bowtie2-{{.BOWTIE2_VERSION}}/bowtie2'
+  #     BOWTIE2_BUILD: '{{.OPT_DIR}}/bowtie2/{{.BOWTIE2_VERSION}}/bowtie2-{{.BOWTIE2_VERSION}}/bowtie2-build'
+  #     PYTHON_INTERPRETER: '{{.OPT_DIR}}/python/{{.PYTHON_VERSION}}/bin/python2'
+  #     PYTHON_DEPS: scipy biopython
+  #     SAMTOOLS: '{{.OPT_DIR}}/samtools/{{.SAMTOOLS_VERSION}}/samtools-{{.SAMTOOLS_VERSION}}/samtools' # must be < 0.1.19
+  #     UV_MODULE: uv/0.2.34
+  #   deps:
+  #     - task: bowtie2:install
+  #       vars:
+  #         VERSION: '{{.BOWTIE2_VERSION}}'
+  #     - task: samtools:install
+  #       vars:
+  #         VERSION: '{{.SAMTOOLS_VERSION}}'
+  #   dir: '{{.DIR}}'
+  #   cmds:
+  #     - task: git-clone
+  #       vars:
+  #         DIR: '{{.DIR}}'
+  #     - pip install {{.PYTHON_DEPS}}
+  #     - pip install ./srst2
+  #   requires:
+  #     vars: [VERSION]
+  #   env:
+  #     SRST2_BOWTIE2: '{{.BOWTIE2}}'
+  #     SRST2_BOWTIE2_BUILD: '{{.BOWTIE2_BUILD}}'
+  #     SRST2_SAMTOOLS: '{{.SAMTOOLS}}'
+  
+  # git-clone:
+  #   internal: true
+  #   cmds:
+  #     - git clone https://github.com/katholt/srst2
+  #   requires:
+  #     vars: [DIR]
+  #   status:
+  #     - test -d {{.DIR}}/srst2

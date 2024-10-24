@@ -4,6 +4,7 @@ vars:
   GROUP_HOME:
     sh: echo $GROUP_HOME
   GROUP_BIN: '{{.GROUP_HOME}}/bin'
+  GROUP_CONTAINERS: '{{.GROUP_HOME}}/containers'
   GROUP_MODULEFILES: '{{.GROUP_HOME}}/Modules/modulefiles'
 
 includes:
@@ -51,3 +52,14 @@ tasks:
       vars: [APP, RELPATH_EXE, VERSION]
     status:
       - test -f {{.DIR}}/{{.VERSION}}
+
+  create-apptainer:
+    vars:
+      EXTRA: '{{.EXTRA | default "--notest"}}'
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: apptainer build {{.EXTRA}} {{.GROUP_CONTAINERS}}/{{.IMAGE_NAME}}.sif {{.DEFINITION_FILE}}
+          MODULE: '{{.APPTAINER_MODULE}}'
+    requires:
+      vars: [APPTAINER_MODULE, DEFINITION_FILE, IMAGE_NAME]

@@ -10,7 +10,7 @@ vars:
   
   NCBI_REFERENCE_URL: https://ftp.ncbi.nlm.nih.gov/genomes/
   NCBI_DATASETS: '{{.GROUP_BIN}}/datasets'
-  NCBI_DATASETS_VERSION: 16.29.0
+  NCBI_DATASETS_VERSION: '{{.NCBI_DATASETS_VERSION | default "16.29.0"}}'
   NCBI_DATASETS_MODULE: 'ncbi_datasets/{{.NCBI_DATASETS_VERSION}}'
   
   # NOTE: Must be JSON

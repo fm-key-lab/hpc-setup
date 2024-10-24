@@ -1,9 +1,15 @@
 version: '3'
 
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: '{{.GROUP_HOME}}/opt'
+  GROUP_MODULEFILES: '{{.GROUP_HOME}}/Modules/modulefiles'
+
 includes:
-  group-install: ../utils/GroupInstallTasks.yml
-  envmodules: ../../../lab-tasks/tasks/EnvironmentModules.yml
-  micromamba: Micromamba.yml
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+  micromamba: ./Micromamba.yml
 
 tasks:
   install:
@@ -16,48 +22,50 @@ tasks:
        - GitHub: https://github.com/natir/vcf2parquet
        - Releases: https://github.com/natir/vcf2parquet/releases
     vars:
-      APP: vcf2parquet
       VERSION: '{{.VERSION | default "0.4.1"}}'
-      MICROMAMBA_MODULE: micromamba/2.0.1-0
+      MICROMAMBA_VERSION: '{{.VERSION | default "2.0.1-0"}}'
     cmds:
       - task: micromamba-installation
         vars:
-          MODULE: '{{.MICROMAMBA_MODULE}}'
+          MICROMAMBA_VERSION: '{{.MICROMAMBA_VERSION}}'
           VERSION: '{{.VERSION}}'
       - task: group-install:modulefile
         vars:
-          APP: '{{.APP}}'
-          VERSION: '{{.VERSION}}'
-          EXE: '{{.APP}}'
+          APP: vcf2parquet
+          EXE: vcf2parquet
           RELPATH_EXE: /envs/env/bin/
+          VERSION: '{{.VERSION}}'
       - task: append-modulefile
         vars:
-          VERSION: '{{.VERSION}}'
-          MICROMAMBA_MODULE: '{{.MICROMAMBA_MODULE}}'
+          MICROMAMBA_MODULE: 'micromamba/{{.MICROMAMBA_VERSION}}'
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/vcf2parquet/{{.VERSION}}'
+          PREFIX: '{{.OPT_DIR}}/vcf2parquet/{{.VERSION}}/envs/env'
     status:
-      - test -f $GROUP_HOME/Modules/modulefiles/vcf2parquet/{{.VERSION}}
+      - test -f {{.GROUP_MODULEFILES}}/vcf2parquet/{{.VERSION}}
 
   micromamba-installation:
     deps:
       - task: micromamba:install
+        vars:
+          VERSION: '{{.MICROMAMBA_VERSION}}'
     vars:
-      DIR: $GROUP_HOME/opt/vcf2parquet/{{.VERSION}}
+      DIR: '{{.OPT_DIR}}/vcf2parquet/{{.VERSION}}'
     dir: '{{.DIR}}'
     prompt: Create environment in {{.DIR}}?
     cmds:
-      - task: envmodules:run-inside
+      - task: utils:envmodule:run-inside
         vars:
           CMDS: |
             export MAMBA_ROOT_PREFIX="{{.DIR}}" && 
             micromamba create -n env bioconda::vcf2parquet={{.VERSION}} conda-forge::bzip2 -y
-          MODULE: '{{.MODULE}}'
+          MODULE: 'micromamba/{{.MICROMAMBA_VERSION}}'
     requires:
-      vars: [MODULE, VERSION]
+      vars: [MICROMAMBA_VERSION, OPT_DIR, VERSION]
     status:
       - test -d {{.DIR}}/envs/env
   
   append-modulefile:
-    - echo -e '\ndepends-on {{.MICROMAMBA_MODULE}}' >> $GROUP_HOME/Modules/modulefiles/vcf2parquet/{{.VERSION}}
-    - echo -e '\nset-function vcf2parquet {' >> $GROUP_HOME/Modules/modulefiles/vcf2parquet/{{.VERSION}}
-    - echo -e '    micromamba run -p "$GROUP_HOME/opt/vcf2parquet/{{.VERSION}}/envs/env" vcf2parquet "$@"' >> $GROUP_HOME/Modules/modulefiles/vcf2parquet/{{.VERSION}}
-    - echo -e '}' >> $GROUP_HOME/Modules/modulefiles/vcf2parquet/{{.VERSION}}
+    - echo -e '\ndepends-on {{.MICROMAMBA_MODULE}}' >> {{.MODULEFILE}}
+    - echo -e '\nset-function vcf2parquet {' >> {{.MODULEFILE}}
+    - echo -e '    micromamba run -p "{{.PREFIX}}" vcf2parquet "$@"' >> {{.MODULEFILE}}
+    - echo -e '}' >> {{.MODULEFILE}}

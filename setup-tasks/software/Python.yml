@@ -1,58 +1,46 @@
 version: '3'
 
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: "{{.GROUP_HOME}}/opt"
+
 includes:
-  group-install: ../utils/GroupInstallTasks.yml
+  group-installs: ../utils/GroupInstalls.yml
 
 tasks:
-  install_3_12:
-    desc: Install Python
-    cmds:
-      - task: _install
-        vars:
-          VERSION: 3.12.4
-          EXE: python3.12 pip3.12
-
-  install_2_7:
-    desc: Install Python
-    summary: |
-      Notes:
-      - `pip` for this version no longer supported.
-    cmds:
-      - task: _install
-        vars:
-          VERSION: 2.7.5
-          EXE: python2.7
-
-  _install:
-    internal: true
+  install:
+    desc: Install Python3
     vars:
-      APP: python
-      RELPATH_EXE: /bin/
-    deps:
+      APP: 'python'
+      VERSION: '{{.VERSION | default "3.12.4"}}'      
+    cmds:
       - task: build
         vars:
           VERSION: '{{.VERSION}}'
-          SUBDIR: '{{.APP}}/{{.VERSION}}'
-    cmds:
-      - task: group-install:complete
-        vars:
-          APP: '{{.APP}}'
-          VERSION: '{{.VERSION}}'
-          RELPATH_EXE: '{{.RELPATH_EXE}}'
-          EXE: '{{.APP}}'
+      # TODO: Check exact items in assets.
+      # - task: group-installs:complete
+      #   vars:
+      #     APP: '{{.APP}}'
+      #     VERSION: '{{.VERSION_CLI}}'
+      #     RELPATH_EXE: /bin/
+      #     EXE: python3.12 pip3.12
 
   build:
-    dir: $GROUP_HOME/opt/{{.SUBDIR}}
-    cmds:
-      - wget {{.BINARY}}
-      - defer: rm -f $(basename ${{.BINARY}})
-      - tar xf $(basename ${{.BINARY}})
-      - cd $(basename ${{.BINARY}} -s .tgz)
-      - ./configure --prefix=$GROUP_HOME/opt/{{.SUBDIR}} {{.ENABLE_OPTIMIZATIONS}}
-      - make; make altinstall
     vars:
-      BINARY: https://www.python.org/ftp/python/{{.VERSION}}/Python-{{.VERSION}}.tgz
+      DIR: '{{.OPT_DIR}}/python/{{.VERSION}}'
+      URL: https://www.python.org/ftp/python/{{.VERSION}}/Python-{{.VERSION}}.tgz
       ENABLE_OPTIMIZATIONS:
         sh: '[ "${{{.VERSION}}}" -gt 3 ] && echo "--enable-optimizations" || echo ""'
+    dir: '{{.DIR}}'
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename ${{.URL}})
+      - tar xf $(basename ${{.URL}})
+      - |
+        cd Python-{{.VERSION}}
+        ./configure --prefix={{.DIR}} {{.ENABLE_OPTIMIZATIONS}}
+        make
+        make altinstall
     status:
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bin/python*
+      - test -f {{.DIR}}/bin/python*

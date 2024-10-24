@@ -66,10 +66,10 @@ tasks:
       vars: [SOFTWARE]
 
   check_package:
+    silent: true
     cmds:
       - rpm -qa | grep -q {{.PACKAGE}} || { echo "{{.PACKAGE}} is not installed."; exit 1; }
       - echo "{{.PACKAGE}} is installed."
-    silent: true
     requires:
       vars: [PACKAGE]
 

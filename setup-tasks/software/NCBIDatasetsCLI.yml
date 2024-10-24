@@ -18,10 +18,8 @@ tasks:
       ----
       - https://www.ncbi.nlm.nih.gov/datasets/docs/v2/download-and-install/
     vars:
-      APP: ncbi_datasets
       VERSION_CLI: '{{.VERSION_CLI | default "16.29.0"}}'
       VERSION_DOCS: '{{.VERSION_DOCS | default "16.30.0"}}'
-      EXE: datasets dataformat
     cmds:
       - task: download-github-docs
         vars:
@@ -32,10 +30,10 @@ tasks:
           VERSION: '{{.VERSION_CLI}}'
       - task: group-installs:complete
         vars:
-          APP: '{{.APP}}'
+          APP: ncbi_datasets
+          EXE: datasets dataformat
+          RELPATH_EXE: /
           VERSION: '{{.VERSION_CLI}}'
-          RELPATH_EXE: '/'
-          EXE: '{{.EXE}}'
 
   # NOTE: Downloads to same directory
   download-github-docs:

@@ -1,7 +1,14 @@
-version: 3
+version: '3'
+
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: "{{.GROUP_HOME}}/opt"
 
 includes:
-  group_install: ../utils/GroupInstallTasks.yml
+  group-installs: ../utils/GroupInstalls.yml
+  python: ./Python.yml
+  samtools-bcftools-htslib: ./SAMtools-bcftools-htslib.yml
 
 tasks:
   install:
@@ -12,24 +19,40 @@ tasks:
       URLs
       ----
       - https://bedtools.readthedocs.io
+    vars:
+      APP: bedtools
+      VERSION: '{{.VERSION | default "2.31.1"}}'
+      HTSLIB_VERSION: '{{.HTSLIB_VERSION | default "1.20"}}'
+      PYTHON_VERSION: '{{.PYTHON_VERSION | default "3.12.4"}}'
     cmds:
       - task: build
         vars:
           APP: '{{.APP}}'
           VERSION: '{{.VERSION}}'
-      - task: group_install:complete
+          HTSLIB_VERSION: '{{.HTSLIB_VERSION}}'
+          PYTHON_VERSION: '{{.PYTHON_VERSION}}'
+      - task: group-installs:complete
         vars:
           APP: '{{.APP}}'
           VERSION: '{{.VERSION}}'
-          EXE: '{{.APP}}'
           RELPATH_EXE: /bedtools2/bin/
-    vars:
-      APP: bedtools
-      VERSION: '{{.VERSION | default "2.31.1"}}'
+          EXE: '{{.APP}}'
 
   build:
-    dir: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
-    prompt: Install in $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}?
+    deps:
+      - task: python:install
+        vars:
+          VERSION: '{{.PYTHON_VERSION}}'
+      - task: samtools-bcftools-htslib:install
+        vars:
+          VERSION: '{{.HTSLIB_VERSION}}'
+    vars:
+      DIR: '{{.OPT_DIR}}/bedtools/{{.VERSION}}'
+      HTSLIB: '{{.OPT_DIR}}/htslib/{{.HTSLIB_VERSION}}/htslib-{{.HTSLIB_VERSION}}' # Must be parent dir of `htslib.mk`
+      PYTHON: '{{.OPT_DIR}}/python/{{.PYTHON_VERSION}}/bin/python3.12' # TODO: major-minor versioning for executable
+      URL: https://github.com/arq5x/bedtools2/releases/download/v{{.VERSION}}/bedtools-{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Install in {{.DIR}}?
     cmds:
       - wget {{.URL}}
       - defer: rm -f $(basename {{.URL}})
@@ -38,11 +61,7 @@ tasks:
         cd bedtools2
         # make PYTHON={{.PYTHON}} HTSDIR={{.HTSLIB}} # NOTE: won't compile (missing headers)
         make PYTHON={{.PYTHON}}
-    vars:
-      HTSLIB: $GROUP_HOME/opt/htslib/1.20/htslib-1.20 # Must be parent dir of `htslib.mk`
-      PYTHON: $GROUP_HOME/opt/python/3.12.4/bin/python3.12
-      URL: https://github.com/arq5x/bedtools2/releases/download/v{{.VERSION}}/bedtools-{{.VERSION}}.tar.gz
     requires:
-      vars: [APP, VERSION]
+      vars: [VERSION]
     status:
-      - test -f $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}/bedtools2/bin/bedtools
+      - test -f {{.DIR}}/bedtools2/bin/bedtools

@@ -1,7 +1,12 @@
 version: '3'
 
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: "{{.GROUP_HOME}}/opt"
+
 includes:
-  group_install: ../utils/GroupInstallTasks.yml
+  group-installs: ../utils/GroupInstalls.yml
 
 tasks:
   install:
@@ -14,43 +19,36 @@ tasks:
       References:
       - http://sanger-pathogens.github.io/snp-sites/
       - https://github.com/sanger-pathogens/snp-sites
+    vars:
+      APP: snp-sites
+      VERSION: '{{.VERSION | default "2.5.1"}}'
     cmds:
-      - task: _install
-        vars:
-          APP: snp-sites
-          VERSION: 2.5.1
-          BINARY: https://github.com/sanger-pathogens/snp-sites/archive/refs/tags/v2.5.1.tar.gz
-          RELPATH_EXE: /bin/
-          EXE: snp-sites
-
-  _install:
-    deps:
       - task: build
         vars:
-          BINARY: '{{.BINARY}}'
-          SUBDIR: '{{.APP}}/{{.VERSION}}'
           VERSION: '{{.VERSION}}'
-    cmds:
-      - task: group_install:complete
+      - task: group-installs:complete
         vars:
           APP: '{{.APP}}'
+          EXE: '{{.APP}}'
+          RELPATH_EXE: /bin/
           VERSION: '{{.VERSION}}'
-          RELPATH_EXE: '{{.RELPATH_EXE}}'
-          EXE: '{{.EXE}}'
 
   build:
-    dir: $GROUP_HOME/opt/{{.SUBDIR}}
+    vars:
+      DIR: '{{.OPT_DIR}}/snp-sites/{{.VERSION}}'
+      URL: https://github.com/sanger-pathogens/snp-sites/archive/refs/tags/v{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
     cmds:
-      - wget {{.BINARY}}
-      - defer: rm -f $(basename ${{.BINARY}})
-      - tar xf $(basename ${{.BINARY}})
-      - cd snp-sites-{{.VERSION}}
-      - autoreconf -i -f
-      - ./configure --prefix=$GROUP_HOME/opt/{{.SUBDIR}}
-      - make; make install
+      - wget {{.URL}}
+      - defer: rm -f $(basename ${{.URL}})
+      - tar xf $(basename ${{.URL}})
+      - |
+        cd snp-sites-{{.VERSION}}
+        autoreconf -i -f
+        ./configure --prefix={{.DIR}}
+        make
+        make install
     status:
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/bin/snp-sites
+      - test -f {{.DIR}}/bin/snp-sites
 
-  test:
-    cmds:
-      - $GROUP_HOME/opt/{{.SUBDIR}}/bin/snp-sites -V
+  test: {{.DIR}}/bin/snp-sites -V

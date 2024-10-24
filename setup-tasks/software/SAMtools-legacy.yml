@@ -1,0 +1,59 @@
+version: '3'
+
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: '{{.GROUP_HOME}}/opt'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  ncurses: ./Ncurses.yml
+
+tasks:
+  install:
+    deps:
+      - task: ncurses:install
+        vars:
+          VERSION: '{{.NCURSES_VERSION}}'
+    vars:
+      VERSION: '{{.VERSION | default "0.1.18"}}'
+      NCURSES_VERSION: '{{.VERSION | default "6.5"}}'
+    cmds:
+      - task: build
+        vars:
+          NCURSES_MODULE: 'ncurses/{{.NCURSES_VERSION}}'
+          VERSION: '{{.VERSION}}'
+      # NOTE: Added /misc/ to path too
+      - task: group-installs:complete
+        vars:
+          APP: 'samtools'
+          EXE: 'samtools'
+          RELPATH_EXE: /samtools-{{.VERSION}}/
+          VERSION: '{{.VERSION}}'
+
+  build:
+    vars:
+      DIR: '{{.OPT_DIR}}/samtools/{{.VERSION}}'
+      URL: https://sourceforge.net/projects/samtools/files/samtools{{.VERSION}}/samtools-{{.VERSION}}.tar.bz2
+    dir: '{{.DIR}}'
+    prompt: Build in {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}}/samtools-{{.VERSION}} && 
+            make LIBCURSES="-lncursesw"
+          MODULE: '{{.NCURSES_MODULE}}'
+    requires:
+      vars: [NCURSES_MODULE, VERSION]
+    status:
+      - test -f {{.DIR}}/samtools-{{.VERSION}}/samtools
+      - test -f {{.DIR}}/samtools-{{.VERSION}}/misc/maq2sam-long
+      - test -f {{.DIR}}/samtools-{{.VERSION}}/misc/maq2sam-short
+      - test -f {{.DIR}}/samtools-{{.VERSION}}/misc/md5fa
+      - test -f {{.DIR}}/samtools-{{.VERSION}}/misc/md5sum-lite
+      - test -f {{.DIR}}/samtools-{{.VERSION}}/misc/seqtk
+      - test -f {{.DIR}}/samtools-{{.VERSION}}/misc/wgsim

@@ -11,7 +11,7 @@ vars:
   GROUP_HOME:
     sh: echo $GROUP_HOME
   SHELL:
-    sh: echo "$SHELL"
+    sh: echo $SHELL
   BASHRC: ~/.bashrc
 
 # TODO: Write os.environ["GROUP_HOME"] + '/config/public_data.json'
@@ -20,21 +20,9 @@ vars:
 #       - sandbox
 #       - packaging
 # TODO: Re-define "install:core" based on WideVariant and download:all
-#       - bcftools
-#       - bracken
-#       - datasets (NCBI)
-#       - duckdb
-#       - jq
-#       - kraken2
 #       - nextflow
 #       - raxml-ng
 #       - snakemake
-#       - snp-sites
-#       - srst2
-#       - taskfile
-#       - tinytex
-#       - vcf2parquet
-#       - yq
 # TODO: Create containers
 # TODO: Download local versions of nf-core pipelines
 # TODO: Back up srst2 database somewhere (?) and copy over to viper
@@ -45,7 +33,7 @@ tasks:
     cmds:
       - task: furnish-group-home
       - task: minimal-tmp-shell-profile
-      # - task: install:core
+      - task: install:core
       # - task: download:all
 
   furnish-group-home:

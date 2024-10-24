@@ -1,81 +1,96 @@
 version: '3'
 
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: '{{.GROUP_HOME}}/opt'
+
 includes:
-  group_install: ../utils/GroupInstallTasks.yml
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
 
 tasks:
   install:
     desc: Install TinyTex
+    platforms: [linux/amd64]
     summary: |
       Install a Tex compiler
 
       Check here for latest release:
       https://github.com/rstudio/tinytex-releases
     vars:
-      APP: tinytex
-      VERSION: 2024.07.03
+      VERSION: '{{.VERSION | default "2024.07.03"}}'
     cmds:
-      - task: _install
+      - task: download-prebuilt-binary
         vars:
-          APP: '{{.APP}}'
           VERSION: '{{.VERSION}}'
-          BINARY: https://github.com/rstudio/tinytex-releases/releases/download/v2024.07.03/TinyTeX-1-v2024.07.03.tar.gz
-          RELPATH_EXE: /.TinyTeX/bin/x86_64-linux/
+      - task: group-installs:complete
+        vars:
+          APP: 'tinytex'
           EXE: latexmk pdflatex bibtex tlmgr
-      - task: install_latex_packages
-        vars:
-          SUBDIR: '{{.APP}}/{{.VERSION}}'
-
-  _install:
-    deps:
-      - task: build
-        vars:
-          BINARY: '{{.BINARY}}'
-          SUBDIR: '{{.APP}}/{{.VERSION}}'
-    cmds:
-      - task: group_install:complete
-        vars:
-          APP: '{{.APP}}'
+          RELPATH_EXE: /.TinyTeX/bin/x86_64-linux/
           VERSION: '{{.VERSION}}'
-          RELPATH_EXE: '{{.RELPATH_EXE}}'
-          EXE: '{{.EXE}}'
-
-  build:
-    dir: $GROUP_HOME/opt/{{.SUBDIR}}
-    deps:
-      - task: group_install:check_software
+      - task: append-modulefile
         vars:
-          SOFTWARE: perl
-    cmds:
-      - wget {{.BINARY}}
-      - defer: rm -f $(basename ${{.BINARY}})
-      - tar xf $(basename ${{.BINARY}})
-    status:
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/.TinyTeX/bin/x86_64-linux/latexmk
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/.TinyTeX/bin/x86_64-linux/pdflatex
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/.TinyTeX/bin/x86_64-linux/bibtex
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/.TinyTeX/bin/x86_64-linux/tlmgr
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/tinytex/{{.VERSION}}'
+          VERSION: '{{.VERSION}}'
+      - task: install-latex-packages
+        vars:
+          VERSION: '{{.VERSION}}'
 
-  install_latex_packages:
+  download-prebuilt-binary:
+    platforms: [linux/amd64]
+    # TODO: Requires Perl
+    # deps:
+    vars:
+      DIR: '{{.OPT_DIR}}/tinytex/{{.VERSION}}'
+      URL: https://github.com/rstudio/tinytex-releases/releases/download/v{{.VERSION}}/TinyTeX-1-v{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename ${{.URL}})
+      - tar xf $(basename ${{.URL}})
+    status:
+      - test -f {{.DIR}}/.TinyTeX/bin/x86_64-linux/latexmk
+      - test -f {{.DIR}}/.TinyTeX/bin/x86_64-linux/pdflatex
+      - test -f {{.DIR}}/.TinyTeX/bin/x86_64-linux/bibtex
+      - test -f {{.DIR}}/.TinyTeX/bin/x86_64-linux/tlmgr
+
+  install-latex-packages:
     vars:
       PACKAGES: csquotes float cleveref natbib listings grfext tcolorbox pgf xcolor environ trimspaces parskip adjustbox collectbox eurosym ucs enumitem jknapltx pdfcol caption upquote grffile titling twemojis
     cmds:
       - for: { var: PACKAGES }
-        task: _tlmgr_install
+        task: tlmgr-install
         vars:
-          SUBDIR: '{{.SUBDIR}}'
           PACKAGE: '{{.ITEM}}'
+          VERSION: '{{.VERSION}}'
     requires:
-      vars: [SUBDIR]
+      vars: [VERSION]
 
-  _tlmgr_install:
-    cmds:
-      - bash -c '
-        module purge; module load {{.SUBDIR}} &&
-        tlmgr install {{.PACKAGE}}
-        module unload {{.SUBDIR}}'
+  tlmgr-install:
     internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: tlmgr install {{.PACKAGE}}
+          MODULE: 'tinytex/{{.VERSION}}'
     requires:
-      vars: [PACKAGE, SUBDIR]
+      vars: [PACKAGE, VERSION]
     status:
-      - test -d $GROUP_HOME/opt/{{.SUBDIR}}/.TinyTeX/texmf-dist/tex/latex/{{.PACKAGE}}
+      - test -d {{.DIR}}/.TinyTeX/texmf-dist/tex/latex/{{.PACKAGE}}
+  
+  append-modulefile:
+    vars:
+      MODULEFILE_LINES: [
+        '',
+        'prepend-path PATH "${basedir}/tinytex/{{.VERSION}}/.TinyTeX/bin/x86_64-linux/"',
+        'prepend-path LD_LIBRARY_PATH "${basedir}/tinytex/{{.VERSION}}/bin/x86_64-linux/"',
+      ]
+    cmds:
+      - for: { var: MODULEFILE_LINES }
+        cmd: echo -e '{{.ITEM}}' >> {{.MODULEFILE}}
+    requires:
+      vars: [MODULEFILE, VERSION]
+    status:
+      - test -f {{.MODULEFILE}} # TODO

@@ -1,41 +1,49 @@
-version: 3
+version: '3'
+
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: "{{.GROUP_HOME}}/opt"
 
 includes:
-  group_install: ../utils/GroupInstallTasks.yml
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
 
 tasks:
   install:
+    vars:
+      APP: blast
+      VERSION: '{{.VERSION | default "2.16.0"}}'
     cmds:
       - task: download-prebuilt-binary
         vars:
-          APP: '{{.APP}}'
           VERSION: '{{.VERSION}}'
-      - task: group_install:complete
+      - task: group-installs:complete
         vars:
           APP: '{{.APP}}'
           VERSION: '{{.VERSION}}'
           RELPATH_EXE: '/ncbi-blast-{{.VERSION}}+/bin/'
           EXE: blastn
-    vars:
-      APP: blast
-      VERSION: '{{.VERSION | default "2.16.0"}}'
 
   build:
+    vars:
+      DIR: '{{.OPT_DIR}}/blast/{{.VERSION}}'
     dir: '{{.DIR}}'
     prompt: Install in {{.DIR}}?
     deps:
       - for: lmdb perl sqlite
-        task: group_install:check_package
+        task: utils:install:check-package-installed
         vars:
           PACKAGE: '{{.ITEM}}'
     cmds:
-      - task: download_prebuilt_binary
+      - task: download-prebuilt-binary
         vars:
           VERSION: '{{.VERSION}}'
-    vars:
-      DIR: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
 
   download-build-src:
+    vars:
+      DIR: '{{.OPT_DIR}}/blast/{{.VERSION}}'
+      URL: https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/{{.VERSION}}/ncbi-blast-{{.VERSION}}+-src.tar.gz
     dir: '{{.DIR}}'
     cmds:
       - wget {{.URL}}
@@ -46,24 +54,21 @@ tasks:
         ./configure --prefix={{.DIR}}
         cd ReleaseMT/build
         make all_r
-    vars:
-      DIR: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
-      URL: https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/{{.VERSION}}/ncbi-blast-{{.VERSION}}+-src.tar.gz
     requires:
-      vars: [APP, VERSION]
+      vars: [VERSION]
     status:
       - test -f {{.DIR}}/ncbi-blast-{{.VERSION}}+-src/c++/ReleaseMT/bin/blastn
 
   download-prebuilt-binary:
+    vars:
+      DIR: '{{.OPT_DIR}}/blast/{{.VERSION}}'
+      URL: https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/{{.VERSION}}/ncbi-blast-{{.VERSION}}+-x64-linux.tar.gz
     dir: '{{.DIR}}'
     cmds:
       - wget {{.URL}}
       - defer: rm -f $(basename {{.URL}})
       - tar xf $(basename ${{.URL}})
-    vars:
-      DIR: $GROUP_HOME/opt/{{.APP}}/{{.VERSION}}
-      URL: https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/{{.VERSION}}/ncbi-blast-{{.VERSION}}+-x64-linux.tar.gz
     requires:
-      vars: [APP, VERSION]
+      vars: [VERSION]
     status:
       - test -f {{.DIR}}/ncbi-blast-{{.VERSION}}+/bin/blastn

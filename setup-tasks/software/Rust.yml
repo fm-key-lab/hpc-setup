@@ -1,7 +1,12 @@
 version: '3'
 
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: '{{.GROUP_HOME}}/opt'
+
 includes:
-  group_install: ../utils/GroupInstallTasks.yml
+  group-installs: ../utils/GroupInstalls.yml
 
 tasks:
   install:
@@ -26,31 +31,29 @@ tasks:
       URLs
       ----
        - https://www.rust-lang.org/tools/install
+    vars:
+      VERSION: '{{.VERSION | default "1.82.0"}}'
     cmds:
       - task: using-rustup
         vars:
           VERSION: '{{.VERSION}}'
-      - task: group_install:complete
+      - task: group-installs:complete
         vars:
-          APP: '{{.APP}}'
-          VERSION: '{{.VERSION}}'
-          RELPATH_EXE: /bin/
+          APP: rust
           EXE: rustc rustup cargo
-    vars:
-      APP: rust
-      VERSION: '{{.VERSION | default "1.81.0"}}'
+          RELPATH_EXE: /bin/
+          VERSION: '{{.VERSION}}'
 
+  # TODO: Respect version
   using-rustup:
+    vars:
+      DIR: '{{.OPT_DIR}}/rust/{{.VERSION}}'
     dir: '{{.DIR}}'
     prompt: Install in {{.DIR}}?
     cmds:
       # - echo $CARGO_HOME $RUSTUP_HOME # NOTE: for troubleshooting
       - mkdir -p bin
       - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --no-modify-path -y
-    vars:
-      GROUP_HOME:
-        sh: echo $GROUP_HOME
-      DIR: '{{.GROUP_HOME}}/opt/rust/{{.VERSION}}'
     requires:
       vars: [VERSION]
     env:

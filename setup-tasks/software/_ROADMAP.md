@@ -1,5 +1,10 @@
 # ROADMAP
 
+## refactors
+
+- should deps and versions be moved from <SOFTWARE>.yml to `InstallTasks.yml`?
+- move `InstallTasks.yml` to `./software/`, rename to `Taskfile.yml`, and include in main `Taskfile.yml` via `install: ./software`?
+
 ## known issues
 
 - `qsv.yml` pinned to early version because cluster GLIBC < 2.35

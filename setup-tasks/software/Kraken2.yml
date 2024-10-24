@@ -1,7 +1,12 @@
 version: '3'
 
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: "{{.GROUP_HOME}}/opt"
+
 includes:
-  group_install: ../utils/GroupInstallTasks.yml
+  group-installs: ../utils/GroupInstalls.yml
 
 tasks:
   install:
@@ -17,21 +22,24 @@ tasks:
       ----
       - GitHub:
         https://github.com/DerrickWood/kraken2
+    vars:
+      APP: kraken2
+      VERSION: '{{.VERSION | default "2.1.3"}}'
     cmds:
       - task: build
         vars:
           VERSION: '{{.VERSION}}'
-      - task: group_install:complete
+      - task: group-installs:complete
         vars:
           APP: '{{.APP}}'
-          VERSION: '{{.VERSION}}'
-          RELPATH_EXE: /
           EXE: kraken2 kraken2-build kraken2-inspect
-    vars:
-      APP: kraken2
-      VERSION: '{{.VERSION | default "2.1.3"}}'
+          RELPATH_EXE: /
+          VERSION: '{{.VERSION}}'
 
   build:
+    vars:
+      DIR: '{{.OPT_DIR}}/kraken2/{{.VERSION}}'
+      URL: https://github.com/DerrickWood/kraken2/archive/refs/tags/v{{.VERSION}}.tar.gz
     dir: '{{.DIR}}'
     prompt: 'Build in {{.DIR}}?'
     cmds:
@@ -41,9 +49,6 @@ tasks:
       - |
         cd kraken2-{{.VERSION}}
         . install_kraken2.sh {{.DIR}}
-    vars:
-      DIR: $GROUP_HOME/opt/kraken2/{{.VERSION}}
-      URL: https://github.com/DerrickWood/kraken2/archive/refs/tags/v{{.VERSION}}.tar.gz
     status:
       - test -f {{.DIR}}/kraken2
       - test -f {{.DIR}}/kraken2-build

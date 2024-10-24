@@ -1,10 +1,15 @@
 version: '3'
 
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: '{{.GROUP_HOME}}/opt'
+
 includes:
-  group-install: ../utils/GroupInstallTasks.yml
-  envmodules: ../../../lab-tasks/tasks/EnvironmentModules.yml
-  # python: Python.yml # TODO: debug
-  uv: uv.yml
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+  python: ./Python.yml
+  uv: ./uv.yml
 
 tasks:
   install:
@@ -19,31 +24,40 @@ tasks:
     vars:
       APP: csvkit
       VERSION: '{{.VERSION | default "2.0.1"}}'
-      PYTHON_MODULE: python/3.12
-      UV_MODULE: uv/0.2.34
+      EXE: csvcut csvjoin csvlook csvstack csvstat in2csv # TODO: Unused
+      PYTHON_VERSION: '{{.PYTHON_VERSION | default "3.12.4"}}'
+      PYTHON_MODULE: python/3.12 # TODO
+      UV_VERSION: '{{.VERSION | default "0.2.34"}}'
+      UV_MODULE: 'uv/{{.UV_VERSION}}'
     cmds:
-      - task: install-virtual-environment
+      - task: create-virtual-environment
         vars:
+          PYTHON_VERSION: '{{.PYTHON_VERSION}}'
           PYTHON_MODULE: '{{.PYTHON_MODULE}}'
+          UV_VERSION: '{{.UV_VERSION}}'
           UV_MODULE: '{{.UV_MODULE}}'
           VERSION: '{{.VERSION}}'
-      - task: group-install:modulefile
+      - task: group-installs:write-modulefile-stub
         vars:
           APP: '{{.APP}}'
           VERSION: '{{.VERSION}}'
-          EXE: csvcut csvjoin csvlook csvstack csvstat in2csv
           RELPATH_EXE: /.venv/bin/
 
-  install-virtual-environment:
+  create-virtual-environment:
     deps:
-      # - task: python:install_3_12 # TODO: debug
+      - task: python:install
+        vars:
+          VERSION: '{{.PYTHON_VERSION}}'
       - task: uv:install
+        vars:
+          VERSION: '{{.UV_VERSION}}'
     vars:
-      DIR: $GROUP_HOME/opt/csvkit/{{.VERSION}}
+      DIR: '{{.OPT_DIR}}/csvkit/{{.VERSION}}'
     dir: '{{.DIR}}'
     prompt: Create environment in {{.DIR}}?
     cmds:
-      - task: envmodules:run-inside
+      # TODO: Replace with the uv create env task
+      - task: utils:envmodule:run-inside
         vars:
           CMDS: |
             cd {{.DIR}} && 

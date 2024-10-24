@@ -1,57 +1,63 @@
 version: '3'
 
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: "{{.GROUP_HOME}}/opt"
+
 includes:
-  group_install: ../utils/GroupInstallTasks.yml
+  group-installs: ../utils/GroupInstalls.yml
 
 # TODO: Install extensions: 
 #   `install spatial;` for stable (works)
 #   `install spatial from core_nightly;` for nightly (fails)
 
 tasks:
-  install_nightly:
+  install-nightly:
     desc: Install DuckDB (nightly)
+    vars:
+      URL_NIGHTLY: https://artifacts.duckdb.org/latest/duckdb-binaries-linux.zip
     cmds:
       - task: install
         vars:
           VERSION: nightly
           URL: '{{.URL_NIGHTLY}}'
-    vars:
-      URL_NIGHTLY: https://artifacts.duckdb.org/latest/duckdb-binaries-linux.zip
 
   install:
     desc: Install DuckDB
+    platforms: [linux/amd64]
+    vars:
+      APP: duckdb
+      VERSION: '{{.VERSION | default "1.1.2"}}'
+      URL_STABLE: https://github.com/duckdb/duckdb/releases/download/v{{.VERSION}}/duckdb_cli-linux-amd64.zip
+      URL: '{{.URL | default .URL_STABLE}}'
     cmds:
       - task: download
         vars:
           URL: '{{.URL}}'
           VERSION: '{{.VERSION}}'
-      - task: group_install:complete
+      - task: group-installs:complete
         vars:
           APP: '{{.APP}}'
           VERSION: '{{.VERSION}}'
           RELPATH_EXE: /
           EXE: '{{.APP}}'
-    vars:
-      APP: duckdb
-      VERSION: '{{.VERSION | default "1.0.0"}}'
-      URL_STABLE: https://github.com/duckdb/duckdb/releases/download/v{{.VERSION}}/duckdb_cli-linux-amd64.zip
-      URL: '{{.URL | default .URL_STABLE}}'
 
   download:
-    dir: '{{.DIR}}'
-    prompt: Download to {{.DIR}}?
     summary: |
       Download DuckDB zipped pre-compiled binaries.
 
       Notes
       -----
         - The nightly build comes with two zips
+    vars:
+      DIR: '{{.OPT_DIR}}/duckdb/{{.VERSION}}'
+    dir: '{{.DIR}}'
+    prompt: Download to {{.DIR}}?
     cmds:
       - wget {{.URL}}
       - defer: rm -f *.zip
       - unzip *.zip
-    vars:
-      DIR: $GROUP_HOME/opt/duckdb/{{.VERSION}}
     requires:
       vars: [URL, VERSION]
     status:

@@ -1,7 +1,14 @@
 version: 3
 
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: '{{.GROUP_HOME}}/opt'
+  GROUP_MODULEFILES: '{{.GROUP_HOME}}/Modules/modulefiles'
+
 includes:
-  group_install: ../utils/GroupInstallTasks.yml
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
 
 tasks:
   install:
@@ -12,55 +19,73 @@ tasks:
       Note:
         - https://www.gnu.org/software/guile-ncurses/
         - https://ftp.gnu.org/pub/gnu/ncurses/
+    vars:
+      VERSION: '{{.VERSION | default "6.5"}}'
     cmds:
-      - task: _install
-        vars:
-          APP: ncurses
-          VERSION: 6.5
-          RELPATH_EXE: /
-
-  _install:
-    internal: true
-    deps:
       - task: build
         vars:
           VERSION: '{{.VERSION}}'
-          SUBDIR: '{{.APP}}/{{.VERSION}}'
-    cmds:
       # TODO: Modulefile is further customized
-      - task: group_install:modulefile
+      - task: group-installs:write-modulefile-stub
         vars:
-          APP: '{{.APP}}'
+          APP: ncurses
+          RELPATH_EXE: /
           VERSION: '{{.VERSION}}'
-          RELPATH_EXE: '{{.RELPATH_EXE}}'
+      - task: append-modulefile
+        vars:
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/ncurses/{{.VERSION}}'
+          VERSION: '{{.VERSION}}'
 
   build:
-    dir: $GROUP_HOME/opt/{{.SUBDIR}}
     summary: |
       ** Configuration summary for NCURSES 6.5 20240427:
 
             extended funcs: yes
             xterm terminfo: xterm-new
 
-              bin directory:$GROUP_HOME/opt/{{.SUBDIR}}/bin
-              lib directory:$GROUP_HOME/opt/{{.SUBDIR}}/lib
-          include directory:$GROUP_HOME/opt/{{.SUBDIR}}/include/ncursesw
-              man directory:$GROUP_HOME/opt/{{.SUBDIR}}/share/man
-        terminfo directory:$GROUP_HOME/opt/{{.SUBDIR}}/share/terminfo
+              bin directory:{{.DIR}}/bin
+              lib directory:{{.DIR}}/lib
+          include directory:{{.DIR}}/include/ncursesw
+              man directory:{{.DIR}}/share/man
+        terminfo directory:{{.DIR}}/share/terminfo
 
       ** Include-directory is not in a standard location
-    cmds:
-      - wget {{.BINARY}}
-      - defer: rm -f $(basename {{.BINARY}})
-      - tar xf $(basename {{.BINARY}})
-      - cd $(basename {{.BINARY}} .tar.gz)
-      - ./configure --prefix=$GROUP_HOME/opt/{{.SUBDIR}}
-      - make; make install
     vars:
-      BINARY: https://ftp.gnu.org/pub/gnu/ncurses/ncurses-{{.VERSION}}.tar.gz
+      DIR: '{{.OPT_DIR}}/ncurses/{{.VERSION}}'
+      URL: https://ftp.gnu.org/pub/gnu/ncurses/ncurses-{{.VERSION}}.tar.gz
+    cmds:
+      - task: utils:install:vanilla-build
+        vars:
+          APP: ncurses
+          BUILD_DIR: '{{.DIR}}'
+          STATUS: '-d {{.DIR}}/include/ncursesw'
+          URL: '{{.URL}}'
+          VERSION: '{{.VERSION}}'
+    requires:
+      vars: [VERSION]
     status:
-      - test -d $GROUP_HOME/opt/{{.SUBDIR}}/bin
-      - test -d $GROUP_HOME/opt/{{.SUBDIR}}/lib
-      - test -d $GROUP_HOME/opt/{{.SUBDIR}}/include/ncursesw
-      - test -d $GROUP_HOME/opt/{{.SUBDIR}}/share/man
-      - test -d $GROUP_HOME/opt/{{.SUBDIR}}/share/terminfo
+      - test -d {{.DIR}}/bin
+      - test -d {{.DIR}}/lib
+      - test -d {{.DIR}}/include/ncursesw
+      - test -d {{.DIR}}/share/man
+      - test -d {{.DIR}}/share/terminfo
+
+  append-modulefile:
+    vars:
+      MODULEFILE_LINES: [
+        '',
+        'prepend-path    PATH            $root',
+        'prepend-path    LD_LIBRARY_PATH $root/lib',
+        'prepend-path    MANPATH         $root/share/man',
+        'prepend-path    PATH            $root/bin',
+        '',
+        'setenv --set-if-undef CPPFLAGS "-I{{.OPT_DIR}}/ncurses/{{.VERSION}}/include/ncursesw"',
+        'setenv --set-if-undef LDFLAGS "-L{{.OPT_DIR}}/ncurses/{{.VERSION}}/lib"',
+      ]
+    cmds:
+      - for: { var: MODULEFILE_LINES }
+        cmd: echo -e '{{.ITEM}}' >> {{.MODULEFILE}}
+    requires:
+      vars: [MODULEFILE, OPT_DIR, VERSION]
+    status:
+      - test -f {{.MODULEFILE}} # TODO

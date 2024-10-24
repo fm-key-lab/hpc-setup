@@ -1,52 +1,51 @@
 version: 3
 
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: '{{.GROUP_HOME}}/opt'
+
 includes:
-  group_install: ../utils/GroupInstallTasks.yml
+  group-installs: ../utils/GroupInstalls.yml
 
 tasks:
   install:
     desc: Install yq
+    platforms: [linux/amd64]
     summary: |
       Install yq
 
       References:
         - https://github.com/mikefarah/yq
         - Latest release: https://github.com/mikefarah/yq/releases/latest
+    vars:
+      BINARY: yq_linux_amd64
+      VERSION: '{{.VERSION | default "4.44.3"}}'
     cmds:
-      - task: _install
+      - task: download-prebuilt-binary
+        vars:
+          BINARY: '{{.BINARY}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
         vars:
           APP: yq
-          VERSION: 4.44.3
-          BINARY: yq_linux_amd64
+          EXE: yq
           RELPATH_EXE: /
-
-  _install:
-    internal: true
-    deps:
-      - task: build
-        vars:
-          APP: '{{.APP}}'
           VERSION: '{{.VERSION}}'
-          BINARY: '{{.BINARY}}'
-          SUBDIR: '{{.APP}}/{{.VERSION}}'
-    cmds:
-      - task: group_install:complete
-        vars:
-          APP: '{{.APP}}'
-          VERSION: '{{.VERSION}}'
-          RELPATH_EXE: '{{.RELPATH_EXE}}'
-          EXE: '{{.BINARY}}'
 
-  build:
-    dir: $GROUP_HOME/opt/{{.SUBDIR}}
-    prompt: Install in $GROUP_HOME/opt/{{.SUBDIR}}?
+  download-prebuilt-binary:
+    vars:
+      DIR: '{{.OPT_DIR}}/yq/{{.VERSION}}'
+      URL: https://github.com/mikefarah/yq/releases/download/v{{.VERSION}}/{{.BINARY}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Install in {{.DIR}}?
     cmds:
       - wget {{.URL}}
       - defer: rm -f $(basename {{.URL}})
       - tar xf $(basename ${{.URL}})
-      - ln -s {{.BINARY}} {{.APP}}
-    vars:
-      URL: https://github.com/mikefarah/yq/releases/download/v{{.VERSION}}/{{.BINARY}}.tar.gz
+      - ln -s {{.BINARY}} yq # NOTE: Rename executable
+    requires:
+      vars: [BINARY, OPT_DIR, VERSION]
     status:
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/{{.BINARY}}
-      - test -f $GROUP_HOME/opt/{{.SUBDIR}}/{{.APP}}
+      - test -f {{.DIR}}/{{.BINARY}}
+      - test -f {{.DIR}}/yq
