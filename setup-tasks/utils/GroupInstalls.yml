@@ -37,6 +37,7 @@ tasks:
   
   # TODO: Move to lab-tasks
   # TODO: Use only major.minor versioning?
+  # TODO: Abstract to combine this with modulefile-stub env task
   write-modulefile-stub:
     vars:
       DIR: '{{.GROUP_MODULEFILES}}/{{.APP}}'
@@ -50,6 +51,22 @@ tasks:
           MODULE: '{{.PYTHON_MODULE}}'
     requires:
       vars: [APP, RELPATH_EXE, VERSION]
+    status:
+      - test -f {{.DIR}}/{{.VERSION}}
+
+  write-env-modulefile-stub:
+    vars:
+      DIR: '{{.GROUP_MODULEFILES}}/{{.NAME}}'
+      MODULEFILE_SCRIPT: '{{.ROOT_DIR}}/tasks/scripts/write_modulefile.py'
+      PYTHON_MODULE: python-waterboa/2024.06
+    dir: '{{.DIR}}'
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: python {{.MODULEFILE_SCRIPT}} --NAME {{.NAME}} --VERSION {{.VERSION}} --template venv
+          MODULE: '{{.PYTHON_MODULE}}'
+    requires:
+      vars: [NAME, VERSION]
     status:
       - test -f {{.DIR}}/{{.VERSION}}
 

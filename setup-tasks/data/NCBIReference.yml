@@ -4,7 +4,8 @@ vars:
   GROUP_HOME:
     sh: echo $GROUP_HOME
   GROUP_BIN: '{{.GROUP_HOME}}/bin'
-  GROUP_REF_GENOMES: '{{.GROUP_HOME}}/public_data/reference_genomes'
+  GROUP_DATA: '{{.GROUP_HOME}}/public_data'
+  GROUP_REF_GENOMES: '{{.GROUP_DATA}}/reference_genomes'
   
   JQ: '{{.GROUP_BIN}}/jq'
   
@@ -14,7 +15,7 @@ vars:
   NCBI_DATASETS_MODULE: 'ncbi_datasets/{{.NCBI_DATASETS_VERSION}}'
   
   # NOTE: Must be JSON
-  DEFAULT_REFS_CFG: '{{.ROOT_DIR}}/config/core-reference-genomes.json' # Deprecate
+  DEFAULT_REFS_CFG: '{{.TASKFILE_DIR}}/core-reference-genomes.json' # Deprecate
   REFS_CFG: '{{.REFS_CFG | default .DEFAULT_REFS_CFG}}'
 
 includes:

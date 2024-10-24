@@ -1,0 +1,29 @@
+version: '3'
+
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  GROUP_VENVS: '{{.GROUP_HOME}}/envs/venv'
+  DEFAULT_VERSION: 0.0.1-alpha
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  create:
+    vars:
+      NAME: sandbox
+      VERSION: '{{.VERSION | default .DEFAULT_VERSION}}'
+    cmds:
+      - task: utils:venv:create
+        vars:
+          INSTALL: -r '{{.ROOT_DIR}}/tasks/envs/{{.NAME}}-requirements.txt'
+          PREFIX: '{{.GROUP_VENVS}}/{{.NAME}}'
+      - task: group-installs:write-env-modulefile-stub
+        vars:
+          NAME: '{{.NAME}}'
+          VERSION: '{{.VERSION}}'
+      - task: utils:jupyter:add-kernel-to-venv
+        vars:
+          PREFIX: '{{.GROUP_VENVS}}/{{.NAME}}'

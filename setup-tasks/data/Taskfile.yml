@@ -1,0 +1,59 @@
+version: '3'
+
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  GROUP_DATA: '{{.GROUP_HOME}}/public_data'
+
+includes:
+  igenomes: ./iGenomes.yml
+  kraken2: ./Kraken2Database.yml
+  ncbi-reference: ./NCBIReference.yml
+  ncbi-taxonomy: ./NCBITaxonomy.yml
+  pubmlst: ./PubMLST.yml
+
+tasks:
+  default:
+    - task: add-data-manifest
+    - task: ncbi-reference-genomes
+  
+  all:
+    - task: add-data-manifest
+    - task: igenome-reference-genomes
+    - task: ncbi-reference-genomes
+    - task: ncbi-taxranks
+    - task: kraken2-db
+    - task: pubmlst
+
+  add-data-manifest:
+    desc: Write public data manifest
+    vars:
+      DIR: '{{.GROUP_HOME}}/config'
+      DATA_MANIFEST_SCRIPT: '{{.ROOT_DIR}}/scripts/write_publicdata_manifest.py'
+      PYTHON_MODULE: python-waterboa/2024.06
+    dir: '{{.DIR}}'
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: python {{.DATA_MANIFEST_SCRIPT}} --GROUP_DATA {{.GROUP_DATA}} --output public_data.json
+          MODULE: '{{.PYTHON_MODULE}}'
+    requires:
+      vars: [GROUP_DATA]
+    status:
+      - test -f {{.DIR}}/public_data.json
+
+  igenome-reference-genomes:
+    - task: igenomes:download_ecoli
+  
+  ncbi-reference-genomes:
+    - task: ncbi-reference:download-core-reference-genomes
+
+  ncbi-taxranks:
+    - task: ncbi-taxonomy:download
+
+  kraken2-db:
+    - task: kraken2:download-ccbjhu
+    - task: kraken2:download-other-dbs
+  
+  pubmlst:
+    - task: pubmlst:ariba_db

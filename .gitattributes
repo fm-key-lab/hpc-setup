@@ -1,2 +1,4 @@
+_json.template linguist-language=JSON
+modulefile-venv.template linguist-language=Tcl
 modulefile.template linguist-language=Tcl
 *.yml linguist-detectable=true

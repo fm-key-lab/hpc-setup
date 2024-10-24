@@ -3,9 +3,9 @@ version: '3'
 dotenv: ['{{.TASKFILE_DIR}}/.env', '{{.HOME}}/.env']
 
 includes:
-  envs: ./tasks/envs/EnvsTasks.yml
-  install: ./tasks/InstallTasks.yml
-  download: ./tasks/PublicDataTasks.yml
+  public-data: ./setup-tasks/data
+  envs: ./setup-tasks/envs
+  install: ./setup-tasks/software
 
 vars:
   GROUP_HOME:
@@ -14,11 +14,7 @@ vars:
     sh: echo $SHELL
   BASHRC: ~/.bashrc
 
-# TODO: Write os.environ["GROUP_HOME"] + '/config/public_data.json'
 # TODO: Write Taskfile or Makefile for setting up remotes (directory creation, rclone, etc.)
-# TODO: Create some Python environments:
-#       - sandbox
-#       - packaging
 # TODO: Re-define "install:core" based on WideVariant and download:all
 #       - nextflow
 #       - raxml-ng
@@ -26,6 +22,7 @@ vars:
 # TODO: Create containers
 # TODO: Download local versions of nf-core pipelines
 # TODO: Back up srst2 database somewhere (?) and copy over to viper
+# TODO: Add PubMLST
 
 tasks:
   default:
@@ -33,8 +30,9 @@ tasks:
     cmds:
       - task: furnish-group-home
       - task: minimal-tmp-shell-profile
-      - task: install:core
-      # - task: download:all
+      - task: install
+      - task: envs
+      - task: public-data
 
   furnish-group-home:
     desc: Group home directory structure

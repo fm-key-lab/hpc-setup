@@ -1,0 +1,17 @@
+version: '3'
+
+includes:
+  utils: ../../lab-tasks
+  python-packaging: ./PythonPackaging.yml
+  sandbox: ./Sandbox.yml
+
+tasks:
+  default:
+    - task: create-python-envs-uv
+    - task: create-python-envs-mamba
+
+  create-python-envs-uv:
+    - task: python-packaging:create
+    - task: sandbox:create
+  
+  create-python-envs-mamba:

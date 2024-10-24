@@ -4,10 +4,10 @@ vars:
   AWS_S3_KRAKEN2: https://genome-idx.s3.amazonaws.com/kraken
   MODULE_BRACKEN: bracken/2.9
   MODULE_KRAKEN2: kraken2/2.1.3
-  
-  LAB_PUBLIC_DATA_DIR:
-    sh: echo "$GROUP_HOME/public_data"
-  K2_DIR: '{{.LAB_PUBLIC_DATA_DIR}}/databases/kraken2'
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  GROUP_DATA: '{{.GROUP_HOME}}/public_data'
+  K2_DIR: '{{.GROUP_DATA}}/databases/kraken2'
 
 includes:
   utils: ../../lab-tasks

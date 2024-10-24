@@ -1,14 +1,15 @@
 version: '3'
 
 vars:
-  LAB_PUBLIC_DATA_DIR:
-    sh: echo "$GROUP_HOME/public_data"  
-  REF_GENOMES_DIR: '{{.LAB_PUBLIC_DATA_DIR}}/reference_genomes'
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  GROUP_DATA: '{{.GROUP_HOME}}/public_data'
+  GROUP_REF_GENOMES: '{{.GROUP_DATA}}/reference_genomes'
 
 tasks:
   download:
     internal: true
-    dir: '{{.REF_GENOMES_DIR}}/{{.SPECIES}}'
+    dir: '{{.GROUP_REF_GENOMES}}/{{.SPECIES}}'
     vars:
       URL: https://s3.amazonaws.com/igenomes.illumina.com/{{.GENOME_PATH}}.tar.gz
     cmds:

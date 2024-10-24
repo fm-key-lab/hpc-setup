@@ -1,0 +1,23 @@
+{
+    "public_data": {
+      "kraken_db": "$GROUP_DATA/databases/kraken2_1_2",
+      "mlst": {
+        "Escherichia_coli": {
+          "alias": "Escherichia_coli#1",
+          "db": "$GROUP_DATA/databases/pubmlst/Escherichia_coli#1/Escherichia_coli#1.fasta",
+          "definitions": "$GROUP_DATA/databases/pubmlst/Escherichia_coli#1/profiles_csv"
+        }
+      },
+      "reference": {
+        "Bifidobacterium_adolescentis": "$GROUP_DATA/reference_genomes/Bifidobacterium_adolescentis/GCF_000010425.1/NCBI/ncbi_dataset/data/GCF_000010425.1/GCF_000010425.1_ASM1042v1_genomic.fna",
+        "Bifidobacterium_bifidum": "$GROUP_DATA/reference_genomes/Bifidobacterium_bifidum/GCA_001025135.1/NCBI/ncbi_dataset/data/GCA_001025135.1/GCA_001025135.1_ASM102513v1_genomic.fna",
+        "Bifidobacterium_breve": "$GROUP_DATA/reference_genomes/Bifidobacteriumbreve_ASM128142v1/genome.fasta",
+        "Bifidobacterium_longum": "$GROUP_DATA/reference_genomes/Bifidobacterium_longum/GCF_000196555.1/NCBI/ncbi_dataset/data/GCF_000196555.1/GCF_000196555.1_ASM19655v1_genomic.fna",
+        "Cutibacterium_acnes": "$GROUP_DATA/reference_genomes/Cutibacterium_acnes/GCF_000008345.1/NCBI/ncbi_dataset/data/GCF_000008345.1/GCF_000008345.1_ASM834v1_genomic.fna",
+        "Enterococcus_faecalis": "$GROUP_DATA/reference_genomes/Enterococcus_faecalis/GCF_000393015.1/NCBI/ncbi_dataset/data/GCF_000393015.1/GCF_000393015.1_Ente_faec_T5_V1_genomic.fna",
+        "Enterococcus_faecium": "$GROUP_DATA/reference_genomes/Enterococcus_faecium/GCF_016864255.1/NCBI/ncbi_dataset/data/GCF_016864255.1/GCF_016864255.1_ASM1686425v1_genomic.fna",
+        "Escherichia_coli": "$GROUP_DATA/reference_genomes/Ecoli_ASM886v2/genome.fasta",
+        "Staphylococcus_aureus": "$GROUP_DATA/reference_genomes/Staphylococcus_aureus/GCA_024178405.1/NCBI/ncbi_dataset/data/GCA_024178405.1/GCA_024178405.1_ASM2417840v1_genomic.fna"
+      }
+    }
+}
