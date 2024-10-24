@@ -10,6 +10,7 @@ includes:
 
 tasks:
   install:
+    platforms: [linux/amd64]
     vars:
       APP: task
       VERSION: '{{.VERSION | default "3.39.2"}}'
@@ -25,9 +26,10 @@ tasks:
           EXE: '{{.EXE}}'
 
   download-binary:
+    platforms: [linux/amd64]
     vars:
       DIR: '{{.OPT_DIR}}/task/{{.VERSION}}'
-      URL: https://github.com/go-task/task/releases/download/v3.39.2/task_linux_amd64.tar.gz
+      URL: https://github.com/go-task/task/releases/download/v{{.VERSION}}/task_linux_amd64.tar.gz
     dir: '{{.DIR}}'
     cmds:
       - wget {{.URL}}

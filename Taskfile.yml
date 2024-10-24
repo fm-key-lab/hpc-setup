@@ -1,18 +1,18 @@
 version: '3'
 
-dotenv: ['{{.TASKFILE_DIR}}/.env', '{{.HOME}}/.env']
-
-includes:
-  public-data: ./setup-tasks/data
-  envs: ./setup-tasks/envs
-  install: ./setup-tasks/software
-
 vars:
   GROUP_HOME:
     sh: echo $GROUP_HOME
   SHELL:
     sh: echo $SHELL
   BASHRC: ~/.bashrc
+
+dotenv: ['{{.TASKFILE_DIR}}/.env', '{{.HOME}}/.env']
+
+includes:
+  public-data: ./setup-tasks/data
+  envs: ./setup-tasks/envs
+  install: ./setup-tasks/software
 
 # TODO: Write Taskfile or Makefile for setting up remotes (directory creation, rclone, etc.)
 # TODO: Re-define "install:core" based on WideVariant and download:all
