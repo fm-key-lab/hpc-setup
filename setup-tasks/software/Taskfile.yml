@@ -8,44 +8,18 @@ vars:
   OPT_DIR: '{{.GROUP_HOME}}/opt'
 
 includes:
-  # aria2: ./Aria2.yml
-  # ariba: ./ARIBA.yml
   bedtools: ./bedtools.yml
   blast: ./BLAST.yml
   bowtie2: ./Bowtie2.yml
   bracken: ./Bracken.yml
-  # cdhit: ./CD-HIT.yml
   csvkit: ./csvkit.yml
-  # cutadapt: ./Cutadapt.yml
-  # d4tools: ./D4.yml
-  # direnv: ./direnv.yml
   duckdb: ./DuckDB.yml
-  # fasttree: ./FastTree.yml
-  # figtree: ./FigTree.yml
-  # gatk: ./GATK.yml
-  # ggtree: ./ggtree.yml
-  # gnumeric: ./Gnumeric.yml
-  # gubbins: ./Gubbins.yml
-  # igv-reports: ./igv-reports.yml
   jq: ./jq.yml
-  # kma: ./KMA.yml
-  # kmerresistance: ./KmerResistance.yml
   kraken2: ./Kraken2.yml
-  # krakenuniq: ./KrakenUniq.yml
-  # kronatools: ./KronaTools.yml
-  # lz4: ./LZ4.yml
-  # magic-blast: ./Magic-BLAST.yml
   micromamba: ./Micromamba.yml
-  # mlst: ./mlst.yml
-  # mosdepth: ./mosdepth.yml
-  # mummer: ./MUMmer.yml
   ncbi-datasets: ./NCBIDatasetsCLI.yml
   ncurses: ./Ncurses.yml
   nextflow: ./Nextflow.yml
-  # nim: ./Nim.yml
-  # pandoc: ./Pandoc.yml
-  # perl: ./Perl.yml
-  # pygenometracks: ./pyGenomeTracks.yml
   python: ./Python.yml
   # qsv: ./qsv.yml
   raxml-ng: ./RAxML-NG.yml
