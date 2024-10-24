@@ -40,6 +40,7 @@ includes:
   pygenometracks: ./pyGenomeTracks.yml
   python: ./Python.yml
   qsv: ./qsv.yml
+  raxml-ng: ./RAxML-NG.yml
   resfinder: ./ResFinder.yml
   rust: ./Rust.yml
   samtools-legacy: ./SAMtools-legacy.yml
@@ -106,6 +107,7 @@ tasks:
     - task: pygenometracks
     - task: python
     - task: qsv
+    - task: raxml-ng
     - task: resfinder
     - task: rust
     - task: samtools-legacy
@@ -139,6 +141,7 @@ tasks:
     - task: micromamba
     - task: ncbi-datasets
     - task: python
+    - task: raxml-ng
     - task: samtools-bcftools-htslib
     - task: snakemake
     - task: snpsites
@@ -175,6 +178,7 @@ tasks:
     - task: mummer
     - task: ncbi-datasets
     - task: pygenometracks
+    - task: raxml-ng
     - task: resfinder
     - task: samtools-legacy
     - task: samtools-bcftools-htslib
@@ -406,6 +410,11 @@ tasks:
     - task: qsv:install
       vars:
         VERSION: '{{.VERSION | default "0.89.0"}}'
+
+  raxml-ng:
+    - task: raxml-ng:install
+      vars:
+        VERSION: '{{.VERSION | default "1.2.2"}}'
 
   resfinder:
     - task: resfinder:install

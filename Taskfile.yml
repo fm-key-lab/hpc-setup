@@ -17,8 +17,6 @@ vars:
 # TODO: Write Taskfile or Makefile for setting up remotes (directory creation, rclone, etc.)
 # TODO: Re-define "install:core" based on WideVariant and download:all
 #       - nextflow
-#       - raxml-ng
-#       - snakemake
 # TODO: Create containers
 # TODO: Download local versions of nf-core pipelines
 # TODO: Back up srst2 database somewhere (?) and copy over to viper

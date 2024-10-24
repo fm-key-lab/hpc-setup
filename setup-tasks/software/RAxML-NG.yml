@@ -1,0 +1,101 @@
+version: '3'
+
+vars:
+  GROUP_HOME:
+    sh: echo $GROUP_HOME
+  OPT_DIR: '{{.GROUP_HOME}}/opt'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+
+# TODO: Early stopping rules: [togkousa/raxml-ng](https://github.com/togkousa/raxml-ng)
+
+tasks:
+  install:
+    desc: Install RAxML-NG
+    platforms: [linux/amd64]
+    summary: |
+      Install RAxML-NG
+
+      URLs
+      ----
+       - https://github.com/amkozlov/raxml-ng
+    vars:
+      APP: duckdb
+      VERSION: '{{.VERSION | default "1.2.2"}}'
+      URL: '{{.URL | default .URL_STABLE}}'
+    cmds:
+      - task: download-prebuilt-binary
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: raxml-ng
+          EXE: raxml-ng
+          RELPATH_EXE: /
+          VERSION: '{{.VERSION}}'
+      - task: install-mpi
+        vars:
+          VERSION: '{{.VERSION}}_MPI'
+      - task: group-installs:write-modulefile-stub
+        vars:
+          APP: raxml-ng
+          RELPATH_EXE: /bin/
+          VERSION: '{{.VERSION}}_MPI'
+
+  install-mpi:
+    platforms: [linux/amd64]
+    summary: |
+      For clusters/supercomputers (i.e., if you want to use MPI), please use 
+      the following installation package which contains pre-built *libpll*. 
+      You will need `GCC 6.4+` and `CMake 3.0.2+` in order to compile RAxML-NG 
+      for your system.
+    vars:
+      DIR: '{{.OPT_DIR}}/raxml-ng/{{.VERSION}}'
+      URL: https://github.com/amkozlov/raxml-ng/releases/download/{{.VERSION}}/raxml-ng_v{{.VERSION}}_linux_x86_64_MPI.zip
+    dir: '{{.DIR}}'
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - unzip $(basename {{.URL}})
+      - mkdir -p bin # NOTE: Believe assumed by install script with defaults
+      - ./install.sh
+      # ...
+      # [100%] Linking CXX executable ../bin/raxml-ng
+      # [100%] Built target raxml_module
+    requires:
+      vars: [VERSION]
+    status:
+      - test -f {{.DIR}}/bin/raxml-ng
+
+  download-prebuilt-binary:
+    platforms: [linux/amd64]
+    vars:
+      DIR: '{{.OPT_DIR}}/raxml-ng/{{.VERSION}}'
+      URL: https://github.com/amkozlov/raxml-ng/releases/download/{{.VERSION}}/raxml-ng_v{{.VERSION}}_linux_x86_64.zip
+    dir: '{{.DIR}}'
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - unzip $(basename {{.URL}})
+    requires:
+      vars: [VERSION]
+    status:
+      - test -f {{.DIR}}/raxml-ng
+  
+  test:
+    summary: |
+      RAxML-NG v. 1.2.2-master released on 30.04.2024 by The Exelixis Lab.
+      Developed by: Alexey M. Kozlov and Alexandros Stamatakis.
+      Contributors: Diego Darriba, Tomas Flouri, Benoit Morel, Sarah Lutteropp, Ben Bettisworth, Julia Haag, Anastasis Togkousidis.
+      Latest version: https://github.com/amkozlov/raxml-ng
+      Questions/problems/suggestions? Please visit: https://groups.google.com/forum/#!forum/raxml
+
+      System: Intel(R) Xeon(R) CPU E7-8867 v4 @ 2.40GHz, 72 cores, 3023 GB RAM (allocated: 36 physical cores)
+    vars:
+      DIR: '{{.OPT_DIR}}/raxml-ng/{{.VERSION}}'
+    dir: '{{.DIR}}'
+    vars:
+    cmds:
+      - raxml-ng --msa data/test.fa --model GTR+G --prefix test
+      - rm -f test.raxml.bestModel test.raxml.bestTree test.raxml.log test.raxml.mlTrees test.raxml.rba test.raxml.startTree
