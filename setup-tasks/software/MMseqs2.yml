@@ -1,0 +1,74 @@
+version: '3'
+
+# binaries for systems supporting AVX2 (systems supporting SSE4.1 would also work)
+
+# user guide
+# https://github.com/soedinglab/MMseqs2/releases/download/15-6f452/userguide.pdf
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+
+tasks:
+  install:
+    desc: Install mmseqs2
+    summary: |
+      Install mmseqs2
+
+        MMseqs2: ultra fast and sensitive search and clustering suite
+      
+      MMseqs2 (Many-against-Many sequence searching) is a software suite to 
+      search and cluster huge protein and nucleotide sequence sets. MMseqs2 is 
+      open source GPL-licensed software implemented in C++ for Linux, MacOS, 
+      and (as beta version, via cygwin) Windows. The software is designed to 
+      run on multiple cores and servers and exhibits very good scalability. 
+      MMseqs2 can run 10000 times faster than BLAST. At 100 times its speed it 
+      achieves almost the same sensitivity. It can perform profile searches 
+      with the same sensitivity as PSI-BLAST at over 400 times its speed.
+
+      URLs
+        - [GitHub](https://github.com/soedinglab/MMseqs2)
+        - [Docs](https://github.com/soedinglab/MMseqs2/wiki)
+    vars:
+      RELEASE: '{{.RELEASE | default "15-6f452"}}'
+    cmds:
+      - task: download-static-binaries
+        vars:
+          RELEASE: '{{.RELEASE}}'
+      - task: test
+        vars:
+          DIR: '{{.OPT_DIR}}/mmseqs2/{{.RELEASE}}/mmseqs/bin'
+      - task: group-installs:complete
+        vars:
+          APP: mmseqs2
+          EXE: mmseqs
+          RELPATH_EXE: /mmseqs/bin/
+          VERSION: '{{.RELEASE}}'
+
+  download-static-binaries:
+    platforms: [linux/amd64]
+    vars:
+      DIR: '{{.OPT_DIR}}/mmseqs2/{{.RELEASE}}'
+      URL: https://github.com/soedinglab/MMseqs2/releases/download/{{.RELEASE}}/mmseqs-linux-avx2.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download mmseqs2 to {{.DIR}}?
+    cmds:
+      - task: download-docs
+        vars:
+          DIR: '{{.DIR}}'
+          RELEASE: '{{.RELEASE}}'
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+    requires:
+      vars: [OPT_DIR, RELEASE]
+    generates:
+      - ./userguide.pdf
+      - ./mmseqs
+      - ./mmseqs/bin/mmseqs
+    status:
+      - test -f ./userguide.pdf
+      - test -f ./mmseqs/bin/mmseqs
+  
+  download-docs: cd {{.DIR}} && wget https://github.com/soedinglab/MMseqs2/releases/download/{{.RELEASE}}/userguide.pdf
+
+  test: cd {{.DIR}} && ./mmseqs version >/dev/null 2>&1

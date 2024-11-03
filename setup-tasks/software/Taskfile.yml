@@ -24,6 +24,7 @@ includes:
   micromamba: ./Micromamba.yml
   minimap2: ./minimap2.yml
   miniprot: ./miniprot.yml
+  mmseqs2: ./MMseqs2.yml
   ncbi-datasets: ./NCBIDatasetsCLI.yml
   ncurses: ./Ncurses.yml
   nextflow: ./Nextflow.yml
@@ -63,6 +64,7 @@ tasks:
     - task: micromamba
     - task: minimap2
     - task: miniprot
+    - task: mmseqs2
     - task: ncbi-datasets
     - task: ncurses
     - task: nextflow
@@ -195,6 +197,11 @@ tasks:
     - task: miniprot:install
       vars:
         VERSION: '{{.VERSION | default "0.13"}}'
+
+  mmseqs2:
+    - task: mmseqs2:install
+      vars:
+        VERSION: '{{.VERSION | default "15-6f452"}}'
 
   ncbi-datasets:
     - task: ncbi-datasets:install

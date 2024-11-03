@@ -50,4 +50,4 @@ tasks:
     status:
       - test -f ./bwa-mem2-{{.VERSION}}_x64-linux/bwa-mem2
     
-  test: 'cd {{.DIR}} && ./bwa-mem2 version >/dev/null 2>&1'
+  test: cd {{.DIR}} && ./bwa-mem2 version >/dev/null 2>&1
