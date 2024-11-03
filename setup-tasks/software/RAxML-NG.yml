@@ -30,6 +30,9 @@ tasks:
       - task: install-mpi
         vars:
           VERSION: '{{.VERSION}}'
+      - task: test
+        vars:
+          VERSION: '{{.VERSION}}'
       - task: group-installs:write-modulefile-stub
         vars:
           APP: raxml-ng
