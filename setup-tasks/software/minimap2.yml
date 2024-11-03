@@ -48,7 +48,7 @@ tasks:
     requires:
       vars: [OPT_DIR, VERSION]
     generates:
-      - ./minimap2-2.28_x64-linux
-      - ./minimap2-2.28_x64-linux/minimap2
+      - ./minimap2-{{.VERSION}}_x64-linux
+      - ./minimap2-{{.VERSION}}_x64-linux/minimap2
     status:
-      - test -f ./minimap2-2.28_x64-linux/minimap2
+      - test -f ./minimap2-{{.VERSION}}_x64-linux/minimap2

@@ -23,6 +23,7 @@ includes:
   megahit: ./MEGAHIT.yml
   micromamba: ./Micromamba.yml
   minimap2: ./minimap2.yml
+  miniprot: ./miniprot.yml
   ncbi-datasets: ./NCBIDatasetsCLI.yml
   ncurses: ./Ncurses.yml
   nextflow: ./Nextflow.yml
@@ -61,6 +62,7 @@ tasks:
     - task: megahit
     - task: micromamba
     - task: minimap2
+    - task: miniprot
     - task: ncbi-datasets
     - task: ncurses
     - task: nextflow
@@ -179,15 +181,20 @@ tasks:
       vars:
         VERSION: '{{.VERSION | default "1.2.9"}}'
 
+  micromamba:
+    - task: micromamba:install
+      vars:
+        VERSION: '{{.VERSION | default "2.0.1-0"}}'
+
   minimap2:
     - task: minimap2:install
       vars:
         VERSION: '{{.VERSION | default "2.28"}}'
 
-  micromamba:
-    - task: micromamba:install
+  miniprot:
+    - task: miniprot:install
       vars:
-        VERSION: '{{.VERSION | default "2.0.1-0"}}'
+        VERSION: '{{.VERSION | default "0.13"}}'
 
   ncbi-datasets:
     - task: ncbi-datasets:install
