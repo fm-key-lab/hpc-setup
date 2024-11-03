@@ -32,6 +32,7 @@ includes:
   taskfile: ./Task.yml
   tinytex: ./TinyTex.yml
   uv: ./uv.yml
+  vg: ./vg.yml
   vcf2parquet: ./vcf2parquet.yml
   yq: ./yq.yml
 
@@ -65,6 +66,7 @@ tasks:
     - task: tinytex
     - task: uv
     - task: vcf2parquet
+    - task: vg
     - task: yq
 
   core:
@@ -242,6 +244,11 @@ tasks:
       vars:
         MICROMAMBA_VERSION: '{{.MICROMAMBA_VERSION | default "2.0.1-0"}}'
         VERSION: '{{.VERSION | default "0.4.1"}}'
+
+  vg:
+    - task: vg:install
+      vars:
+        VERSION: '{{.VERSION | default "1.60.0"}}'
 
   yq:
     - task: yq:install
