@@ -14,6 +14,7 @@ includes:
   bowtie2: ./Bowtie2.yml
   bracken: ./Bracken.yml
   bwa: ./BWA.yml
+  bwa-mem2: ./BWA-MEM2.yml
   clonalframeml: ./ClonalFrameML.yml
   csvkit: ./csvkit.yml
   duckdb: ./DuckDB.yml
@@ -49,6 +50,7 @@ tasks:
     - task: bowtie2
     - task: bracken
     - task: bwa
+    - task: bwa-mem2
     - task: clonalframeml
     - task: csvkit
     - task: duckdb
@@ -134,6 +136,11 @@ tasks:
     - task: bwa:install
       vars:
         VERSION: '{{.VERSION | default "0.7.18"}}'
+
+  bwa-mem2:
+    - task: bwa-mem2:install
+      vars:
+        VERSION: '{{.VERSION | default "2.2.1"}}'
 
   clonalframeml:
     - task: clonalframeml:install
