@@ -20,6 +20,7 @@ includes:
   duckdb: ./DuckDB.yml
   jq: ./jq.yml
   kraken2: ./Kraken2.yml
+  megahit: ./MEGAHIT.yml
   micromamba: ./Micromamba.yml
   ncbi-datasets: ./NCBIDatasetsCLI.yml
   ncurses: ./Ncurses.yml
@@ -56,6 +57,7 @@ tasks:
     - task: duckdb
     - task: jq
     - task: kraken2
+    - task: megahit
     - task: micromamba
     - task: ncbi-datasets
     - task: ncurses
@@ -169,6 +171,11 @@ tasks:
     - task: kraken2:install
       vars:
         VERSION: '{{.VERSION | default "2.1.3"}}'
+
+  megahit:
+    - task: megahit:install
+      vars:
+        VERSION: '{{.VERSION | default "1.2.9"}}'
 
   micromamba:
     - task: micromamba:install

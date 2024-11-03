@@ -1,0 +1,56 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install MEGAHIT
+    summary: |
+      Install MEGAHIT
+
+      MEGAHIT is an ultra-fast and memory-efficient NGS assembler. It is 
+      optimized for metagenomes, but also works well on generic single genome 
+      assembly (small or mammalian size) and single-cell assembly.
+
+      URLs
+        - [GitHub](https://github.com/voutcn/megahit)
+    vars:
+      VERSION: '{{.VERSION | default "1.2.9"}}'
+    cmds:
+      - task: download-prebuilt-binaries
+        vars:
+          VERSION: '{{.VERSION}}'
+      # NOTE: Default to 4 threads/cores is hard-coded
+      - task: test
+        vars:
+          DIR: '{{.OPT_DIR}}/megahit/{{.VERSION}}/MEGAHIT-{{.VERSION}}-Linux-x86_64-static/bin/'
+          THREADS: 4
+      - task: group-installs:complete
+        vars:
+          APP: megahit
+          EXE: megahit
+          RELPATH_EXE: /MEGAHIT-{{.VERSION}}-Linux-x86_64-static/bin/
+          VERSION: '{{.VERSION}}'
+
+  download-prebuilt-binaries:
+    platforms: [linux/amd64]
+    vars:
+      DIR: '{{.OPT_DIR}}/megahit/{{.VERSION}}'
+      URL: https://github.com/voutcn/megahit/releases/download/v{{.VERSION}}/MEGAHIT-{{.VERSION}}-Linux-x86_64-static.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download MEGAHIT to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+    requires:
+      vars: [OPT_DIR, VERSION]
+    generates:
+      - ./MEGAHIT-{{.VERSION}}-Linux-x86_64-static
+      - ./MEGAHIT-{{.VERSION}}-Linux-x86_64-static/bin/megahit
+    status:
+      - test -f ./MEGAHIT-{{.VERSION}}-Linux-x86_64-static/bin/megahit
+  
+  test: 'cd {{.DIR}} && ./megahit -t {{.THREADS}} --test'
