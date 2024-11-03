@@ -73,6 +73,13 @@ tasks:
     status:
       - test -f {{.DIR}}/{{.VERSION}}
 
+  append-modulefile:
+    cmds:
+      - for: { var: MODULEFILE_LINES }
+        cmd: echo -e '{{.ITEM}}' >> {{.MODULEFILE}}
+    requires:
+      vars: [MODULEFILE_LINES, MODULEFILE]
+
   create-apptainer:
     vars:
       EXTRA: '{{.EXTRA | default "--notest"}}'
