@@ -1,0 +1,54 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+
+tasks:
+  install:
+    desc: Install minimap2
+    summary: |
+      Install minimap2
+
+      Minimap2 is a versatile sequence alignment program that aligns DNA or 
+      mRNA sequences against a large reference database. Typical use cases 
+      include: (1) mapping PacBio or Oxford Nanopore genomic reads to the 
+      human genome; (2) finding overlaps between long reads with error rate 
+      up to ~15%; (3) splice-aware alignment of PacBio Iso-Seq or Nanopore 
+      cDNA or Direct RNA reads against a reference genome; (4) aligning 
+      Illumina single- or paired-end reads; (5) assembly-to-assembly 
+      alignment; (6) full-genome alignment between two closely related species 
+      with divergence below ~15%.
+
+      URLs
+        - [GitHub](https://github.com/lh3/minimap2)
+    vars:
+      VERSION: '{{.VERSION | default "2.28"}}'
+    cmds:
+      - task: download-precompiled-binaries
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: minimap2
+          EXE: minimap2
+          RELPATH_EXE: /minimap2-{{.VERSION}}_x64-linux/
+          VERSION: '{{.VERSION}}'
+
+  download-precompiled-binaries:
+    platforms: [linux/amd64]
+    vars:
+      DIR: '{{.OPT_DIR}}/minimap2/{{.VERSION}}'
+      URL: https://github.com/lh3/minimap2/releases/download/v{{.VERSION}}/minimap2-{{.VERSION}}_x64-linux.tar.bz2
+    dir: '{{.DIR}}'
+    prompt: Download minimap2 to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+    requires:
+      vars: [OPT_DIR, VERSION]
+    generates:
+      - ./minimap2-2.28_x64-linux
+      - ./minimap2-2.28_x64-linux/minimap2
+    status:
+      - test -f ./minimap2-2.28_x64-linux/minimap2
