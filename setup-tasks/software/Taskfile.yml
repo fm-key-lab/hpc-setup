@@ -8,6 +8,7 @@ vars:
   OPT_DIR: '{{.GROUP_HOME}}/opt'
 
 includes:
+  bbtools: ./BBTools.yml
   bedtools: ./bedtools.yml
   blast: ./BLAST.yml
   bowtie2: ./Bowtie2.yml
@@ -41,6 +42,7 @@ tasks:
     - task: core
 
   all:
+    - task: bbtools
     - task: bedtools
     - task: blast
     - task: bowtie2
@@ -97,6 +99,11 @@ tasks:
     - task: yq
 
   # ~*~
+
+  bbtools:
+    - task: bbtools:install
+      vars:
+        VERSION: '{{.VERSION | default "39.10"}}'
 
   bedtools:
     - task: bedtools:install

@@ -23,35 +23,40 @@ tasks:
         - [Sourceforge](https://sourceforge.net/projects/bbmap/)
         - [Docs](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/)
     vars:
-      VERSION: '{{.VERSION | default "1.60.0"}}'
+      VERSION: '{{.VERSION | default "39.10"}}'
     cmds:
-      - task: download-prebuilt
+      - task: build
         vars:
           VERSION: '{{.VERSION}}'
       - task: test
         vars:
-          DIR: '{{.OPT_DIR}}/vg/{{.VERSION}}'
+          DIR: '{{.OPT_DIR}}/bbtools/{{.VERSION}}/bbmap'
       - task: group-installs:complete
         vars:
-          APP: vg
-          EXE: vg
-          RELPATH_EXE: /
+          APP: bbtools
+          EXE: bbduk.sh bbmap.sh bbmerge.sh reformat.sh
+          RELPATH_EXE: /bbmap/
           VERSION: '{{.VERSION}}'
 
-  download-prebuilt:
+  build:
     vars:
-      DIR: '{{.OPT_DIR}}/vg/{{.VERSION}}'
-      URL: https://sourceforge.net/projects/bbmap/files/BBMap_39.10.tar.gz/download
+      DIR: '{{.OPT_DIR}}/bbtools/{{.VERSION}}'
+      URL: https://sourceforge.net/projects/bbmap/files/BBMap_{{.VERSION}}.tar.gz
     dir: '{{.DIR}}'
-    prompt: Download vg to {{.DIR}}?
+    prompt: Download BBTools to {{.DIR}}?
     cmds:
       - wget {{.URL}}
-      - chmod +x vg
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
     requires:
       vars: [OPT_DIR, VERSION]
     generates:
-      - ./vg
+      - ./bbmap
+      - ./bbmap/bbduk.sh
+      - ./bbmap/bbmap.sh
+      - ./bbmap/bbmerge.sh
+      - ./bbmap/reformat.sh
     status:
-      - test -f ./vg
-
-  test: cd {{.DIR}} && ./vg version
+      - test -d ./bbmap
+  
+  test: 'cd {{.DIR}} && ./bbmap.sh --help >/dev/null 2>&1'
