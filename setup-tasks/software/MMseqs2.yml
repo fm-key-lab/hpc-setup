@@ -1,10 +1,5 @@
 version: '3'
 
-# binaries for systems supporting AVX2 (systems supporting SSE4.1 would also work)
-
-# user guide
-# https://github.com/soedinglab/MMseqs2/releases/download/15-6f452/userguide.pdf
-
 includes:
   group-installs: ../utils/GroupInstalls.yml
 
@@ -29,38 +24,39 @@ tasks:
         - [GitHub](https://github.com/soedinglab/MMseqs2)
         - [Docs](https://github.com/soedinglab/MMseqs2/wiki)
     vars:
-      RELEASE: '{{.RELEASE | default "15-6f452"}}'
+      VERSION: '{{.VERSION | default "15-6f452"}}'
     cmds:
       - task: download-static-binaries
         vars:
-          RELEASE: '{{.RELEASE}}'
+          VERSION: '{{.VERSION}}'
       - task: test
         vars:
-          DIR: '{{.OPT_DIR}}/mmseqs2/{{.RELEASE}}/mmseqs/bin'
+          DIR: '{{.OPT_DIR}}/mmseqs2/{{.VERSION}}/mmseqs/bin'
       - task: group-installs:complete
         vars:
           APP: mmseqs2
           EXE: mmseqs
           RELPATH_EXE: /mmseqs/bin/
-          VERSION: '{{.RELEASE}}'
+          VERSION: '{{.VERSION}}'
 
+  # NOTE: Use binaries for systems supporting AVX2 (SSE4.1 support would also work)
   download-static-binaries:
     platforms: [linux/amd64]
     vars:
-      DIR: '{{.OPT_DIR}}/mmseqs2/{{.RELEASE}}'
-      URL: https://github.com/soedinglab/MMseqs2/releases/download/{{.RELEASE}}/mmseqs-linux-avx2.tar.gz
+      DIR: '{{.OPT_DIR}}/mmseqs2/{{.VERSION}}'
+      URL: https://github.com/soedinglab/MMseqs2/releases/download/{{.VERSION}}/mmseqs-linux-avx2.tar.gz
     dir: '{{.DIR}}'
     prompt: Download mmseqs2 to {{.DIR}}?
     cmds:
       - task: download-docs
         vars:
           DIR: '{{.DIR}}'
-          RELEASE: '{{.RELEASE}}'
+          VERSION: '{{.VERSION}}'
       - wget {{.URL}}
       - defer: rm -f $(basename {{.URL}})
       - tar xf $(basename {{.URL}})
     requires:
-      vars: [OPT_DIR, RELEASE]
+      vars: [OPT_DIR, VERSION]
     generates:
       - ./userguide.pdf
       - ./mmseqs
@@ -69,6 +65,6 @@ tasks:
       - test -f ./userguide.pdf
       - test -f ./mmseqs/bin/mmseqs
   
-  download-docs: cd {{.DIR}} && wget https://github.com/soedinglab/MMseqs2/releases/download/{{.RELEASE}}/userguide.pdf
+  download-docs: cd {{.DIR}} && wget https://github.com/soedinglab/MMseqs2/releases/download/{{.VERSION}}/userguide.pdf
 
   test: cd {{.DIR}} && ./mmseqs version >/dev/null 2>&1

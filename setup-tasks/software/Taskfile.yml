@@ -28,6 +28,7 @@ includes:
   ncbi-datasets: ./NCBIDatasetsCLI.yml
   ncurses: ./Ncurses.yml
   nextflow: ./Nextflow.yml
+  plass-penguin: ./Plass-PenguiN.yml
   python: ./Python.yml
   raxml-ng: ./RAxML-NG.yml
   rust: ./Rust.yml
@@ -68,6 +69,7 @@ tasks:
     - task: ncbi-datasets
     - task: ncurses
     - task: nextflow
+    - task: plass-penguin
     - task: python
     - task: raxml-ng
     - task: rust
@@ -216,6 +218,11 @@ tasks:
 
   nextflow:
     - task: nextflow:install
+      vars:
+        VERSION: '{{.VERSION | default "24.04.4"}}'
+
+  plass-penguin:
+    - task: plass-penguin:install
       vars:
         VERSION: '{{.VERSION | default "24.04.4"}}'
 
