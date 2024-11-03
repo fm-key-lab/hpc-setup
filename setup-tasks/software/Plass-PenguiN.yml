@@ -1,0 +1,61 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+
+tasks:
+  install:
+    desc: Install Plass and PenguiN
+    summary: |
+      Install Plass and PenguiN
+
+        sensitive and precise assembly of short sequencing reads
+      
+      Plass (Protein-Level ASSembler) and PenguiN (Protein guided nucleotide 
+      assembler) are software to assemble protein sequences or DNA/RNA contigs 
+      from short read sequencing data meant to work best for complex 
+      metagenomic or metatranscriptomic datasets. Plass and Penguin are 
+      GPL-licensed open source software implemented in C++ and available for 
+      Linux and macOS and are designed to run on multiple cores.
+
+      URLs
+        - [GitHub](https://github.com/soedinglab/plass)
+    vars:
+      VERSION: '{{.VERSION | default "5-cf8933"}}'
+    cmds:
+      - task: download-static-binaries
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: test
+        vars:
+          DIR: '{{.OPT_DIR}}/plass/{{.VERSION}}/plass/bin'
+      - task: group-installs:complete
+        vars:
+          APP: plass
+          EXE: penguin plass
+          RELPATH_EXE: /plass/bin/
+          VERSION: '{{.VERSION}}'
+
+  # NOTE: Use binaries for systems supporting AVX2 (SSE4.1 support would also work)
+  download-static-binaries:
+    platforms: [linux/amd64]
+    vars:
+      DIR: '{{.OPT_DIR}}/plass/{{.VERSION}}'
+      URL: https://github.com/soedinglab/plass/releases/download/{{.VERSION}}/plass-linux-avx2.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download Plass/PenguiN to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+    requires:
+      vars: [OPT_DIR, VERSION]
+    generates:
+      - ./plass/bin
+      - ./plass/bin/penguin
+      - ./plass/bin/plass
+    status:
+      - test -f ./plass/bin/penguin
+      - test -f ./plass/bin/plass
+  
+  test: cd {{.DIR}} && ./penguin version >/dev/null 2>&1 && ./plass version >/dev/null 2>&1

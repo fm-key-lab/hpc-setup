@@ -224,7 +224,7 @@ tasks:
   plass-penguin:
     - task: plass-penguin:install
       vars:
-        VERSION: '{{.VERSION | default "24.04.4"}}'
+        VERSION: '{{.VERSION | default "5-cf8933"}}'
 
   python:
     desc: Install Python
