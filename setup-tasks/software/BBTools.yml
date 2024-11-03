@@ -1,0 +1,57 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+
+tasks:
+  install:
+    desc: Install BBTools
+    summary: |
+      Install BBTools
+
+      BBTools is a suite of fast, multithreaded bioinformatics tools designed 
+      for analysis of DNA and RNA sequence data. BBTools can handle common 
+      sequencing file formats such as fastq, fasta, sam, scarf, fasta+qual, 
+      compressed or raw, with autodetection of quality encoding and 
+      interleaving. It is written in Java and works on any platform supporting 
+      Java, including Linux, MacOS, and Microsoft Windows and Linux; there are 
+      no dependencies other than Java (version 7 or higher). Program 
+      descriptions and options are shown when running the shell scripts with 
+      no parameters.
+
+      URLs
+        - [Sourceforge](https://sourceforge.net/projects/bbmap/)
+        - [Docs](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/)
+    vars:
+      VERSION: '{{.VERSION | default "1.60.0"}}'
+    cmds:
+      - task: download-prebuilt
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: test
+        vars:
+          DIR: '{{.OPT_DIR}}/vg/{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: vg
+          EXE: vg
+          RELPATH_EXE: /
+          VERSION: '{{.VERSION}}'
+
+  download-prebuilt:
+    vars:
+      DIR: '{{.OPT_DIR}}/vg/{{.VERSION}}'
+      URL: https://sourceforge.net/projects/bbmap/files/BBMap_39.10.tar.gz/download
+    dir: '{{.DIR}}'
+    prompt: Download vg to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - chmod +x vg
+    requires:
+      vars: [OPT_DIR, VERSION]
+    generates:
+      - ./vg
+    status:
+      - test -f ./vg
+
+  test: cd {{.DIR}} && ./vg version
