@@ -2,7 +2,6 @@ version: '3'
 
 includes:
   group-installs: ../utils/GroupInstalls.yml
-  utils: ../../lab-tasks
 
 tasks:
   install:
