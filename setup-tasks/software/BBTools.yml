@@ -25,7 +25,7 @@ tasks:
     vars:
       VERSION: '{{.VERSION | default "39.10"}}'
     cmds:
-      - task: build
+      - task: download-scripts
         vars:
           VERSION: '{{.VERSION}}'
       - task: test
@@ -38,7 +38,7 @@ tasks:
           RELPATH_EXE: /bbmap/
           VERSION: '{{.VERSION}}'
 
-  build:
+  download-scripts:
     vars:
       DIR: '{{.OPT_DIR}}/bbtools/{{.VERSION}}'
       URL: https://sourceforge.net/projects/bbmap/files/BBMap_{{.VERSION}}.tar.gz

@@ -1,0 +1,72 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install BWA
+    summary: |
+      Install BWA
+
+      BWA is a software package for mapping DNA sequences against a large 
+      reference genome, such as the human genome. It consists of three 
+      algorithms: BWA-backtrack, BWA-SW and BWA-MEM. The first algorithm is 
+      designed for Illumina sequence reads up to 100bp, while the rest two for 
+      longer sequences ranged from 70bp to a few megabases. BWA-MEM and BWA-SW 
+      share similar features such as the support of long reads and chimeric 
+      alignment, but BWA-MEM, which is the latest, is generally recommended as 
+      it is faster and more accurate. BWA-MEM also has better performance than 
+      BWA-backtrack for 70-100bp Illumina reads.
+
+      URLs
+        - [GitHub](https://github.com/lh3/bwa)
+    vars:
+      GCC_MODULE: '{{.GCC_MODULE | default "gcc/14"}}'
+      VERSION: '{{.VERSION | default "0.7.18"}}'
+    cmds:
+      - task: download-source
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: build
+        vars:
+          DIR: '{{.OPT_DIR}}/bwa/{{.VERSION}}/bwa-{{.VERSION}}'
+          GCC_MODULE: '{{.GCC_MODULE}}'
+      - task: group-installs:complete
+        vars:
+          APP: bwa
+          EXE: bwa
+          RELPATH_EXE: /bwa-{{.VERSION}}/
+          VERSION: '{{.VERSION}}'
+
+  download-source:
+    vars:
+      DIR: '{{.OPT_DIR}}/bwa/{{.VERSION}}'
+      URL: https://github.com/lh3/bwa/archive/refs/tags/v{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download BWA to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+    requires:
+      vars: [OPT_DIR, VERSION]
+    generates:
+      - ./bwa-{{.VERSION}}
+    status:
+      - test -d ./bwa-{{.VERSION}}
+  
+  build:
+    dir: '{{.DIR}}'
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: cd {{.DIR}} && make
+          MODULE: '{{.GCC_MODULE}}'
+    requires:
+      vars: [DIR, GCC_MODULE]
+    generates:
+      - ./bwa
+    status:
+      - test -f ./bwa

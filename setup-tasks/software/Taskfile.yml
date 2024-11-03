@@ -13,6 +13,7 @@ includes:
   blast: ./BLAST.yml
   bowtie2: ./Bowtie2.yml
   bracken: ./Bracken.yml
+  bwa: ./BWA.yml
   clonalframeml: ./ClonalFrameML.yml
   csvkit: ./csvkit.yml
   duckdb: ./DuckDB.yml
@@ -47,6 +48,7 @@ tasks:
     - task: blast
     - task: bowtie2
     - task: bracken
+    - task: bwa
     - task: clonalframeml
     - task: csvkit
     - task: duckdb
@@ -127,6 +129,11 @@ tasks:
       vars:
         VERSION: '{{.VERSION | default "2.9"}}'
         KRAKEN2_VERSION: '{{.KRAKEN2_VERSION | default "2.1.3"}}'
+
+  bwa:
+    - task: bwa:install
+      vars:
+        VERSION: '{{.VERSION | default "0.7.18"}}'
 
   clonalframeml:
     - task: clonalframeml:install
