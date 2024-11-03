@@ -17,6 +17,7 @@ tasks:
     vars:
       APPTAINER_MODULE: apptainer/1.3.2 # TODO
       BOWTIE2_VERSION: '{{.BOWTIE2_VERSION | default "2.1.0"}}'
+      CONTAINER_IMAGE: '{{.GROUP_CONTAINERS}}/srst2.sif'
       MODULEFILE: '{{.GROUP_MODULEFILES}}/srst2/{{.VERSION}}'
       SAMTOOLS_VERSION: '{{.SAMTOOLS_VERSION | default "0.1.18"}}'
       VERSION: '{{.VERSION | default "0.2.0"}}'
@@ -31,19 +32,56 @@ tasks:
       - task: group-installs:write-modulefile-stub
         vars:
           APP: srst2
+          # TODO: Deprecate RELPATH_EXE, unused
           RELPATH_EXE: /
           VERSION: '{{.VERSION}}'
-      - task: append-modulefile
+      - task: group-installs:append-modulefile
         vars:
-          APPTAINER_MODULE: '{{.APPTAINER_MODULE}}'
-          BIND: '/raven/ptmp,/viper/ptmp,/ptmp,/raven/u,/raven/ptmp,/u,/nexus' # TODO
-          BOWTIE2_VERSION: '{{.BOWTIE2_VERSION}}'
           MODULEFILE: '{{.MODULEFILE}}'
-          SAMTOOLS_VERSION: '{{.SAMTOOLS_VERSION}}'
-          SRST2_IMAGE: '{{.GROUP_CONTAINERS}}/srst2.sif'
-          SRST2_VERSION: '{{.SRST2_VERSION}}'
+          MODULEFILE_LINES: [
+            '',
+            'depends-on {{.APPTAINER_MODULE}}',
+            '',
+            'set-function srst2 {',
+            '    apptainer \',
+            '      --quiet exec \',
+            '      --home $PWD \',
+            '      --bind /raven/ptmp,/viper/ptmp,/ptmp,/raven/u,/raven/ptmp,/u,/nexus \',
+            '      {{.CONTAINER_IMAGE}} \',
+            '      srst2 \',
+            '      "$@"',
+            '}',
+            '',
+            'set-function "getmlst.py" {',
+            '    apptainer \',
+            '      --quiet exec \',
+            '      --home $PWD \',
+            '      --bind /raven/ptmp,/viper/ptmp,/ptmp,/raven/u,/raven/ptmp,/u,/nexus \',
+            '      {{.CONTAINER_IMAGE}} \',
+            '      getmlst.py \',
+            '      "$@"',
+            '}',
+            '',
+            'set-function "slurm_srst2.py" {',
+            '    apptainer \',
+            '      --quiet exec \',
+            '      --home $PWD \',
+            '      --bind /raven/ptmp,/viper/ptmp,/ptmp,/raven/u,/raven/ptmp,/u,/nexus \',
+            '      {{.CONTAINER_IMAGE}} \',
+            '      slurm_srst2.py \',
+            '      "$@"',
+            '}',
+            '',
+            '# "The downloaded directory also contains things that might be useful for SRST2 users:"',
+            'setenv SRST2_DATA                   "${basedir}/srst2/{{.SRST2_VERSION}}/srst2/data"',
+            'setenv SRST2_DATABASE_CLUSTERING    "${basedir}/srst2/{{.SRST2_VERSION}}/srst2/database_clustering"',
+            '',
+            'setenv SRST2_SAMTOOLS               "${basedir}/samtools/{{.SAMTOOLS_VERSION}}/samtools-{{.SAMTOOLS_VERSION}}/samtools"',
+            'setenv SRST2_BOWTIE2                "${basedir}/bowtie2/{{.BOWTIE2_VERSION}}/bowtie2-{{.BOWTIE2_VERSION}}/bowtie2"',
+            'setenv SRST2_BOWTIE2_BUILD          "${basedir}/bowtie2/{{.BOWTIE2_VERSION}}/bowtie2-{{.BOWTIE2_VERSION}}/bowtie2-build"',
+          ]
     requires:
-      vars: [GROUP_MODULEFILES]
+      vars: [GROUP_CONTAINERS, GROUP_MODULEFILES]
     status:
       - test -f {{.MODULEFILE}}
 
@@ -68,56 +106,6 @@ tasks:
           IMAGE_NAME: 'srst2'
     requires:
       vars: [APPTAINER_MODULE, DEFINITION_FILE]
-
-  append-modulefile:
-    vars:
-      MODULEFILE_LINES: [
-        '',
-        'depends-on {{.APPTAINER_MODULE}}',
-        '',
-        'set-function srst2 {',
-        '    apptainer \',
-        '      --quiet exec \',
-        '      --home $PWD \',
-        '      --bind {{.BIND}} \',
-        '      {{.SRST2_IMAGE}} \',
-        '      srst2 \',
-        '      "$@"',
-        '}',
-        '',
-        'set-function "getmlst.py" {',
-        '    apptainer \',
-        '      --quiet exec \',
-        '      --home $PWD \',
-        '      --bind {{.BIND}} \',
-        '      {{.SRST2_IMAGE}} \',
-        '      getmlst.py \',
-        '      "$@"',
-        '}',
-        '',
-        'set-function "slurm_srst2.py" {',
-        '    apptainer \',
-        '      --quiet exec \',
-        '      --home $PWD \',
-        '      --bind {{.BIND}} \',
-        '      {{.SRST2_IMAGE}} \',
-        '      slurm_srst2.py \',
-        '      "$@"',
-        '}',
-        '',
-        '# "The downloaded directory also contains things that might be useful for SRST2 users:"',
-        'setenv SRST2_DATA                   "${basedir}/srst2/{{.SRST2_VERSION}}/srst2/data"',
-        'setenv SRST2_DATABASE_CLUSTERING    "${basedir}/srst2/{{.SRST2_VERSION}}/srst2/database_clustering"',
-        '',
-        'setenv SRST2_SAMTOOLS               "${basedir}/samtools/{{.SAMTOOLS_VERSION}}/samtools-{{.SAMTOOLS_VERSION}}/samtools"',
-        'setenv SRST2_BOWTIE2                "${basedir}/bowtie2/{{.BOWTIE2_VERSION}}/bowtie2-{{.BOWTIE2_VERSION}}/bowtie2"',
-        'setenv SRST2_BOWTIE2_BUILD          "${basedir}/bowtie2/{{.BOWTIE2_VERSION}}/bowtie2-{{.BOWTIE2_VERSION}}/bowtie2-build"',
-      ]
-    cmds:
-      - for: { var: MODULEFILE_LINES }
-        cmd: echo -e '{{.ITEM}}' >> {{.MODULEFILE}}
-    requires:
-      vars: [APPTAINER_MODULE, BIND, BOWTIE2_VERSION, MODULEFILE, SAMTOOLS_VERSION, SRST2_IMAGE, SRST2_VERSION]
 
   # TODO:
 

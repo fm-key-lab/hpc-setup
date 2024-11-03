@@ -28,12 +28,49 @@ tasks:
         - [GitHub](https://github.com/soedinglab/prodigal)
     vars:
       APPTAINER_MODULE: '{{.APPTAINER_MODULE | default "apptainer/1.3.2"}}'
+      CONTAINER_IMAGE: '{{.GROUP_CONTAINERS}}/prokka.sif'
+      MODULEFILE: '{{.GROUP_MODULEFILES}}/prokka/{{.VERSION}}'
       VERSION: '{{.VERSION | default "1.14.6"}}'
     cmds:
       - task: create-image
         vars:
           APPTAINER_MODULE: '{{.APPTAINER_MODULE}}'
           VERSION: '{{.VERSION}}'
+      - task: dummy
+        vars:
+          CONTAINER_IMAGE: '{{.CONTAINER_IMAGE}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:write-modulefile-stub
+        vars:
+          APP: prokka
+          # TODO: Deprecate RELPATH_EXE, unused
+          RELPATH_EXE: /
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE: '{{.MODULEFILE}}'
+          MODULEFILE_LINES: [
+            '',
+            'depends-on {{.APPTAINER_MODULE}}',
+            '',
+            'set-function prokka {',
+            '    apptainer \',
+            '      --quiet exec \',
+            '      --home $PWD \',
+            '      --bind /raven/ptmp,/viper/ptmp,/ptmp,/raven/u,/raven/ptmp,/u,/nexus \',
+            '      {{.CONTAINER_IMAGE}} \',
+            '      prokka \',
+            '      "$@"',
+            '}'
+          ]
+      - task: test
+        vars:
+          CONTAINER_IMAGE: '{{.CONTAINER_IMAGE}}'
+    requires:
+      vars: [GROUP_CONTAINERS, GROUP_MODULEFILES]
+    status:
+      # TODO: Temp
+      - test -f {{.MODULEFILE}}
 
   create-image:
     dir: '{{.GROUP_CONTAINERS}}'
@@ -45,3 +82,27 @@ tasks:
       vars: [VERSION]
     generates:
       - ./prokka.sif
+
+  # NOTE: Unsure whether useful for consistency
+  dummy:
+    vars:
+      DIR: '{{.OPT_DIR}}/prokka/{{.VERSION}}'
+    dir: '{{.DIR}}'
+    cmds:
+      - ln -s "{{.CONTAINER_IMAGE}}" prokka.sif
+    requires:
+      vars: [CONTAINER_IMAGE, OPT_DIR, VERSION]
+    generates:
+      - ./prokka.sif
+    status:
+      - test -L ./prokka.sif
+  
+  test:
+    internal: true
+    cmds:
+      - task: utils:containers:run-inside
+        vars:
+          CMDS: prokka --version
+          IMAGE: '{{.CONTAINER_IMAGE}}'
+    requires:
+      vars: [CONTAINER_IMAGE]
