@@ -1,0 +1,113 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+# TODO: Unsure whether R required to compile. Needed for modulefile though.
+
+tasks:
+  install:
+    vars:
+      GCC_MODULE: '{{.GCC_MODULE | default "gcc/14"}}'
+      R_MODULE: '{{.R_MODULE | default "R/4.4"}}'
+      VERSION: '{{.VERSION | default "1.13"}}'
+    cmds:
+      - task: download-source
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: compile-source
+        vars:
+          GCC_MODULE: '{{.GCC_MODULE}}'
+          R_MODULE: '{{.R_MODULE}}'
+          VERSION: '{{.VERSION}}'
+      - task: test
+        vars:
+          GCC_MODULE: '{{.GCC_MODULE}}'
+          R_MODULE: '{{.R_MODULE}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: clonalframeml
+          EXE: ClonalFrameML{{exeExt}}
+          RELPATH_EXE: /ClonalFrameML-{{.VERSION}}/src/
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE_LINES: [
+            '',
+            'depends-on {{.GCC_MODULE}}',
+            'depends-on {{.R_MODULE}}',
+          ]
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/clonalframeml/{{.VERSION}}'
+
+  download-source:
+    vars:
+      DIR: '{{.OPT_DIR}}/clonalframeml/{{.VERSION}}'
+      URL: https://github.com/xavierdidelot/ClonalFrameML/archive/refs/tags/v{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download source to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+    requires:
+      vars: [OPT_DIR, VERSION]
+    status:
+      - test -f {{.DIR}}/ClonalFrameML-{{.VERSION}}/src/makefile
+
+  compile-source:
+    vars:
+      WDIR: '{{.OPT_DIR}}/clonalframeml/{{.VERSION}}/ClonalFrameML-{{.VERSION}}'
+    dir: '{{.WDIR}}'
+    prompt: Build ClonalFrameML in {{.WDIR}}?
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: cd {{.WDIR}}/src && make
+          MODULE: '{{.GCC_MODULE}} {{.R_MODULE}}'
+    requires:
+      vars: [GCC_MODULE, OPT_DIR, R_MODULE, VERSION]
+    generates:
+      - ./src/ClonalFrameML{{exeExt}}
+      - ./testdata
+    status:
+      - test -f ./src/ClonalFrameML
+      - test -d ./testdata
+  
+  test:
+    internal: true
+    vars:
+      WDIR: '{{.OPT_DIR}}/clonalframeml/{{.VERSION}}/ClonalFrameML-{{.VERSION}}'
+    cmds:
+      - task: test-version
+        vars:
+          WDIR: '{{.WDIR}}'
+          VERSION: '{{.VERSION}}'
+      - task: test-run
+        vars:
+          WDIR: '{{.WDIR}}'
+          MODULES: '{{.GCC_MODULE}} {{.R_MODULE}}'
+    requires:
+      vars: [GCC_MODULE, OPT_DIR, R_MODULE, VERSION]
+
+  test-version: |
+    cd {{.WDIR}} &&
+    [[ $(./src/ClonalFrameML -version) == "ClonalFrameML v{{.VERSION}}" ]] || exit 1
+
+  test-run:
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            cd {{.WDIR}} && 
+            ./src/ClonalFrameML testdata/test.nwk testdata/test.fasta testdata/out
+          MODULE: '{{.MODULES}}'
+    generates:
+      - testdata/out.em.txt
+      - testdata/out.importation_status.txt
+      - testdata/out.labelled_tree.newick
+      - testdata/out.ML_sequence.fasta
+      - testdata/out.position_cross_reference.txt
+    status:
+      - test -f {{.WDIR}}/testdata/out.labelled_tree.newick
