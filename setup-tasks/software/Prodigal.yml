@@ -1,0 +1,81 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install prodigal
+    platforms: [linux/amd64]
+    summary: |
+      Install prodigal
+
+        Prodigal Gene Prediction Software
+      
+      Fast, reliable protein-coding gene prediction for prokaryotic genomes.
+
+      URLs
+        - [GitHub](https://github.com/soedinglab/prodigal)
+    vars:
+      GCC_MODULE: '{{.GCC_MODULE | default "gcc/14"}}'
+      VERSION: '{{.VERSION | default "2.6.3"}}'
+    cmds:
+      - task: download-binaries
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: build
+        vars:
+          GCC_MODULE: '{{.GCC_MODULE}}'
+          VERSION: '{{.VERSION}}'
+      - task: test
+        vars:
+          DIR: '{{.OPT_DIR}}/prodigal/{{.VERSION}}/bin'
+      - task: group-installs:complete
+        vars:
+          APP: prodigal
+          EXE: prodigal
+          RELPATH_EXE: /bin/
+          VERSION: '{{.VERSION}}'
+
+  download-binaries:
+    vars:
+      DIR: '{{.OPT_DIR}}/prodigal/{{.VERSION}}'
+      URL: https://github.com/hyattpd/Prodigal/archive/refs/tags/v{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download prodigal to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+    requires:
+      vars: [OPT_DIR, VERSION]
+    generates:
+      - ./Prodigal-{{.VERSION}}
+      - ./Prodigal-{{.VERSION}}/Makefile
+    status:
+      - test -f ./Prodigal-{{.VERSION}}/Makefile
+  
+  # NOTE: Bug when specifying custom INSTALLDIR
+  #       Will create a `prodigal` exec in cwd and INSTALLDIR
+  #       If cwd and INSTALLDIR are the same, errors with 
+  #       `install: 'prodigal' and '$(INSTALLDIR)/prodigal' are the same file`
+  #       (see line 44 of Makefile)
+  build:
+    vars:
+      DIR: '{{.OPT_DIR}}/prodigal/{{.VERSION}}'
+    dir: '{{.DIR}}'
+    cmds:
+      - mkdir -p bin
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: cd {{.DIR}}/Prodigal-{{.VERSION}} && make install INSTALLDIR={{.DIR}}/bin
+          MODULE: '{{.GCC_MODULE}}'
+    requires:
+      vars: [GCC_MODULE, VERSION]
+    generates:
+      - ./bin/prodigal
+    status:
+      - test -f ./bin/prodigal
+  
+  test: cd {{.DIR}} && ./prodigal -h >/dev/null 2>&1
