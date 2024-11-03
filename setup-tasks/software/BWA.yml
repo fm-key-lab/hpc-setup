@@ -54,8 +54,9 @@ tasks:
       vars: [OPT_DIR, VERSION]
     generates:
       - ./bwa-{{.VERSION}}
-    status:
-      - test -d ./bwa-{{.VERSION}}
+    # TODO: Must use another status check, otherwise a dry-run of build will satisfy this task
+    # status:
+    #   - test -d ./bwa-{{.VERSION}}
   
   build:
     dir: '{{.DIR}}'

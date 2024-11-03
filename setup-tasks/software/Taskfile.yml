@@ -29,6 +29,8 @@ includes:
   ncurses: ./Ncurses.yml
   nextflow: ./Nextflow.yml
   plass-penguin: ./Plass-PenguiN.yml
+  prodigal: ./Prodigal.yml
+  prokka: ./Prokka.yml
   python: ./Python.yml
   raxml-ng: ./RAxML-NG.yml
   rust: ./Rust.yml
@@ -70,6 +72,8 @@ tasks:
     - task: ncurses
     - task: nextflow
     - task: plass-penguin
+    - task: prodigal
+    - task: prokka
     - task: python
     - task: raxml-ng
     - task: rust
@@ -225,6 +229,16 @@ tasks:
     - task: plass-penguin:install
       vars:
         VERSION: '{{.VERSION | default "5-cf8933"}}'
+
+  prodigal:
+    - task: prodigal:install
+      vars:
+        VERSION: '{{.VERSION | default "2.6.3"}}'
+
+  prokka:
+    - task: prokka:install
+      vars:
+        VERSION: '{{.VERSION | default "1.14.6"}}'
 
   python:
     desc: Install Python
