@@ -52,7 +52,7 @@ tasks:
   download-prebuilt:
     vars:
       DIR: '{{.OPT_DIR}}/vg/{{.VERSION}}'
-      URL: 'https://github.com/vgteam/vg/releases/download/v1.60.0/vg'
+      URL: 'https://github.com/vgteam/vg/releases/download/v{{.VERSION}}/vg'
     dir: '{{.DIR}}'
     prompt: Download vg to {{.DIR}}?
     cmds:
