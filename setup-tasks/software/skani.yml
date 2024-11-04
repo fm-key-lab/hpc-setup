@@ -1,0 +1,104 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install skani
+    summary: |
+      Install skani
+
+        Fast, robust ANI and aligned fraction for (metagenomic) genomes and contigs.
+      
+      skani is a program for calculating average nucleotide identity (ANI) and 
+      aligned fraction (AF) for DNA sequences (contigs/MAGs/genomes) and ANI > ~80%.
+
+      skani uses an approximate mapping method without base-level alignment to 
+      get ANI. It is magnitudes faster than BLAST-based methods and almost as accurate. 
+
+      URLs
+        - [GitHub](https://github.com/bluenote-1577/skani)
+    vars:
+      GCC_MODULE: '{{.GCC_MODULE | default "gcc/14"}}'
+      MODULEFILE: '{{.GROUP_MODULEFILES}}/skani/{{.VERSION}}'
+      RUST_MODULE: '{{.RUST_MODULE | default "rust/1.81.0"}}'
+      VERSION: '{{.VERSION | default "0.2.2"}}'
+    cmds:
+      - task: download
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: build
+        vars:
+          GCC_MODULE: '{{.GCC_MODULE}}'
+          RUST_MODULE: '{{.RUST_MODULE}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:write-modulefile-stub
+        vars:
+          APP: skani
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: /.cargo/bin/
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE: '{{.MODULEFILE}}'
+          MODULEFILE_LINES: [
+            '',
+            'depends-on {{.RUST_MODULE}}',
+            'setenv --set-if-undef RUSTUP_HOME   $env(GROUP_HOME)/opt/{{.RUST_MODULE}}',
+            'setenv --set-if-undef CARGO_HOME    $env(GROUP_HOME)/opt/skani/{{.VERSION}}',
+          ]
+      - task: test
+        vars:
+          VERSION: '{{.VERSION}}'
+    status:
+      # TODO: Temp
+      - test -f {{.MODULEFILE}}
+
+  download:
+    vars:
+      DIR: '{{.OPT_DIR}}/skani/{{.VERSION}}'
+      URL: https://github.com/bluenote-1577/skani/archive/refs/tags/v{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download skani to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+    requires:
+      vars: [OPT_DIR, VERSION]
+    generates:
+      - ./skani-{{.VERSION}}
+    status:
+      - test -d ./skani-{{.VERSION}}
+  
+  build:
+    vars:
+      DIR: '{{.OPT_DIR}}/skani/{{.VERSION}}'
+    dir: '{{.DIR}}'
+    cmds:
+      - mkdir -p {{.DIR}}/.cargo
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}}/skani-{{.VERSION}}
+            cargo install --path . --root {{.DIR}}/.cargo
+          MODULE: '{{.GCC_MODULE}} {{.RUST_MODULE}}'
+    requires:
+      vars: [GCC_MODULE, OPT_DIR, RUST_MODULE, VERSION]
+    generates:
+      - ./.cargo/bin
+      - ./.cargo/bin/skani
+    status:
+      - test -d ./.cargo/bin
+      - test -f ./.cargo/bin/skani
+  
+  test:
+    internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: skani -h >/dev/null 2>&1
+          MODULE: 'skani/{{.VERSION}}'
+    requires:
+      vars: [VERSION]

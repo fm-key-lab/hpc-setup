@@ -1,0 +1,78 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install Seqtk
+    platforms: [linux/amd64]
+    summary: |
+      Install Seqtk
+
+        Toolkit for processing sequences in FASTA/Q formats
+      
+      Seqtk is a fast and lightweight tool for processing sequences in the 
+      FASTA or FASTQ format. It seamlessly parses both FASTA and FASTQ 
+      files which can also be optionally compressed by gzip. 
+
+      URLs
+        - [GitHub](https://github.com/lh3/seqtk)
+    vars:
+      GCC_MODULE: '{{.GCC_MODULE | default "gcc/14"}}'
+      VERSION: '{{.VERSION | default "1.4"}}'
+    cmds:
+      - task: download
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: build
+        vars:
+          GCC_MODULE: '{{.GCC_MODULE}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: seqtk
+          EXE: seqtk
+          RELPATH_EXE: /bin/
+          VERSION: '{{.VERSION}}'
+
+  download:
+    vars:
+      DIR: '{{.OPT_DIR}}/seqtk/{{.VERSION}}'
+      URL: https://github.com/lh3/seqtk/archive/refs/tags/v{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download Seqtk to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+    requires:
+      vars: [OPT_DIR, VERSION]
+    generates:
+      - ./seqtk-{{.VERSION}}
+    status:
+      - test -d ./seqtk-{{.VERSION}}
+
+  # NOTE: creating a bin and using `make install` not needed
+  build:
+    vars:
+      DIR: '{{.OPT_DIR}}/seqtk/{{.VERSION}}'
+    dir: '{{.DIR}}'
+    cmds:
+      - mkdir -p bin
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}}/seqtk-{{.VERSION}}
+            make 
+            make install BINDIR="{{.DIR}}/bin"
+          MODULE: '{{.GCC_MODULE}}'
+    requires:
+      vars: [GCC_MODULE, OPT_DIR, VERSION]
+    generates:
+      - ./bin/seqtk
+    status:
+      - test -f ./bin/seqtk
+
+  test: cd {{.DIR}} && ./seqtk --help >/dev/null 2>&1

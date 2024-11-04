@@ -38,6 +38,8 @@ includes:
   samtools-legacy: ./SAMtools-legacy.yml
   samtools-bcftools-htslib: ./SAMtools-bcftools-htslib.yml
   seqkit: ./SeqKit.yml
+  seqtk: ./Seqtk.yml
+  skani: ./skani.yml
   snakemake: ./Snakemake.yml
   snpsites: ./SNPsites.yml
   srst2: ./SRST2.yml
@@ -83,6 +85,8 @@ tasks:
     - task: samtools-legacy
     - task: samtools-bcftools-htslib
     - task: seqkit
+    - task: seqtk
+    - task: skani
     - task: snakemake
     - task: snpsites
     - task: srst2
@@ -288,6 +292,16 @@ tasks:
     - task: seqkit:install
       vars:
         VERSION: '{{.VERSION | default "2.9.0"}}'
+
+  seqtk:
+    - task: seqtk:install
+      vars:
+        VERSION: '{{.VERSION | default "1.4"}}'
+
+  skani:
+    - task: skani:install
+      vars:
+        VERSION: '{{.VERSION | default "0.2.2"}}'
 
   snakemake:
     - task: snakemake:install

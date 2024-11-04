@@ -30,12 +30,11 @@ tasks:
           RELPATH_EXE: /
           VERSION: '{{.VERSION}}'
 
-  # NOTE: Use binaries for systems supporting AVX2 (SSE4.1 support would also work)
   download-static-binaries:
     platforms: [linux/amd64]
     vars:
       DIR: '{{.OPT_DIR}}/seqkit/{{.VERSION}}'
-      URL: https://github.com/shenwei356/seqkit/releases/download/v2.9.0/seqkit_linux_amd64.tar.gz
+      URL: https://github.com/shenwei356/seqkit/releases/download/v{{.VERSION}}/seqkit_linux_amd64.tar.gz
     dir: '{{.DIR}}'
     prompt: Download seqkit to {{.DIR}}?
     cmds:
