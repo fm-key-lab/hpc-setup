@@ -1,0 +1,132 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install QUAST
+    summary: |
+      Install QUAST
+
+        Genome assembly evaluation tool
+      
+      QUAST stands for QUality ASsessment Tool. It evaluates genome/metagenome 
+      assemblies by computing various metrics. The current QUAST toolkit 
+      includes the general QUAST tool for genome assemblies, MetaQUAST, the 
+      extension for metagenomic datasets, QUAST-LG, the extension for large 
+      genomes (e.g., mammalians), and Icarus, the interactive visualizer for 
+      these tools.
+
+      The QUAST package works both with and without reference genomes. However, 
+      it is much more informative if at least a close reference genome is 
+      provided along with the assemblies. The tool accepts multiple assemblies, 
+      thus is suitable for comparison.
+
+      URLs
+        - [GitHub](https://github.com/ablab/quast)
+        - [Docs](http://quast.sf.net/manual.html)
+    vars:
+      # TODO: Sort out dependencies via Taskfile deps:
+      GCC_MODULE: '{{.GCC_MODULE | default "gcc/14"}}'
+      JAVA_MODULE: '{{.JAVA_MODULE | default "jdk/21"}}'
+      MODULEFILE: '{{.GROUP_MODULEFILES}}/quast/{{.VERSION}}'
+      PERL_MODULE: '{{.PERL_MODULE | default "perl/5.40.0"}}'
+      PYTHON_VERSION: '{{.PYTHON_VERSION | default "3.12.4"}}'
+      R_MODULE: '{{.R_MODULE | default "R/4.4"}}'
+      UV_VERSION: '{{.UV_VERSION | default "0.2.34"}}'
+      VERSION: '{{.VERSION | default "5.2.0"}}'
+    cmds:
+      - task: create-virtual-environment
+        vars:
+          PYTHON_VERSION: '{{.PYTHON_VERSION}}'
+          UV_VERSION: '{{.UV_VERSION}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:write-modulefile-stub
+        vars:
+          APP: quast
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: /.venv/bin/
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE: '{{.MODULEFILE}}'
+          MODULEFILE_LINES: [
+            '',
+            'depends-on {{.GCC_MODULE}}',
+            'depends-on {{.JAVA_MODULE}}',
+            'depends-on {{.PERL_MODULE}}',
+            'depends-on {{.R_MODULE}}',
+          ]
+      - task: test
+        vars:
+          VERSION: '{{.VERSION}}'
+    requires:
+      vars: [GROUP_MODULEFILES]
+    status:
+      # TODO: Temp
+      - test -f {{.MODULEFILE}}
+
+  create-virtual-environment:
+    vars:
+      DIR: '{{.OPT_DIR}}/quast/{{.VERSION}}'
+    dir: '{{.DIR}}'
+    cmds:
+      - task: utils:venv:create
+        vars:
+          # NOTE: For python>=3.12, missing distutils dep
+          # NOTE: Optional dep matplotlib, "WARNING: Can't draw plots: python-matplotlib is missing or corrupted."
+          INSTALL: quast=={{.VERSION}} matplotlib setuptools
+          PREFIX: '{{.DIR}}'
+          PYTHON: '{{.OPT_DIR}}/python/{{.PYTHON_VERSION}}/bin/python'
+    requires:
+      vars: [OPT_DIR, PYTHON_VERSION, UV_VERSION, VERSION]
+    generates:
+      - ./.venv
+      - ./.venv/bin
+    status:
+      - test -f ./.venv/bin/activate
+  
+  test:
+    vars:
+      DIR: '{{.OPT_DIR}}/quast/{{.VERSION}}'
+      URL: https://github.com/ablab/quast/releases/download/quast_{{.VERSION}}/quast-{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    cmds:
+      - task: download-test-data
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}}
+            quast.py test_data/contigs_1.fasta \
+              test_data/contigs_2.fasta \
+              --threads 2 \
+              -r test_data/reference.fasta.gz \
+              -g test_data/genes.gff
+          MODULE: 'quast/{{.VERSION}}'
+    requires:
+      vars: [OPT_DIR, VERSION]
+    generates:
+      - ./quast_results
+    status:
+      - test -d ./quast_results
+
+  download-test-data:
+    vars:
+      DIR: '{{.OPT_DIR}}/quast/{{.VERSION}}'
+      URL: https://github.com/ablab/quast/releases/download/quast_{{.VERSION}}/quast-{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+      - defer: rm -rf quast-{{.VERSION}}
+      - mv quast-{{.VERSION}}/test_data .
+    requires:
+      vars: [OPT_DIR, VERSION]
+    generates:
+      - ./test_data
+    status:
+      - test -d ./test_data

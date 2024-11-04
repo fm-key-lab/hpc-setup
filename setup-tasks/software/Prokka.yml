@@ -16,7 +16,6 @@ includes:
 tasks:
   install:
     desc: Install Prokka
-    platforms: [linux/amd64]
     summary: |
       Install Prokka
 

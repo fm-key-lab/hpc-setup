@@ -83,10 +83,17 @@ tasks:
       - task: trim-whitespace
         vars:
           FN: '{{.MODULEFILE}}'
+      - task: replace-group-home
+        vars:
+          DIR:
+            sh: echo $GROUP_HOME
+          FN: '{{.MODULEFILE}}'
     requires:
       vars: [MODULEFILE_LINES, MODULEFILE]
 
   trim-whitespace: sed -i 's/[ \t]*$//' {{.FN}}
+
+  replace-group-home: sed -i 's|{{.DIR}}|$GROUP_HOME|g' {{.FN}}
 
   # TODO: Deprecate
   create-apptainer:

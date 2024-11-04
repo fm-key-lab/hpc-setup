@@ -26,8 +26,9 @@ tasks:
   run-installer-script:
     deps:
       - task: rust:install
+        # TODO: Incorrectly parsed
         vars:
-          VERSION: '{{.RUST_VERSION}}'
+          VERSION: '{{.RUST_VERSION | default "1.82.0"}}'
     vars:
       DIR: '{{.OPT_DIR}}/uv/{{.VERSION}}'
       URL: https://astral.sh/uv/{{.VERSION}}/install.sh

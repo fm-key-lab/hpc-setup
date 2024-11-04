@@ -32,6 +32,7 @@ includes:
   prodigal: ./Prodigal.yml
   prokka: ./Prokka.yml
   python: ./Python.yml
+  quast: ./QUAST.yml
   raxml-ng: ./RAxML-NG.yml
   rust: ./Rust.yml
   samtools-legacy: ./SAMtools-legacy.yml
@@ -75,6 +76,7 @@ tasks:
     - task: prodigal
     - task: prokka
     - task: python
+    - task: quast
     - task: raxml-ng
     - task: rust
     - task: samtools-legacy
@@ -253,6 +255,11 @@ tasks:
         task: python:install
         vars:
           VERSION: '{{.ITEM}}'
+
+  quast:
+    - task: quast:install
+      vars:
+        VERSION: '{{.VERSION | default "5.2.0"}}'
 
   raxml-ng:
     - task: raxml-ng:install
