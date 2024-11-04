@@ -37,6 +37,7 @@ includes:
   rust: ./Rust.yml
   samtools-legacy: ./SAMtools-legacy.yml
   samtools-bcftools-htslib: ./SAMtools-bcftools-htslib.yml
+  seqkit: ./SeqKit.yml
   snakemake: ./Snakemake.yml
   snpsites: ./SNPsites.yml
   srst2: ./SRST2.yml
@@ -81,6 +82,7 @@ tasks:
     - task: rust
     - task: samtools-legacy
     - task: samtools-bcftools-htslib
+    - task: seqkit
     - task: snakemake
     - task: snpsites
     - task: srst2
@@ -281,6 +283,11 @@ tasks:
       vars:
         NCURSES_VERSION: '{{.NCURSES_VERSION | default "6.5"}}'
         VERSION: '{{.VERSION | default "0.1.18"}}'
+
+  seqkit:
+    - task: seqkit:install
+      vars:
+        VERSION: '{{.VERSION | default "2.9.0"}}'
 
   snakemake:
     - task: snakemake:install

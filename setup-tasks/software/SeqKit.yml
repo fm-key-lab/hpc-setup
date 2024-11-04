@@ -1,0 +1,52 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+
+tasks:
+  install:
+    desc: Install SeqKit
+    summary: |
+      Install SeqKit
+
+        A cross-platform and ultrafast toolkit for FASTA/Q file manipulation
+
+      URLs
+        - [GitHub](https://github.com/shenwei356/seqkit)
+        - [Docs](https://bioinf.shenwei.me/seqkit)
+    vars:
+      VERSION: '{{.VERSION | default "2.9.0"}}'
+    cmds:
+      - task: download-static-binaries
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: test
+        vars:
+          DIR: '{{.OPT_DIR}}/seqkit/{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: seqkit
+          EXE: seqkit
+          RELPATH_EXE: /
+          VERSION: '{{.VERSION}}'
+
+  # NOTE: Use binaries for systems supporting AVX2 (SSE4.1 support would also work)
+  download-static-binaries:
+    platforms: [linux/amd64]
+    vars:
+      DIR: '{{.OPT_DIR}}/seqkit/{{.VERSION}}'
+      URL: https://github.com/shenwei356/seqkit/releases/download/v2.9.0/seqkit_linux_amd64.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download seqkit to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+    requires:
+      vars: [OPT_DIR, VERSION]
+    generates:
+      - ./seqkit
+    status:
+      - test -f ./seqkit
+  
+  test: cd {{.DIR}} && ./seqkit --help >/dev/null 2>&1
