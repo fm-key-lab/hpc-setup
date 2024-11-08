@@ -44,6 +44,7 @@ includes:
   snpsites: ./SNPsites.yml
   srst2: ./SRST2.yml
   taskfile: ./Task.yml
+  taxpasta: ./taxpasta.yml
   tinytex: ./TinyTex.yml
   uv: ./uv.yml
   vg: ./vg.yml
@@ -91,6 +92,7 @@ tasks:
     - task: snpsites
     - task: srst2
     - task: taskfile
+    - task: taxpasta
     - task: tinytex
     - task: uv
     - task: vcf2parquet
@@ -325,6 +327,11 @@ tasks:
     - task: taskfile:install
       vars:
         VERSION: '{{.VERSION | default "3.39.2"}}'
+
+  taxpasta:
+    - task: taxpasta:install
+      vars:
+        VERSION: '{{.VERSION | default "0.7.0"}}'
 
   tinytex:
     - task: tinytex:install

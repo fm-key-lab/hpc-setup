@@ -1,0 +1,75 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install taxpasta
+    summary: |
+      Install taxpasta
+
+        TAXnomic Profile Aggregation and STAndardisation
+      
+      The main purpose of taxpasta is to standardise taxonomic profiles created 
+      by a range of bioinformatics tools. We call those tools taxonomic 
+      profilers. They each come with their own particular tabular output format. 
+      Across the profilers, relative abundances can be reported in read counts, 
+      fractions, or percentages, as well as any number of additional columns 
+      with extra information. We therefore decided to take the lessons learnt 
+      to heart and provide our own solution to deal with this pasticcio. With 
+      taxpasta you can ingest all of those formats and, at a minimum, output 
+      taxonomy identifiers and their integer counts. Taxpasta can not only 
+      standardise profiles but also merge them across samples for the same 
+      profiler into a single table.
+
+      URLs
+        - [GitHub](https://github.com/taxprofiler/taxpasta)
+        - [Docs](https://taxpasta.readthedocs.io)
+    vars:
+      PYTHON_VERSION: '{{.PYTHON_VERSION | default "3.12.4"}}'
+      UV_VERSION: '{{.UV_VERSION | default "0.2.34"}}'
+      VERSION: '{{.VERSION | default "0.7.0"}}'
+    cmds:
+      - task: create-virtual-environment
+        vars:
+          PYTHON_VERSION: '{{.PYTHON_VERSION}}'
+          UV_VERSION: '{{.UV_VERSION}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:write-modulefile-stub
+        vars:
+          APP: taxpasta
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: /.venv/bin/
+      - task: test
+        vars:
+          VERSION: '{{.VERSION}}'
+
+  create-virtual-environment:
+    vars:
+      DIR: '{{.OPT_DIR}}/taxpasta/{{.VERSION}}'
+    dir: '{{.DIR}}'
+    cmds:
+      - task: utils:venv:create
+        vars:
+          INSTALL: taxpasta[all]=={{.VERSION}}
+          PREFIX: '{{.DIR}}'
+          PYTHON: '{{.OPT_DIR}}/python/{{.PYTHON_VERSION}}/bin/python'
+    requires:
+      vars: [OPT_DIR, PYTHON_VERSION, UV_VERSION, VERSION]
+    generates:
+      - ./.venv
+      - ./.venv/bin
+    status:
+      - test -f ./.venv/bin/activate
+
+  test:
+    internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: taxpasta -h >/dev/null 2>&1
+          MODULE: 'taxpasta/{{.VERSION}}'
+    requires:
+      vars: [VERSION]

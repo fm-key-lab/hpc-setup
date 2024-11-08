@@ -11,8 +11,8 @@ tasks:
     summary: |
       Install a Tex compiler
 
-      Check here for latest release:
-      https://github.com/rstudio/tinytex-releases
+      URLs
+        - [Latest release](https://github.com/rstudio/tinytex-releases)
     vars:
       VERSION: '{{.VERSION | default "2024.07.03"}}'
       MODULEFILE: '{{.GROUP_MODULEFILES}}/tinytex/{{.VERSION}}'
@@ -26,10 +26,14 @@ tasks:
           EXE: latexmk pdflatex bibtex tlmgr
           RELPATH_EXE: /.TinyTeX/bin/x86_64-linux/
           VERSION: '{{.VERSION}}'
-      - task: append-modulefile
+      - task: group-installs:append-modulefile
         vars:
           MODULEFILE: '{{.MODULEFILE}}'
-          VERSION: '{{.VERSION}}'
+          MODULEFILE_LINES: [
+            '',
+            'prepend-path PATH "${basedir}/tinytex/{{.VERSION}}/.TinyTeX/bin/x86_64-linux/"',
+            'prepend-path LD_LIBRARY_PATH "${basedir}/tinytex/{{.VERSION}}/bin/x86_64-linux/"',
+          ]
       - task: install-latex-packages
         vars:
           VERSION: '{{.VERSION}}'
@@ -81,16 +85,3 @@ tasks:
       vars: [PACKAGE, VERSION]
     status:
       - test -d {{.DIR}}/.TinyTeX/texmf-dist/tex/latex/{{.PACKAGE}}
-  
-  append-modulefile:
-    vars:
-      MODULEFILE_LINES: [
-        '',
-        'prepend-path PATH "${basedir}/tinytex/{{.VERSION}}/.TinyTeX/bin/x86_64-linux/"',
-        'prepend-path LD_LIBRARY_PATH "${basedir}/tinytex/{{.VERSION}}/bin/x86_64-linux/"',
-      ]
-    cmds:
-      - for: { var: MODULEFILE_LINES }
-        cmd: echo -e '{{.ITEM}}' >> {{.MODULEFILE}}
-    requires:
-      vars: [MODULEFILE, VERSION]
