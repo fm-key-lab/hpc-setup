@@ -1,0 +1,42 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+
+tasks:
+  install:
+    desc: Install GitHub CLI tool
+    summary: |
+      Install GitHub CLI tool
+    vars:
+      VERSION: '{{.VERSION | default "2.61.0"}}'
+    cmds:
+      - task: download-precompiled-binary
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: gh
+          VERSION: '{{.VERSION}}'
+          EXE: gh
+          RELPATH_EXE: /gh_{{.VERSION}}_linux_amd64/bin/
+
+  download-precompiled-binary:
+    platforms: [linux/amd64]
+    vars:
+      DIR: '{{.OPT_DIR}}/gh/{{.VERSION}}'
+      URL: https://github.com/cli/cli/releases/download/v2.61.0/gh_2.61.0_linux_amd64.tar.gz
+    dir: '{{.DIR}}'
+    prompt: 'Download GitHub CLI tool to {{.DIR}}?'
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+    requires:
+      vars: [OPT_DIR, VERSION]
+    generates:
+      - ./gh_{{.VERSION}}_linux_amd64
+      - ./gh_{{.VERSION}}_linux_amd64/bin
+      - ./gh_{{.VERSION}}_linux_amd64/bin/gh
+    status:
+      - test -f ./gh_{{.VERSION}}_linux_amd64/bin/gh

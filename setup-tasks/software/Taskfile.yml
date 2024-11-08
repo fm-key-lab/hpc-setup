@@ -28,6 +28,7 @@ includes:
   csvkit: ./csvkit.yml
   dbt: ./dbt-DuckDB.yml
   duckdb: ./DuckDB.yml
+  gh: ./GitHubCLI.yml
   jq: ./jq.yml
   kraken2: ./Kraken2.yml
   megahit: ./MEGAHIT.yml
@@ -77,6 +78,7 @@ tasks:
     - task: csvkit
     - task: dbt
     - task: duckdb
+    - task: gh
     - task: jq
     - task: kraken2
     - task: megahit
@@ -201,6 +203,11 @@ tasks:
       vars:
         VERSION: '{{.VERSION | default "1.1.2"}}'
     - task: duckdb:install-nightly
+
+  gh:
+    - task: gh:install
+      vars:
+        VERSION: '{{.VERSION | default "2.61.0"}}'
 
   jq:
     - task: jq:install
