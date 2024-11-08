@@ -1,0 +1,80 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install dbt Core
+    summary: |
+      Install dbt Core
+
+      URLs
+        - [GitHub](https://github.com/dbt-labs/jaffle_shop_duckdb)
+        - [Docs](https://docs.getdbt.com/guides/manual-install)
+    vars:
+      VERSION: '{{.VERSION | default "1.8.1"}}'
+    cmds:
+      - task: create-virtual-environment
+        vars:
+          PYTHON: '{{.PYTHON}}'
+          UV_MODULE: '{{.UV_MODULE}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:write-modulefile-stub
+        vars:
+          APP: dbt
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: /.venv/bin/
+      - task: test
+        vars:
+          VERSION: '{{.VERSION}}'
+    requires:
+      vars: [PYTHON, UV_MODULE]
+
+  create-virtual-environment:
+    vars:
+      DIR: '{{.OPT_DIR}}/dbt/{{.VERSION}}'
+    dir: '{{.DIR}}'
+    cmds:
+      - task: get-requirements-txt
+        vars:
+          DIR: '{{.DIR}}'
+      - task: utils:venv:create
+        vars:
+          INSTALL: -r {{.DIR}}/requirements.txt
+          PREFIX: '{{.DIR}}'
+          PYTHON: '{{.PYTHON}}'
+          UV_MODULE: '{{.UV_MODULE}}'
+    requires:
+      vars: [OPT_DIR, PYTHON, UV_MODULE, VERSION]
+    generates:
+      - ./.venv
+      - ./.venv/bin
+    status:
+      - test -f ./.venv/bin/activate
+  
+  get-requirements-txt:
+    vars:
+      REPO: https://github.com/dbt-labs/jaffle_shop_duckdb.git
+    dir: '{{.DIR}}'
+    cmds:
+      - git clone '{{.REPO}}'
+      - defer: rm -rf jaffle_shop_duckdb
+      - mv jaffle_shop_duckdb/requirements.txt .
+    requires:
+      vars: [DIR]
+    generates:
+      - ./requirements.txt
+    status:
+      - test -f ./requirements.txt
+
+  test:
+    internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: python -c "import dbt"
+          MODULE: 'dbt/{{.VERSION}}'
+    requires:
+      vars: [VERSION]
