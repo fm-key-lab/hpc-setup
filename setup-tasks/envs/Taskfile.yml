@@ -2,10 +2,14 @@ version: '3'
 
 vars:
   GROUP_VENVS: '{{.GROUP_HOME}}/envs/venv'
+  UV: '{{.OPT_DIR}}/uv/0.2.34/bin/uv'
 
 includes:
   utils: ../../lab-tasks
   install: ../software
+
+  # uv envs
+  data-pipeline: ./DataPipeline.yml
   python-packaging: ./PythonPackaging.yml
   sandbox: ./Sandbox.yml
 
@@ -19,6 +23,7 @@ tasks:
       - task: install:python
       - task: install:uv
     cmds:
+      - task: data-pipeline:create
       - task: python-packaging:create
       - task: sandbox:create
   

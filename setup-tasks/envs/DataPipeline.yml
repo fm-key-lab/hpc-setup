@@ -1,0 +1,65 @@
+version: '3'
+
+includes:
+  group-envs: ../utils/GroupEnvs.yml
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  create:
+    vars:
+      NAME: data_pipeline
+      PYTHON_VERSION: '{{.PYTHON_VERSION | default "3.12.4"}}'
+      VERSION: '{{.VERSION | default "0.0.1-alpha"}}'
+    cmds:
+      - task: utils:venv:create
+        vars:
+          INSTALL: -r '{{.ROOT_DIR}}/setup-tasks/envs/{{.NAME}}-requirements.in'
+          PREFIX: '{{.GROUP_VENVS}}/{{.NAME}}'
+          PYTHON: '{{.OPT_DIR}}/python/{{.PYTHON_VERSION}}/bin/python'
+      - task: group-installs:write-env-modulefile-stub
+        vars:
+          NAME: '{{.NAME}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/data_pipeline/{{.VERSION}}'
+          MODULEFILE_LINES: [
+            '',
+            'conflict dbt',
+            'conflict duckdb',
+          ]
+      - task: test
+        vars:
+          MODULE: '{{.NAME}}/{{.VERSION}}'
+      - task: group-envs:uv-pip-compile
+        vars:
+          DIR: '{{.TASKFILE_DIR}}'
+          IN: '{{.NAME}}-requirements.in'
+          OUT: '{{.NAME}}-requirements.txt'
+    requires:
+      vars: [GROUP_MODULEFILES, GROUP_VENVS, OPT_DIR]
+    generates:
+      - '{{.TASKFILE_DIR}}/{{.NAME}}-requirements.txt'
+
+  test:
+    internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            python -c """
+            import dagster; print(dagster.__version__)
+            import dagster_duckdb; print(dagster_duckdb.__version__)
+            import duckcli; print(duckcli.__version__)
+            import ibis; print(ibis.__version__)
+            import pandas; print(pandas.__version__)
+            import polars; print(polars.__version__)
+            import pyarrow; print(pyarrow.__version__)
+            import sqlfluff; print(sqlfluff.__version__)
+            """
+            dbt --version
+            dlt --version
+          MODULE: '{{.MODULE}}'
+    requires:
+      vars: [MODULE]

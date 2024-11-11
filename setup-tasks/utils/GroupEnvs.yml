@@ -1,0 +1,17 @@
+version: '3'
+
+vars:
+  GROUP_VENVS: '{{.GROUP_HOME}}/envs/venv'
+  UV: '{{.OPT_DIR}}/uv/0.2.34/bin/uv'
+
+tasks:
+  uv-pip-compile:
+    dir: '{{.DIR}}'
+    cmds:
+      - '{{.UV}} pip compile {{.IN}} -o {{.OUT}}'
+    requires:
+      vars: [DIR, IN, OUT, UV]
+    generates:
+      - ./{{.OUT}}
+    status:
+      - test -f ./{{.OUT}}
