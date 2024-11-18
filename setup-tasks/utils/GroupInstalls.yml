@@ -7,6 +7,8 @@ vars:
   GROUP_CONTAINERS: '{{.GROUP_HOME}}/containers'
   GROUP_MODULEFILES: '{{.GROUP_HOME}}/Modules/modulefiles'
 
+  RUST_MODULE: rust
+
 includes:
   utils: ../../lab-tasks
 
@@ -106,3 +108,25 @@ tasks:
           MODULE: '{{.APPTAINER_MODULE}}'
     requires:
       vars: [APPTAINER_MODULE, DEFINITION_FILE, IMAGE_NAME]
+
+  # TODO: Abstract this to work with `skani`
+  install-with-cargo:
+    desc: Group installs using cargo
+    internal: true
+    vars:
+      DIR: '{{.OPT_DIR}}/{{.APP}}/{{.VERSION}}'
+    dir: '{{.DIR}}'
+    prompt: 'Cargo install {{.APP}} with `--root {{.DIR}}/.cargo`?'
+    cmds:
+      - mkdir -p .cargo
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: cargo install --root {{.DIR}}/.cargo --version {{.VERSION}} {{.APP}}
+          MODULE: '{{.RUST_MODULE}}'
+    requires:
+      vars: [APP, OPT_DIR, RUST_MODULE, VERSION]
+    generates:
+      - ./.cargo/bin
+    status:
+      - test -d ./.cargo/bin
+      - test -f ./.cargo/bin/{{.APP}}

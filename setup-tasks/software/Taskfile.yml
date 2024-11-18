@@ -30,6 +30,7 @@ includes:
   dbt: ./dbt-DuckDB.yml
   duckdb: ./DuckDB.yml
   gh: ./GitHubCLI.yml
+  hyperfine: ./hyperfine.yml
   jq: ./jq.yml
   kraken2: ./Kraken2.yml
   megahit: ./MEGAHIT.yml
@@ -81,6 +82,7 @@ tasks:
     - task: dbt
     - task: duckdb
     - task: gh
+    - task: hyperfine
     - task: jq
     - task: kraken2
     - task: megahit
@@ -217,6 +219,11 @@ tasks:
     - task: gh:install
       vars:
         VERSION: '{{.VERSION | default "2.61.0"}}'
+
+  hyperfine:
+    - task: hyperfine:install
+      vars:
+        VERSION: '{{.VERSION | default "1.19.0"}}'
 
   jq:
     - task: jq:install

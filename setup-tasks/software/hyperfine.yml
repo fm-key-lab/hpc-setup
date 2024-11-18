@@ -1,0 +1,50 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install hyperfine
+    summary: |
+      Install hyperfine
+
+        A command-line benchmarking tool
+
+      URLs
+        - [GitHub](https://github.com/sharkdp/hyperfine)
+        - [crates.io](https://crates.io/crates/hyperfine)
+    vars:
+      # TODO: cmdtools version is hard-coded
+      CMDTOOLS_MODULE: 'cmdtools/0.0.1-alpha'
+      LOG: '{{.OPT_DIR}}/hyperfine/{{.VERSION}}/.log'
+      VERSION: '{{.VERSION | default "1.19.0"}}'
+    cmds:
+      - task: group-installs:install-with-cargo
+        vars:
+          APP: hyperfine
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/{{.CMDTOOLS_MODULE}}'
+          MODULEFILE_LINES: [
+            '',
+            'prepend-path PATH "${basedir}/hyperfine/{{.VERSION}}/.cargo/bin"',
+          ]
+      - task: test
+        vars:
+          CMDTOOLS_MODULE: '{{.CMDTOOLS_MODULE}}'
+          LOG: '{{.LOG}}'
+    status:
+      - test -f {{.LOG}}
+  
+  test:
+    internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: hyperfine "sleep 0.3" --show-output >> {{.LOG}}
+          MODULE: '{{.CMDTOOLS_MODULE}}'
+    requires:
+      vars: [CMDTOOLS_MODULE, LOG]
