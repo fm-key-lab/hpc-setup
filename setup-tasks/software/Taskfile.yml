@@ -17,6 +17,7 @@ vars:
   DEFAULT_UV_MODULE: uv
 
 includes:
+  amber: ./AMBER.yml
   bbtools: ./BBTools.yml
   bedtools: ./bedtools.yml
   blast: ./BLAST.yml
@@ -67,6 +68,7 @@ tasks:
     - task: core
 
   all:
+    - task: amber
     - task: bbtools
     - task: bedtools
     - task: blast
@@ -140,6 +142,13 @@ tasks:
     - task: yq
 
   # ~*~
+
+  amber:
+    - task: amber:install
+      vars:
+        PYTHON: '{{.PYTHON | default .DEFAULT_PYTHON}}'
+        UV_MODULE: '{{.UV_MODULE | default .DEFAULT_UV_MODULE}}'
+        VERSION: '{{.VERSION | default "1.0.0"}}'
 
   bbtools:
     - task: bbtools:install

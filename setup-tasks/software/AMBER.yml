@@ -1,0 +1,104 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install AMBER
+    summary: |
+      Install AMBER
+
+      URLs
+        - [GitHub](https://github.com/tvandervalk/AMBER)
+        - [Paper](https://academic.oup.com/bioinformatics/article/40/7/btae436/7705522)
+    vars:
+      # NOTE: Not shipped with version tags
+      VERSION: '{{.VERSION | default "1.0.0"}}'
+    cmds:
+      - task: download-source
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: create-virtual-environment
+        vars:
+          PYTHON: '{{.PYTHON}}'
+          UV_MODULE: '{{.UV_MODULE}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:write-env-modulefile-stub
+        vars:
+          NAME: amber
+          VERSION: '{{.VERSION}}'
+      
+      # TODO: Modulefile tweaked post-creation.
+      #       Fix as part of larger refactor of how 
+      #       venv modulefile stubs are created.
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE_LINES: [
+            '',
+            'set basedir [getenv "MODULE_BASEDIR"]',
+            '',
+            'if { $basedir eq "" } {',
+            '    puts stderr "Error: MODULE_BASEDIR environment variable is not set."',
+            '    exit 1',
+            '}',
+            'prepend-path PATH "${basedir}/amber/{{.VERSION}}"',
+            '',
+          ]
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/amber/{{.VERSION}}'
+      - task: test
+        vars:
+          VERSION: '{{.VERSION}}'
+    requires:
+      vars: [GROUP_MODULEFILES, PYTHON, UV_MODULE]
+
+  download-source:
+    vars:
+      DIR: '{{.OPT_DIR}}/amber/{{.VERSION}}'
+      URL: https://github.com/tvandervalk/AMBER.git
+    dir: '{{.DIR}}'
+    cmds:
+      - git clone {{.URL}}
+      - |
+        cd AMBER
+        chmod +x AMBER
+    requires:
+      vars: [OPT_DIR, VERSION]
+    generates:
+      - ./AMBER
+      - ./AMBER/AMBER
+      - ./AMBER/.git
+      - ./AMBER/LICENSE.md
+      - ./AMBER/README.md
+    status:
+      - test -f ./AMBER/AMBER
+
+  create-virtual-environment:
+    vars:
+      DIR: '{{.OPT_DIR}}/amber/{{.VERSION}}'
+    dir: '{{.DIR}}'
+    cmds:
+      - task: utils:venv:create
+        vars:
+          INSTALL: matplotlib numpy pysam
+          PREFIX: '{{.DIR}}'
+          PYTHON: '{{.PYTHON}}'
+          UV_MODULE: '{{.UV_MODULE}}'
+    requires:
+      vars: [OPT_DIR, PYTHON, UV_MODULE, VERSION]
+    generates:
+      - ./.venv
+      - ./.venv/bin
+    status:
+      - test -f ./.venv/bin/activate
+
+  test:
+    internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: AMBER -h
+          MODULE: 'amber/{{.VERSION}}'
+    requires:
+      vars: [VERSION]
