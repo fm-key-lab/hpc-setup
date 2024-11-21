@@ -14,6 +14,7 @@ vars:
   DEFAULT_PYTHON: '{{.OPT_DIR}}/python/3.12.4/bin/python'
 
   # Environment module defaults
+  DEFAULT_JAVA_MODULE: jdk/21
   DEFAULT_UV_MODULE: uv
 
 includes:
@@ -29,6 +30,7 @@ includes:
   csvkit: ./csvkit.yml
   dbt: ./dbt-DuckDB.yml
   duckdb: ./DuckDB.yml
+  figtree: ./FigTree.yml
   gh: ./GitHubCLI.yml
   hyperfine: ./hyperfine.yml
   jq: ./jq.yml
@@ -81,6 +83,7 @@ tasks:
     - task: csvkit
     - task: dbt
     - task: duckdb
+    - task: figtree
     - task: gh
     - task: hyperfine
     - task: jq
@@ -214,6 +217,11 @@ tasks:
       vars:
         VERSION: '{{.VERSION | default "1.1.2"}}'
     - task: duckdb:install-nightly
+
+  figtree:
+    - task: figtree:install
+      vars:
+        VERSION: '{{.VERSION | default "1.4.5_pre"}}'
 
   gh:
     - task: gh:install
