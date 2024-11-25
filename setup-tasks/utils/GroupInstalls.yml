@@ -75,7 +75,7 @@ tasks:
     status:
       - test -f {{.DIR}}/{{.VERSION}}
 
-  # TODO: Add check for duplicate writes?
+  # TODO: Add check for duplicate writes (e.g. have user pass string to grep as a check)
   # NOTE: A whitespace character is added to the end of each line in case a line ends with an escape (ie '\')
   #       then trimmed off
   append-modulefile:
