@@ -41,6 +41,9 @@ tasks:
             'setenv --set-if-undef NXF_OPTS "-Xms1g -Xmx4g"',
             'setenv --set-if-undef NXF_SINGULARITY_CACHEDIR /ptmp/$env(USER)',
           ]
+      - task: test
+        vars:
+          VERSION: '{{.VERSION}}'
     requires:
       vars: [GROUP_MODULEFILES]
     status:
@@ -99,3 +102,13 @@ tasks:
       vars: [JAVA_MODULE, OPT_DIR, VERSION]
     status:
       - test -f {{.DIR}}/nextflow
+
+  test:
+    internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: nextflow info
+          MODULE: 'nextflow/{{.VERSION}}'
+    requires:
+      vars: [VERSION]
