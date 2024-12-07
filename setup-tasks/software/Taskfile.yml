@@ -30,6 +30,7 @@ includes:
   csvkit: ./csvkit.yml
   dbt: ./dbt-DuckDB.yml
   duckdb: ./DuckDB.yml
+  falco: ./falco.yml
   figtree: ./FigTree.yml
   gh: ./GitHubCLI.yml
   hyperfine: ./hyperfine.yml
@@ -83,6 +84,7 @@ tasks:
     - task: csvkit
     - task: dbt
     - task: duckdb
+    - task: falco
     - task: figtree
     - task: gh
     - task: hyperfine
@@ -217,6 +219,11 @@ tasks:
       vars:
         VERSION: '{{.VERSION | default "1.1.2"}}'
     - task: duckdb:install-nightly
+
+  falco:
+    - task: falco:install
+      vars:
+        VERSION: '{{.VERSION | default "1.2.5"}}'
 
   figtree:
     - task: figtree:install

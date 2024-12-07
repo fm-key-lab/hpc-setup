@@ -1,0 +1,80 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install falco
+    summary: |
+      Install falco
+
+      Urls
+        - [GitHub](https://github.com/smithlabcode/falco)
+    vars:
+      GCC_MODULE: gcc/10
+      JAVA_MODULE: jdk/17.0.10
+      VERSION: '{{.VERSION | default "1.2.5"}}'
+    cmds:
+      - task: download-and-build
+        vars:
+          GCC_MODULE: '{{.GCC_MODULE}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: falco
+          EXE: falco
+          RELPATH_EXE: /falco-{{.VERSION}}/
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/nextflow/{{.VERSION}}'
+          MODULEFILE_LINES: [
+            '',
+            'depends-on {{.JAVA_MODULE}}',
+          ]
+      - task: test
+        vars:
+          VERSION: '{{.VERSION}}'
+    requires:
+      vars: [GROUP_MODULEFILES]
+
+  download-and-build:
+    vars:
+      DIR: '{{.OPT_DIR}}/falco/{{.VERSION}}'
+      URL: https://github.com/smithlabcode/falco/releases/download/v{{.VERSION}}/falco-{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: 'Install falco in {{.DIR}}?'
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}}/falco-{{.VERSION}} &&
+            ./configure CXXFLAGS="-O3 -Wall" --prefix={{.DIR}} &&
+            make all &&
+            make install
+          MODULE: '{{.GCC_MODULE}}'
+    requires:
+      vars: [GCC_MODULE, OPT_DIR, VERSION]
+    generates:
+      - ./falco-{{.VERSION}}/configure
+      - ./falco-{{.VERSION}}/Makefile
+      - ./falco-{{.VERSION}}/README.md
+      - ./falco-{{.VERSION}}/LICENSE
+      - ./falco-{{.VERSION}}/falco
+    status:
+      - test -f ./falco-{{.VERSION}}/falco
+  
+  test:
+    internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: falco --help
+          MODULE: 'falco/{{.VERSION}}'
+    requires:
+      vars: [VERSION]
