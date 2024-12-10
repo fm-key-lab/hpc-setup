@@ -19,6 +19,7 @@ vars:
 
 includes:
   amber: ./AMBER.yml
+  bactopia: ./Bactopia.yml
   bbtools: ./BBTools.yml
   bedtools: ./bedtools.yml
   blast: ./BLAST.yml
@@ -50,6 +51,7 @@ includes:
   python: ./Python.yml
   quast: ./QUAST.yml
   raxml-ng: ./RAxML-NG.yml
+  rig: ./rig.yml
   rust: ./Rust.yml
   samtools-legacy: ./SAMtools-legacy.yml
   samtools-bcftools-htslib: ./SAMtools-bcftools-htslib.yml
@@ -63,6 +65,7 @@ includes:
   taxpasta: ./taxpasta.yml
   tinytex: ./TinyTex.yml
   uv: ./uv.yml
+  vcflib: ./vcflib.yml
   vg: ./vg.yml
   vcf2parquet: ./vcf2parquet.yml
   yq: ./yq.yml
@@ -73,6 +76,7 @@ tasks:
 
   all:
     - task: amber
+    - task: bactopia
     - task: bbtools
     - task: bedtools
     - task: blast
@@ -104,6 +108,7 @@ tasks:
     - task: python
     - task: quast
     - task: raxml-ng
+    - task: rig
     - task: rust
     - task: samtools-legacy
     - task: samtools-bcftools-htslib
@@ -118,6 +123,7 @@ tasks:
     - task: tinytex
     - task: uv
     - task: vcf2parquet
+    - task: vcflib
     - task: vg
     - task: yq
 
@@ -156,6 +162,11 @@ tasks:
         PYTHON: '{{.PYTHON | default .DEFAULT_PYTHON}}'
         UV_MODULE: '{{.UV_MODULE | default .DEFAULT_UV_MODULE}}'
         VERSION: '{{.VERSION | default "1.0.0"}}'
+
+  bactopia:
+    - task: bactopia:install
+      vars:
+        VERSION: '{{.VERSION | default "3.1.0"}}'
 
   bbtools:
     - task: bbtools:install
@@ -330,6 +341,11 @@ tasks:
       vars:
         VERSION: '{{.VERSION | default "1.2.2"}}'
 
+  rig:
+    - task: rig:install
+      vars:
+        VERSION: '{{.VERSION | default "0.7.0"}}'
+
   rust:
     - task: rust:install
       vars:
@@ -405,6 +421,11 @@ tasks:
       vars:
         MICROMAMBA_VERSION: '{{.MICROMAMBA_VERSION | default "2.0.1-0"}}'
         VERSION: '{{.VERSION | default "0.4.1"}}'
+
+  vcflib:
+    - task: vcflib:install
+      vars:
+        VERSION: '{{.VERSION | default "1.0.10"}}'
 
   vg:
     - task: vg:install

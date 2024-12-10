@@ -7,6 +7,7 @@ vars:
   GROUP_CONTAINERS: '{{.GROUP_HOME}}/containers'
   GROUP_MODULEFILES: '{{.GROUP_HOME}}/Modules/modulefiles'
 
+  MAMBA_MODULE: micromamba/2.0.1-0
   RUST_MODULE: rust
 
 includes:
@@ -130,3 +131,20 @@ tasks:
     status:
       - test -d ./.cargo/bin
       - test -f ./.cargo/bin/{{.APP}}
+
+  install-with-mamba:
+    desc: Group installs as mamba env
+    prompt: 'Create mamba environment {{.PREFIX}}?'
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: micromamba create -p {{.PREFIX}} {{.INSTALL}} -y
+          MODULE: '{{.MAMBA_MODULE}}'
+    requires:
+      vars: [INSTALL, MAMBA_MODULE, PREFIX]
+    generates:
+      - '{{.PREFIX}}'
+      - '{{.PREFIX}}/bin'
+    status:
+      - test -d '{{.PREFIX}}/bin'
+
