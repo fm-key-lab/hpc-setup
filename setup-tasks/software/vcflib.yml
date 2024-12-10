@@ -1,0 +1,33 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install vcflib
+    summary: |
+      Install vcflib
+
+      Notes
+        - conda-forge channel required for dep `_openmp_mutex`
+
+      URLs
+        - [GitHub](https://github.com/vcflib/vcflib)
+    vars:
+      VERSION: '{{.VERSION | default "1.0.10"}}'
+    cmds:
+      - task: group-installs:install-with-mamba
+        vars:
+          INSTALL: '-c conda-forge -c bioconda vcflib=={{.VERSION}}'
+          PREFIX: '{{.OPT_DIR}}/vcflib/{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: vcflib
+          EXE: vcfaddinfo vcfannotate vcfcheck vcfdistance vcffilter vcffixup vcfflatten vcfintersect vcfrandomsample vcfstreamsort vcfuniq vcfuniqalleles
+          RELPATH_EXE: '/bin/'
+          VERSION: '{{.VERSION}}'
+    generates:
+      - '{{.OPT_DIR}}/vcflib/1.0.10'
+      - '{{.OPT_DIR}}/vcflib/1.0.10/bin'
