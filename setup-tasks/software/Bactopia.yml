@@ -1,0 +1,51 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install Bactopia
+    summary: |
+      Install Bactopia
+
+      URLs
+        - [Docs](https://bactopia.github.io)
+    vars:
+      NEXTFLOW_MODULE: 'nextflow/24.04.4'
+      VERSION: '{{.VERSION | default "3.1.0"}}'
+    cmds:
+      - task: group-installs:install-with-mamba
+        vars:
+          INSTALL: '-c conda-forge -c bioconda bactopia=={{.VERSION}}'
+          PREFIX: '{{.OPT_DIR}}/bactopia/{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: bactopia
+          EXE: bactopia
+          RELPATH_EXE: '/bin/'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/bactopia/{{.VERSION}}'
+          MODULEFILE_LINES: [
+            '',
+            'depends-on {{.NEXTFLOW_MODULE}}',
+          ]
+      - task: test
+        vars:
+          VERSION: '{{.VERSION}}'
+    generates:
+      - '{{.OPT_DIR}}/bactopia/{{.VERSION}}'
+      - '{{.OPT_DIR}}/bactopia/{{.VERSION}}/bin'
+
+  test:
+    internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: bactopia --help
+          MODULE: 'bactopia/{{.VERSION}}'
+    requires:
+      vars: [VERSION]
