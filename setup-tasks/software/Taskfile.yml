@@ -51,6 +51,7 @@ includes:
   python: ./Python.yml
   quast: ./QUAST.yml
   raxml-ng: ./RAxML-NG.yml
+  renv: ./renv.yml
   rig: ./rig.yml
   rust: ./Rust.yml
   samtools-legacy: ./SAMtools-legacy.yml
@@ -64,6 +65,7 @@ includes:
   taskfile: ./Task.yml
   taxpasta: ./taxpasta.yml
   tinytex: ./TinyTex.yml
+  treemmer: ./Treemmer.yml
   uv: ./uv.yml
   vcflib: ./vcflib.yml
   vg: ./vg.yml
@@ -108,6 +110,7 @@ tasks:
     - task: python
     - task: quast
     - task: raxml-ng
+    - task: renv
     - task: rig
     - task: rust
     - task: samtools-legacy
@@ -121,6 +124,7 @@ tasks:
     - task: taskfile
     - task: taxpasta
     - task: tinytex
+    - task: treemmer
     - task: uv
     - task: vcf2parquet
     - task: vcflib
@@ -341,6 +345,11 @@ tasks:
       vars:
         VERSION: '{{.VERSION | default "1.2.2"}}'
 
+  renv:
+    - task: renv:install
+      vars:
+        VERSION: '{{.VERSION | default "1.0.11"}}'
+
   rig:
     - task: rig:install
       vars:
@@ -409,6 +418,11 @@ tasks:
     - task: tinytex:install
       vars:
         VERSION: '{{.VERSION | default "2024.07.03"}}'
+
+  treemmer:
+    - task: treemmer:install
+      vars:
+        VERSION: '{{.VERSION | default "0.3"}}'
 
   uv:
     - task: uv:install

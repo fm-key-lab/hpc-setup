@@ -7,6 +7,7 @@ vars:
   GROUP_CONTAINERS: '{{.GROUP_HOME}}/containers'
   GROUP_MODULEFILES: '{{.GROUP_HOME}}/Modules/modulefiles'
 
+  APPTAINER_MODULE: apptainer/1.3.2
   MAMBA_MODULE: micromamba/2.0.1-0
   RUST_MODULE: rust
 
@@ -43,7 +44,7 @@ tasks:
   
   # TODO: Move to lab-tasks
   # TODO: Use only major.minor versioning?
-  # TODO: Abstract to combine this with modulefile-stub env task
+  # TODO: Abstract this wrt modulefile-stub env and container tasks
   write-modulefile-stub:
     vars:
       DIR: '{{.GROUP_MODULEFILES}}/{{.APP}}'
@@ -53,7 +54,7 @@ tasks:
     cmds:
       - task: utils:envmodule:run-inside
         vars:
-          CMDS: cd {{.DIR}} && python {{.MODULEFILE_SCRIPT}} --APP {{.APP}} --VERSION {{.VERSION}} --RELPATH_EXE "{{.RELPATH_EXE}}"
+          CMDS: cd {{.DIR}} && python {{.MODULEFILE_SCRIPT}} --APP {{.APP}} --VERSION "{{.VERSION}}" --RELPATH_EXE "{{.RELPATH_EXE}}"
           MODULE: '{{.PYTHON_MODULE}}'
     requires:
       vars: [APP, RELPATH_EXE, VERSION]
@@ -69,10 +70,26 @@ tasks:
     cmds:
       - task: utils:envmodule:run-inside
         vars:
-          CMDS: cd {{.DIR}} && python {{.MODULEFILE_SCRIPT}} --NAME {{.NAME}} --VERSION {{.VERSION}} --template venv
+          CMDS: cd {{.DIR}} && python {{.MODULEFILE_SCRIPT}} --NAME {{.NAME}} --VERSION "{{.VERSION}}" --template venv
           MODULE: '{{.PYTHON_MODULE}}'
     requires:
       vars: [NAME, VERSION]
+    status:
+      - test -f {{.DIR}}/{{.VERSION}}
+
+  write-container-modulefile-stub:
+    vars:
+      DIR: '{{.GROUP_MODULEFILES}}/{{.APP}}'
+      MODULEFILE_SCRIPT: '{{.ROOT_DIR}}/setup-tasks/scripts/write_modulefile.py'
+      PYTHON_MODULE: python-waterboa/2024.06
+    dir: '{{.DIR}}'
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: cd {{.DIR}} && python {{.MODULEFILE_SCRIPT}} --APP {{.APP}} --APPTAINER_MODULE {{.APPTAINER_MODULE}} --CMD {{.CMD}} --FUNC {{.FUNC}} --IMAGE_NAME {{.IMAGE_NAME}} --VERSION "{{.VERSION}}" --template container
+          MODULE: '{{.PYTHON_MODULE}}'
+    requires:
+      vars: [APP, APPTAINER_MODULE, CMD, FUNC, IMAGE_NAME, VERSION]
     status:
       - test -f {{.DIR}}/{{.VERSION}}
 

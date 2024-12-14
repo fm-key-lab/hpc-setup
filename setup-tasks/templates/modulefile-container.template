@@ -1,0 +1,19 @@
+#%Module
+##
+## $APP (v$VERSION)
+
+proc ModulesHelp { } {
+   puts stderr "
+Adds $APP to your path
+Version: $VERSION
+"
+}
+
+module-whatis "Adds $APP to your path\n"
+module-whatis "Provides: $APP <-- should edit to list executables"
+
+depends-on $APPTAINER_MODULE
+
+set-function $FUNC {
+    apptainer --quiet exec --home $$PWD --bind /ptmp,/u,/nexus $$GROUP_HOME/containers/$IMAGE_NAME.sif $CMD "$@"
+}

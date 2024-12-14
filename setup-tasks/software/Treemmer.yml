@@ -1,0 +1,53 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install Treemmer
+    summary: |
+      Install Treemmer
+
+      Treemmer is a Python package that can also be installed using pip/conda/...
+      Here we install using a containerized version from StaPH-B.
+
+      URLs
+        - [GitHub](https://github.com/fmenardo/Treemmer)
+    vars:
+      PYTHON_MODULE: python-waterboa/2024.06
+      VERSION: '{{.VERSION | default "0.3"}}'
+    cmds:
+      - task: utils:containers:create-apptainer-from-dockerhub
+        vars:
+          DOCKERFILE: 'staphb/treemmer:{{.VERSION}}'
+      - task: group-installs:write-container-modulefile-stub
+        vars:
+          APP: treemmer
+          CMD: '"python /Treemmer/Treemmer_v{{.VERSION}}.py"'
+          FUNC: treemmer
+          IMAGE_NAME: treemmer
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/treemmer/{{.VERSION}}'
+          MODULEFILE_LINES: [
+            '',
+            'depends-on {{.PYTHON_MODULE}}',
+          ]
+      - task: test
+        vars:
+          VERSION: '{{.VERSION}}'
+    generates:
+      - '{{.GROUP_MODULEFILES}}/treemmer/{{.VERSION}}'
+
+  test:
+    internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: treemmer -h
+          MODULE: 'treemmer/{{.VERSION}}'
+    requires:
+      vars: [VERSION]
