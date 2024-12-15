@@ -1,5 +1,7 @@
 version: '3'
 
+# NOTE: Only works on Raven.
+
 includes:
   group-install: ../utils/GroupInstallTasks.yml
   envmodules: ../../../lab-tasks/tasks/EnvironmentModules.yml

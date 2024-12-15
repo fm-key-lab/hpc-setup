@@ -1,0 +1,53 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install renv
+    summary: |
+      Install renv
+
+      URLs
+        - [Docs](https://rstudio.github.io/renv/articles/renv.html)
+    vars:
+      R_MODULE: R/4.4
+      VERSION: '{{.VERSION | default "1.0.11"}}'
+    cmds:
+      - task: r-install-packages
+        vars:
+          VERSION: '{{.VERSION}}'
+          R_MODULE: '{{.R_MODULE}}'
+
+  # TODO: Add `flexiblas`?
+  r-install-packages:
+    vars:
+      DIR: '{{.OPT_DIR}}/renv/{{.VERSION}}'
+      R_VERSION:
+        sh: echo "{{.R_MODULE}}" |  tr '/' '-'
+    dir: '{{.DIR}}'
+    prompt: Use {{.DIR}}/R/{{.R_VERSION}}/library as renv lib.loc?
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}} && 
+            mkdir -p R/{{.R_VERSION}}/library && 
+            Rscript - <<EOF
+            .libPaths("R/{{.R_VERSION}}/library")
+            options(repos = c(CRAN = "https://cran.rstudio.com/"))
+            install.packages("renv", lib = "R/{{.R_VERSION}}/library")
+            q()
+            EOF
+          MODULE: '{{.R_MODULE}}'
+    requires:
+      vars: [R_MODULE, VERSION]
+    generates:
+      - ./R/{{.R_VERSION}}/library
+      - ./R/{{.R_VERSION}}/library/renv
+      - ./R/{{.R_VERSION}}/library/renv/bin
+      - ./R/{{.R_VERSION}}/library/renv/bin/renv
+    status:
+      - test -f ./R/{{.R_VERSION}}/library/renv/bin/renv

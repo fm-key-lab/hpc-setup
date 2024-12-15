@@ -1,0 +1,123 @@
+version: '3'
+
+vars:
+  JAVA_MODULE: 'jdk/21'
+  MKL_MODULE: 'mkl/2025.0'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install R
+    summary: |
+      Install R
+
+      Notes
+      -----
+       - Here we install and link to MKL libs. For more info, see
+         https://docs.mpcdf.mpg.de/faq/hpc_software.html#interactive-session-on-the-command-line.
+
+      URLs
+      ----
+       - Docs: https://code.visualstudio.com/docs/languages/r
+    vars:
+      VERSION: '{{.VERSION | default "4.4.2"}}'
+    cmds:
+      - task: download-and-compile
+        vars:
+          JAVA_MODULE: '{{.JAVA_MODULE}}'
+          MAJOR_VERSION:
+            sh: echo "{{.VERSION}}" | cut -d "." -f 1
+          MKL_MODULE: '{{.MKL_MODULE}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: R
+          EXE: R Rscript
+          RELPATH_EXE: /R-{{.VERSION}}/bin/
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE_LINES: [
+            '',
+            'depends-on {{.JAVA_MODULE}}',
+            'depends-on {{.MKL_MODULE}}',
+          ]
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/R/{{.VERSION}}'
+      - task: test
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: install-vscode-deps
+        vars:
+          VERSION: '{{.VERSION}}'
+  
+  download-and-compile:
+    platforms: [linux/amd64]
+    vars:
+      DIR: '{{.OPT_DIR}}/R/{{.VERSION}}'
+      URL: https://cloud.r-project.org/src/base/R-{{.MAJOR_VERSION}}/R-{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download R source to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename ${{.URL}})
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}}/R-{{.VERSION}}
+            MKL_LIB_PATH=$MKL_HOME/lib/intel64
+            export LD_LIBRARY_PATH=$MKL_LIB_PATH
+            MKL="-L$MKL_LIB_PATH -I$MKL_HOME/include  -lmkl_intel_lp64 -lmkl_sequential -lmkl_core"
+            ./configure \
+              --prefix=/nexus/posix0/MPIIB-keylab/opt/R/4.4.2 \
+              --with-blas="$MKL" \
+              --with-cairo \
+              --with-lapack \
+              --enable-memory-profiling \
+              --enable-R-shlib \
+              --enable-threads=posix
+            make
+          MODULE: '{{.JAVA_MODULE}} {{.MKL_MODULE}}'
+    requires:
+      vars: [JAVA_MODULE, MAJOR_VERSION, MKL_MODULE, OPT_DIR, VERSION]
+    generates:
+      - ./R-{{.VERSION}}/bin
+      - ./R-{{.VERSION}}/bin/R
+      - ./R-{{.VERSION}}/bin/Rscript
+      - ./R-{{.VERSION}}/include
+      - ./R-{{.VERSION}}/INSTALL
+      - ./R-{{.VERSION}}/lib
+      - ./R-{{.VERSION}}/library
+      - ./R-{{.VERSION}}/modules
+      - ./R-{{.VERSION}}/README
+      - ./R-{{.VERSION}}/share
+      - ./R-{{.VERSION}}/src
+      - ./R-{{.VERSION}}/tests
+      - ./R-{{.VERSION}}/tools
+    status:
+      - test -f ./R-{{.VERSION}}/bin/R
+      - test -f ./R-{{.VERSION}}/bin/Rscript
+
+  test:
+    internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: R --help
+          MODULE: 'R/{{.VERSION}}'
+    requires:
+      vars: [VERSION]
+
+  # TODO: install radian https://github.com/randy3k/radian
+
+  install-vscode-deps:
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: R -e 'install.packages(c("languageserver", "httpgd"), repos = "https://cran.r-project.org/")'
+          MODULE: 'R/{{.VERSION}}'
+    requires:
+      vars: [VERSION]
