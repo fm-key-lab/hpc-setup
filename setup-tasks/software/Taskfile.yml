@@ -26,6 +26,7 @@ vars:
 includes:
   aliendiscover: ./AlienDiscover.yml
   alienremover: ./AlienRemover.yml
+  alientrimmer: ./AlienTrimmer.yml
   amber: ./AMBER.yml
   bactopia: ./Bactopia.yml
   bbtools: ./BBTools.yml
@@ -44,6 +45,7 @@ includes:
   falco: ./falco.yml
   fasta2agp: ./FASTA2AGP.yml
   figtree: ./FigTree.yml
+  flash: ./FLASh.yml
   gh: ./GitHubCLI.yml
   hyperfine: ./hyperfine.yml
   jq: ./jq.yml
@@ -109,6 +111,7 @@ tasks:
     - task: falco
     - task: fasta2agp
     - task: figtree
+    - task: flash
     - task: gh
     - task: hyperfine
     - task: jq
@@ -187,6 +190,11 @@ tasks:
     - task: alienremover:install
       vars:
         VERSION: '{{.VERSION | default "1.0"}}'
+
+  alientrimmer:
+    - task: alientrimmer:install
+      vars:
+        VERSION: '{{.VERSION | default "2.1"}}'
 
   amber:
     - task: amber:install
@@ -287,6 +295,11 @@ tasks:
     - task: figtree:install
       vars:
         VERSION: '{{.VERSION | default "1.4.5_pre"}}'
+
+  flash:
+    - task: flash:install
+      vars:
+        VERSION: '{{.VERSION | default "1.2.11"}}'
 
   gh:
     - task: gh:install

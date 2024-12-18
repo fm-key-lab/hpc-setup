@@ -1,0 +1,71 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install AlienTrimmer
+    summary: |
+      Install AlienTrimmer
+
+      URLs
+        - [GitLab](https://gitlab.pasteur.fr/GIPhy/AlienTrimmer)
+    vars:
+      JAVA_MODULE: jdk/21
+      VERSION: '{{.VERSION | default "2.1"}}'
+    cmds:
+      - task: download-and-build
+        vars:
+          JAVA_MODULE: '{{.JAVA_MODULE}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: alientrimmer
+          EXE: AlienTrimmer.jar
+          RELPATH_EXE: /AlienTrimmer-{{.VERSION}}/src/
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/alientrimmer/{{.VERSION}}'
+          MODULEFILE_LINES: [
+            '',
+            'depends-on {{.JAVA_MODULE}}',
+            '',
+            'set-function AlienTrimmer {',
+            '    java -jar $GROUP_HOME/opt/alientrimmer/{{.VERSION}}/AlienTrimmer-{{.VERSION}}/src/AlienTrimmer.jar "$@"',
+            '}',
+            '',
+          ]
+
+  download-and-build:
+    vars:
+      DIR: '{{.OPT_DIR}}/alientrimmer/{{.VERSION}}'
+      URL: https://gitlab.pasteur.fr/GIPhy/AlienTrimmer/-/archive/{{.VERSION}}/AlienTrimmer-{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download AlienTrimmer to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}}/AlienTrimmer-{{.VERSION}}/src
+            javac AlienTrimmer.java
+            echo Main-Class: AlienTrimmer > MANIFEST.MF
+            jar -cmvf MANIFEST.MF AlienTrimmer.jar AlienTrimmer.class
+            rm MANIFEST.MF AlienTrimmer.class
+          MODULE: '{{.JAVA_MODULE}}'
+    requires:
+      vars: [JAVA_MODULE, VERSION]
+    generates:
+      - ./AlienTrimmer-{{.VERSION}}/COPYING
+      - ./AlienTrimmer-{{.VERSION}}/README.md
+      - ./AlienTrimmer-{{.VERSION}}/example
+      - ./AlienTrimmer-{{.VERSION}}/src
+      - ./AlienTrimmer-{{.VERSION}}/src/AlienTrimmer.jar
+      - ./AlienTrimmer-{{.VERSION}}/src/AlienTrimmer.java
+    status:
+      - test -f ./AlienTrimmer-{{.VERSION}}/src/AlienTrimmer.jar
