@@ -41,7 +41,7 @@ tasks:
         vars:
           CMDS: |
             cd {{.DIR}}/musket-{{.VERSION}}
-            make
+            make MAX_SEQ_LENGTH=1000
           MODULE: '{{.GCC_MODULE}}'
     requires:
       vars: [GCC_MODULE, OPT_DIR, VERSION]
