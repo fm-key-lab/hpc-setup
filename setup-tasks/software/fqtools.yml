@@ -1,0 +1,74 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install fqtools
+    summary: |
+      Install fqtools
+
+      URLs
+        - [Docs](http://ftp.pasteur.fr/pub/gensoft/projects/fqtools/)
+    vars:
+      GCC_MODULE: 'gcc/14'
+      VERSION: '{{.VERSION | default "1.1a"}}'
+    cmds:
+      - task: download-and-build
+        vars:
+          GCC_MODULE: '{{.GCC_MODULE}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: fqtools
+          EXE: fqconvert fqduplicate fqextract fqquality fqseqname fqseqpair fqstats
+          RELPATH_EXE: /bin/
+          VERSION: '{{.VERSION}}'
+
+  download-and-build:
+    vars:
+      DIR: '{{.OPT_DIR}}/fqtools/{{.VERSION}}'
+      URL: http://ftp.pasteur.fr/pub/gensoft/projects/fqtools/fqtools-{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download fqtools to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}}/fqtools-{{.VERSION}}
+            ./configure --prefix={{.DIR}} \
+                        CC=/mpcdf/soft/RHEL_9/packages/x86_64/{{.GCC_MODULE}}.1.0/bin/gcc \
+                        LDFLAGS="$LDFLAGS -L$GCC_HOME/lib64 -Wl,-rpath,$GCC_HOME/lib64" && \
+            make && \
+            make install
+          MODULE: '{{.GCC_MODULE}}'
+    requires:
+      vars: [GCC_MODULE, OPT_DIR, VERSION]
+    generates:
+      - ./fqtools-{{.VERSION}}/INSTALL
+      - ./fqtools-{{.VERSION}}/Makefile
+      - ./fqtools-{{.VERSION}}/README
+      - ./fqtools-{{.VERSION}}/configure
+      - ./fqtools-{{.VERSION}}/doc
+      - ./fqtools-{{.VERSION}}/src
+      - ./fqtools-{{.VERSION}}/test
+      - ./bin
+      - ./bin/fqconvert
+      - ./bin/fqduplicate
+      - ./bin/fqextract
+      - ./bin/fqquality
+      - ./bin/fqseqname
+      - ./bin/fqseqpair
+      - ./bin/fqstats
+      - ./libexec
+      - ./share
+    status:
+      - test -f ./bin/fqconvert
+      - test -f ./bin/fqduplicate
+      - test -f ./bin/fqextract
+      - test -f ./bin/fqstats

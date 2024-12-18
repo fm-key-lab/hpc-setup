@@ -46,6 +46,7 @@ includes:
   fasta2agp: ./FASTA2AGP.yml
   figtree: ./FigTree.yml
   flash: ./FLASh.yml
+  fqtools: ./fqtools.yml
   gh: ./GitHubCLI.yml
   hyperfine: ./hyperfine.yml
   jq: ./jq.yml
@@ -112,6 +113,7 @@ tasks:
     - task: fasta2agp
     - task: figtree
     - task: flash
+    - task: fqtools
     - task: gh
     - task: hyperfine
     - task: jq
@@ -300,6 +302,11 @@ tasks:
     - task: flash:install
       vars:
         VERSION: '{{.VERSION | default "1.2.11"}}'
+
+  fqtools:
+    - task: fqtools:install
+      vars:
+        VERSION: '{{.VERSION | default "1.1a"}}'
 
   gh:
     - task: gh:install
