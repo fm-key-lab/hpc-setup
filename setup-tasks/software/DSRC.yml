@@ -1,0 +1,43 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+
+tasks:
+  install:
+    desc: Install DSRC
+    summary: |
+      Install DSRC
+
+      URLs
+        - [GitHub](https://github.com/refresh-bio/DSRC)
+    vars:
+      VERSION: '{{.VERSION | default "2.0.2"}}'
+    cmds:
+      - task: download-and-build-static-link
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: dsrc
+          EXE: dsrc
+          RELPATH_EXE: /bin/
+          VERSION: '{{.VERSION}}'
+
+  download-and-build-static-link:
+    vars:
+      DIR: '{{.OPT_DIR}}/dsrc/{{.VERSION}}'
+      URL: https://github.com/refresh-bio/DSRC/releases/download/v{{.VERSION}}/dsrc-linux-x64-static.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download DSRC to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+    requires:
+      vars: [VERSION]
+    generates:
+      - ./bin
+      - ./bin/dsrc
+    status:
+      - test -f ./bin/dsrc

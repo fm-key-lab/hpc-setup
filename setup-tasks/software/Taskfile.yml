@@ -18,7 +18,10 @@ vars:
   DEFAULT_UV_MODULE: uv
 
   # Software defaults
+  BZIP2: /usr/bin/bzip2
   GAWK: /usr/bin/gawk
+  GZIP: /usr/bin/gzip
+  XARGS: /usr/bin/xargs
 
 includes:
   amber: ./AMBER.yml
@@ -34,6 +37,7 @@ includes:
   contig_info: ./contig_info.yml
   csvkit: ./csvkit.yml
   dbt: ./dbt-DuckDB.yml
+  dsrc: ./DSRC.yml
   duckdb: ./DuckDB.yml
   falco: ./falco.yml
   fasta2agp: ./FASTA2AGP.yml
@@ -96,6 +100,7 @@ tasks:
     - task: contig_info
     - task: csvkit
     - task: dbt
+    - task: dsrc
     - task: duckdb
     - task: falco
     - task: fasta2agp
@@ -242,6 +247,11 @@ tasks:
         PYTHON: '{{.PYTHON | default .DEFAULT_PYTHON}}'
         UV_MODULE: '{{.UV_MODULE | default .DEFAULT_UV_MODULE}}'
         VERSION: '{{.VERSION | default "1.8.1"}}'
+
+  dsrc:
+    - task: dsrc:install
+      vars:
+        VERSION: '{{.VERSION | default "2.0.2"}}'
 
   duckdb:
     - task: duckdb:install
