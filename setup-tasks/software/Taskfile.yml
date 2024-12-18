@@ -17,6 +17,9 @@ vars:
   DEFAULT_JAVA_MODULE: jdk/21
   DEFAULT_UV_MODULE: uv
 
+  # Software defaults
+  GAWK: /usr/bin/gawk
+
 includes:
   amber: ./AMBER.yml
   bactopia: ./Bactopia.yml
@@ -28,6 +31,7 @@ includes:
   bwa: ./BWA.yml
   bwa-mem2: ./BWA-MEM2.yml
   clonalframeml: ./ClonalFrameML.yml
+  contig_info: ./contig_info.yml
   csvkit: ./csvkit.yml
   dbt: ./dbt-DuckDB.yml
   duckdb: ./DuckDB.yml
@@ -88,6 +92,7 @@ tasks:
     - task: bwa
     - task: bwa-mem2
     - task: clonalframeml
+    - task: contig_info
     - task: csvkit
     - task: dbt
     - task: duckdb
@@ -216,6 +221,11 @@ tasks:
     - task: clonalframeml:install
       vars:
         VERSION: '{{.VERSION | default "1.13"}}'
+
+  contig_info:
+    - task: contig_info:install
+      vars:
+        VERSION: '{{.VERSION | default "2.01"}}'
 
   csvkit:
     - task: csvkit:install

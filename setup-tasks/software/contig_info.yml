@@ -1,0 +1,59 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install contig_info
+    summary: |
+      Install contig_info
+
+      URLs
+        - [GitLab](https://gitlab.pasteur.fr/GIPhy/contig_info)
+    vars:
+      VERSION: '{{.VERSION | default "2.01"}}'
+    cmds:
+      - task: download-script
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: contig_info
+          EXE: contig_info.sh
+          RELPATH_EXE: /contig_info-{{.VERSION}}/
+          VERSION: '{{.VERSION}}'
+      - task: test
+        vars:
+          VERSION: '{{.VERSION}}'
+
+  download-script:
+    vars:
+      DIR: '{{.OPT_DIR}}/contig_info/{{.VERSION}}'
+      URL: https://gitlab.pasteur.fr/GIPhy/contig_info/-/archive/{{.VERSION}}/contig_info-{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download contig_info to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+      - chmod +x contig_info-{{.VERSION}}/contig_info.sh
+    requires:
+      vars: [VERSION]
+    generates:
+      - ./contig_info-{{.VERSION}}/COPYING
+      - ./contig_info-{{.VERSION}}/README.md
+      - ./contig_info-{{.VERSION}}/contig_info.sh
+    status:
+      - test -f ./contig_info-{{.VERSION}}/contig_info.sh
+
+  test:
+    internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: contig_info.sh -h >/dev/null 2>&1
+          MODULE: 'contig_info/{{.VERSION}}'
+    requires:
+      vars: [VERSION]
