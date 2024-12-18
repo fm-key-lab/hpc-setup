@@ -47,6 +47,7 @@ includes:
   figtree: ./FigTree.yml
   flash: ./FLASh.yml
   fqtools: ./fqtools.yml
+  freebayes: ./freebayes.yml
   gh: ./GitHubCLI.yml
   hyperfine: ./hyperfine.yml
   jq: ./jq.yml
@@ -60,6 +61,7 @@ includes:
   ncbi-datasets: ./NCBIDatasetsCLI.yml
   ncurses: ./Ncurses.yml
   nextflow: ./Nextflow.yml
+  ntcard: ./ntCard.yml
   plass-penguin: ./Plass-PenguiN.yml
   prodigal: ./Prodigal.yml
   prokka: ./Prokka.yml
@@ -76,6 +78,7 @@ includes:
   seqtk: ./Seqtk.yml
   skani: ./skani.yml
   snakemake: ./Snakemake.yml
+  snippy: ./Snippy.yml
   snpsites: ./SNPsites.yml
   srst2: ./SRST2.yml
   taskfile: ./Task.yml
@@ -115,6 +118,7 @@ tasks:
     - task: figtree
     - task: flash
     - task: fqtools
+    - task: freebayes
     - task: gh
     - task: hyperfine
     - task: jq
@@ -128,6 +132,7 @@ tasks:
     - task: ncbi-datasets
     - task: ncurses
     - task: nextflow
+    - task: ntcard
     - task: plass-penguin
     - task: prodigal
     - task: prokka
@@ -144,6 +149,7 @@ tasks:
     - task: seqtk
     - task: skani
     - task: snakemake
+    - task: snippy
     - task: snpsites
     - task: srst2
     - task: taskfile
@@ -310,6 +316,11 @@ tasks:
       vars:
         VERSION: '{{.VERSION | default "1.1a"}}'
 
+  freebayes:
+    - task: freebayes:install
+      vars:
+        VERSION: '{{.VERSION | default "1.3.6"}}'
+
   gh:
     - task: gh:install
       vars:
@@ -375,6 +386,11 @@ tasks:
     - task: nextflow:install
       vars:
         VERSION: '{{.VERSION | default "24.04.4"}}'
+
+  ntcard:
+    - task: ntcard:install
+      vars:
+        VERSION: '{{.VERSION | default "1.2.2"}}'
 
   plass-penguin:
     - task: plass-penguin:install
@@ -466,6 +482,11 @@ tasks:
       vars:
         MICROMAMBA_VERSION: '{{.MICROMAMBA_VERSION | default "2.0.1-0"}}'
         VERSION: '{{.VERSION | default "8.16"}}'
+
+  snippy:
+    - task: snippy:install
+      vars:
+        VERSION: '{{.VERSION | default "4.6.0"}}'
 
   snpsites:
     - task: snpsites:install
