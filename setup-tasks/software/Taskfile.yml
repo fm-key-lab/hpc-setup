@@ -56,6 +56,7 @@ includes:
   minimap2: ./minimap2.yml
   miniprot: ./miniprot.yml
   mmseqs2: ./MMseqs2.yml
+  musket: ./Musket.yml
   ncbi-datasets: ./NCBIDatasetsCLI.yml
   ncurses: ./Ncurses.yml
   nextflow: ./Nextflow.yml
@@ -123,6 +124,7 @@ tasks:
     - task: minimap2
     - task: miniprot
     - task: mmseqs2
+    - task: musket
     - task: ncbi-datasets
     - task: ncurses
     - task: nextflow
@@ -352,6 +354,11 @@ tasks:
     - task: mmseqs2:install
       vars:
         VERSION: '{{.VERSION | default "15-6f452"}}'
+
+  musket:
+    - task: musket:install
+      vars:
+        VERSION: '{{.VERSION | default "1.1"}}'
 
   ncbi-datasets:
     - task: ncbi-datasets:install

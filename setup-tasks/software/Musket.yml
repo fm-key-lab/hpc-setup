@@ -1,0 +1,54 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install Musket
+    summary: |
+      Install Musket
+
+      URLs
+        - [Sourceforge](https://sourceforge.net/projects/musket)
+    vars:
+      GCC_MODULE: 'gcc/14'
+      VERSION: '{{.VERSION | default "1.1"}}'
+    cmds:
+      - task: download-and-build
+        vars:
+          GCC_MODULE: '{{.GCC_MODULE}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: musket
+          EXE: musket
+          RELPATH_EXE: /musket-{{.VERSION}}/
+          VERSION: '{{.VERSION}}'
+
+  download-and-build:
+    vars:
+      DIR: '{{.OPT_DIR}}/musket/{{.VERSION}}'
+      URL: https://sourceforge.net/projects/musket/files/musket-{{.VERSION}}.tar.gz/download
+    dir: '{{.DIR}}'
+    prompt: Download musket to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}}/musket-{{.VERSION}}
+            make
+          MODULE: '{{.GCC_MODULE}}'
+    requires:
+      vars: [GCC_MODULE, OPT_DIR, VERSION]
+    generates:
+      - ./musket-{{.VERSION}}/LICENSE
+      - ./musket-{{.VERSION}}/Makefile
+      - ./musket-{{.VERSION}}/README
+      - ./musket-{{.VERSION}}/musket
+    status:
+      - test -f ./musket-{{.VERSION}}/musket
