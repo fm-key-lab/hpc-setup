@@ -1,0 +1,87 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install FASTA2AGP
+    summary: |
+      Install FASTA2AGP
+
+      URLs
+        - [GitLab](https://gitlab.pasteur.fr/GIPhy/FASTA2AGP)
+    vars:
+      JAVA_MODULE: jdk/21
+      VERSION: '{{.VERSION | default "2.0"}}'
+    cmds:
+      - task: download-and-build
+        vars:
+          JAVA_MODULE: '{{.JAVA_MODULE}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: fasta2agp
+          EXE: FASTA2AGP.jar
+          RELPATH_EXE: /FASTA2AGP-{{.VERSION}}/src/
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/fasta2agp/{{.VERSION}}'
+          MODULEFILE_LINES: [
+            '',
+            'depends-on {{.JAVA_MODULE}}',
+            '',
+            'set-function FASTA2AGP {',
+            '    java -jar $GROUP_HOME/opt/fasta2agp/{{.VERSION}}/FASTA2AGP-{{.VERSION}}/src/FASTA2AGP.jar "$@"',
+            '}',
+            '',
+          ]
+      - task: test
+        vars:
+          VERSION: '{{.VERSION}}'
+
+  download-and-build:
+    vars:
+      DIR: '{{.OPT_DIR}}/fasta2agp/{{.VERSION}}'
+      URL: https://gitlab.pasteur.fr/GIPhy/FASTA2AGP/-/archive/{{.VERSION}}/FASTA2AGP-{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download FASTA2AGP to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}}/FASTA2AGP-{{.VERSION}}/src
+            javac FASTA2AGP.java
+            echo Main-Class: FASTA2AGP > MANIFEST.MF
+            jar -cmvf MANIFEST.MF FASTA2AGP.jar FASTA2AGP.class
+            rm MANIFEST.MF FASTA2AGP.class
+          MODULE: '{{.JAVA_MODULE}}'
+    requires:
+      vars: [JAVA_MODULE, VERSION]
+    generates:
+      - ./FASTA2AGP-{{.VERSION}}/COPYING
+      - ./FASTA2AGP-{{.VERSION}}/README.md
+      - ./FASTA2AGP-{{.VERSION}}/example
+      - ./FASTA2AGP-{{.VERSION}}/src
+      - ./FASTA2AGP-{{.VERSION}}/src/FASTA2AGP.jar
+      - ./FASTA2AGP-{{.VERSION}}/src/FASTA2AGP.java
+    status:
+      - test -f ./FASTA2AGP-{{.VERSION}}/src/FASTA2AGP.jar
+
+  test:
+    internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            cd {{.OPT_DIR}}/fasta2agp/{{.VERSION}}/FASTA2AGP-{{.VERSION}}/example/
+            FASTA2AGP -i scaffolds.fasta && \
+            rm -f scaffolds.fasta.agp scaffolds.fasta.fna
+          MODULE: 'fasta2agp/{{.VERSION}}'
+    requires:
+      vars: [VERSION]

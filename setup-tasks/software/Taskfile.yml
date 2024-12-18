@@ -36,6 +36,7 @@ includes:
   dbt: ./dbt-DuckDB.yml
   duckdb: ./DuckDB.yml
   falco: ./falco.yml
+  fasta2agp: ./FASTA2AGP.yml
   figtree: ./FigTree.yml
   gh: ./GitHubCLI.yml
   hyperfine: ./hyperfine.yml
@@ -97,6 +98,7 @@ tasks:
     - task: dbt
     - task: duckdb
     - task: falco
+    - task: fasta2agp
     - task: figtree
     - task: gh
     - task: hyperfine
@@ -251,6 +253,11 @@ tasks:
     - task: falco:install
       vars:
         VERSION: '{{.VERSION | default "1.2.5"}}'
+
+  fasta2agp:
+    - task: fasta2agp:install
+      vars:
+        VERSION: '{{.VERSION | default "2.0"}}'
 
   figtree:
     - task: figtree:install
