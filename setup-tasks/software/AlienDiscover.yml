@@ -1,0 +1,71 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install AlienDiscover
+    summary: |
+      Install AlienDiscover
+
+      URLs
+        - [GitLab](https://gitlab.pasteur.fr/GIPhy/AlienDiscover)
+    vars:
+      JAVA_MODULE: jdk/21
+      VERSION: '{{.VERSION | default "0.1"}}'
+    cmds:
+      - task: download-and-build
+        vars:
+          JAVA_MODULE: '{{.JAVA_MODULE}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: aliendiscover
+          EXE: AlienDiscover.jar
+          RELPATH_EXE: /AlienDiscover-{{.VERSION}}/src/
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/aliendiscover/{{.VERSION}}'
+          MODULEFILE_LINES: [
+            '',
+            'depends-on {{.JAVA_MODULE}}',
+            '',
+            'set-function AlienDiscover {',
+            '    java -jar $GROUP_HOME/opt/aliendiscover/{{.VERSION}}/AlienDiscover-{{.VERSION}}/src/AlienDiscover.jar "$@"',
+            '}',
+            '',
+          ]
+
+  download-and-build:
+    vars:
+      DIR: '{{.OPT_DIR}}/aliendiscover/{{.VERSION}}'
+      URL: https://gitlab.pasteur.fr/GIPhy/AlienDiscover/-/archive/{{.VERSION}}/AlienDiscover-{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download AlienDiscover to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}}/AlienDiscover-{{.VERSION}}/src
+            javac AlienDiscover.java
+            echo Main-Class: AlienDiscover > MANIFEST.MF
+            jar -cmvf MANIFEST.MF AlienDiscover.jar AlienDiscover.class
+            rm MANIFEST.MF AlienDiscover.class
+          MODULE: '{{.JAVA_MODULE}}'
+    requires:
+      vars: [JAVA_MODULE, VERSION]
+    generates:
+      - ./AlienDiscover-{{.VERSION}}/COPYING
+      - ./AlienDiscover-{{.VERSION}}/README.md
+      - ./AlienDiscover-{{.VERSION}}/example
+      - ./AlienDiscover-{{.VERSION}}/src
+      - ./AlienDiscover-{{.VERSION}}/src/AlienDiscover.jar
+      - ./AlienDiscover-{{.VERSION}}/src/AlienDiscover.java
+    status:
+      - test -f ./AlienDiscover-{{.VERSION}}/src/AlienDiscover.jar

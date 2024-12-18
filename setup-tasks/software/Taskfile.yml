@@ -24,6 +24,7 @@ vars:
   XARGS: /usr/bin/xargs
 
 includes:
+  aliendiscover: ./AlienDiscover.yml
   amber: ./AMBER.yml
   bactopia: ./Bactopia.yml
   bbtools: ./BBTools.yml
@@ -87,6 +88,7 @@ tasks:
     - task: core
 
   all:
+    - task: aliendiscover
     - task: amber
     - task: bactopia
     - task: bbtools
@@ -173,6 +175,11 @@ tasks:
     - task: yq
 
   # ~*~
+
+  aliendiscover:
+    - task: aliendiscover:install
+      vars:
+        VERSION: '{{.VERSION | default "0.1"}}'
 
   amber:
     - task: amber:install
