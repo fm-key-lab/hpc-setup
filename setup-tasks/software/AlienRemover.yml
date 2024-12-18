@@ -1,0 +1,71 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install AlienRemover
+    summary: |
+      Install AlienRemover
+
+      URLs
+        - [GitLab](https://gitlab.pasteur.fr/GIPhy/AlienRemover)
+    vars:
+      JAVA_MODULE: jdk/21
+      VERSION: '{{.VERSION | default "0.1"}}'
+    cmds:
+      - task: download-and-build
+        vars:
+          JAVA_MODULE: '{{.JAVA_MODULE}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: alienremover
+          EXE: AlienRemover.jar
+          RELPATH_EXE: /AlienRemover-{{.VERSION}}/src/
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/alienremover/{{.VERSION}}'
+          MODULEFILE_LINES: [
+            '',
+            'depends-on {{.JAVA_MODULE}}',
+            '',
+            'set-function AlienRemover {',
+            '    java -jar $GROUP_HOME/opt/alienremover/{{.VERSION}}/AlienRemover-{{.VERSION}}/src/AlienRemover.jar "$@"',
+            '}',
+            '',
+          ]
+
+  download-and-build:
+    vars:
+      DIR: '{{.OPT_DIR}}/alienremover/{{.VERSION}}'
+      URL: https://gitlab.pasteur.fr/GIPhy/AlienRemover/-/archive/{{.VERSION}}/AlienRemover-{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download AlienRemover to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: |
+            cd {{.DIR}}/AlienRemover-{{.VERSION}}/src
+            javac AlienRemover.java
+            echo Main-Class: AlienRemover > MANIFEST.MF
+            jar -cmvf MANIFEST.MF AlienRemover.jar AlienRemover.class
+            rm MANIFEST.MF AlienRemover.class
+          MODULE: '{{.JAVA_MODULE}}'
+    requires:
+      vars: [JAVA_MODULE, VERSION]
+    generates:
+      - ./AlienRemover-{{.VERSION}}/COPYING
+      - ./AlienRemover-{{.VERSION}}/README.md
+      - ./AlienRemover-{{.VERSION}}/example
+      - ./AlienRemover-{{.VERSION}}/src
+      - ./AlienRemover-{{.VERSION}}/src/AlienRemover.jar
+      - ./AlienRemover-{{.VERSION}}/src/AlienRemover.java
+    status:
+      - test -f ./AlienRemover-{{.VERSION}}/src/AlienRemover.jar

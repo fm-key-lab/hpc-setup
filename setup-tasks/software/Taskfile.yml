@@ -25,6 +25,7 @@ vars:
 
 includes:
   aliendiscover: ./AlienDiscover.yml
+  alienremover: ./AlienRemover.yml
   amber: ./AMBER.yml
   bactopia: ./Bactopia.yml
   bbtools: ./BBTools.yml
@@ -89,6 +90,7 @@ tasks:
 
   all:
     - task: aliendiscover
+    - task: alienremover
     - task: amber
     - task: bactopia
     - task: bbtools
@@ -180,6 +182,11 @@ tasks:
     - task: aliendiscover:install
       vars:
         VERSION: '{{.VERSION | default "0.1"}}'
+
+  alienremover:
+    - task: alienremover:install
+      vars:
+        VERSION: '{{.VERSION | default "1.0"}}'
 
   amber:
     - task: amber:install
