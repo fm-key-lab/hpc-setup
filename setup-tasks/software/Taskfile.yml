@@ -57,6 +57,7 @@ includes:
   minimap2: ./minimap2.yml
   miniprot: ./miniprot.yml
   mmseqs2: ./MMseqs2.yml
+  multivcfanalyzer: ./MultiVCFAnalyzer.yml
   musket: ./Musket.yml
   ncbi-datasets: ./NCBIDatasetsCLI.yml
   ncurses: ./Ncurses.yml
@@ -128,6 +129,7 @@ tasks:
     - task: minimap2
     - task: miniprot
     - task: mmseqs2
+    - task: multivcfanalyzer
     - task: musket
     - task: ncbi-datasets
     - task: ncurses
@@ -365,6 +367,11 @@ tasks:
     - task: mmseqs2:install
       vars:
         VERSION: '{{.VERSION | default "15-6f452"}}'
+
+  multivcfanalyzer:
+    - task: multivcfanalyzer:install
+      vars:
+        VERSION: '{{.VERSION | default "0.85.2"}}'
 
   musket:
     - task: musket:install

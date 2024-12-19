@@ -1,0 +1,65 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install MultiVCFAnalyzer
+    summary: |
+      Install MultiVCFAnalyzer
+
+      Notes
+        
+        How do I increase the amount of memory? Increase the amount of memory allocated to java with the `-Xmx` parameter (here 16 gigabytes)
+
+        ```bash
+        java -Xmx16G -jar MultiVCFAnalyzer_X-XX-X.jar <OPTIONS>
+        ```
+
+      URLs
+        - [GitHub](https://github.com/alexherbig/MultiVCFAnalyzer)
+    vars:
+      JAVA_MODULE: jdk/21
+      VERSION: '{{.VERSION | default "0.85.2"}}'
+    cmds:
+      - task: download-jar-file
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: multivcfanalyzer
+          EXE: MultiVCFAnalyzer-{{.VERSION}}.jar
+          RELPATH_EXE: /
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/multivcfanalyzer/{{.VERSION}}'
+          MODULEFILE_LINES: [
+            '',
+            '',
+            'depends-on {{.JAVA_MODULE}}',
+            '',
+            'setenv --set-if-undef JVM_MEM "-Xmx1g"',
+            '',
+            'set-function MultiVCFAnalyzer {',
+            '    java $JVM_MEM -jar $GROUP_HOME/opt/multivcfanalyzer/{{.VERSION}}/MultiVCFAnalyzer-{{.VERSION}}.jar "$@"',
+            '}',
+            '',
+          ]
+
+  download-jar-file:
+    vars:
+      DIR: '{{.OPT_DIR}}/multivcfanalyzer/{{.VERSION}}'
+      URL: https://github.com/alexherbig/MultiVCFAnalyzer/releases/download/v{{.VERSION}}/MultiVCFAnalyzer-{{.VERSION}}.jar
+    dir: '{{.DIR}}'
+    prompt: Download MultiVCFAnalyzer to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+    requires:
+      vars: [OPT_DIR, VERSION]
+    generates:
+      - ./MultiVCFAnalyzer-{{.VERSION}}.jar
+    status:
+      - test -f ./MultiVCFAnalyzer-{{.VERSION}}.jar
