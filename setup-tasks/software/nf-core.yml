@@ -1,0 +1,52 @@
+version: '3'
+
+includes:
+  group-installs:
+    taskfile: ../utils/GroupInstalls.yml
+    internal: true
+  utils:
+    taskfile: ../../lab-tasks/Taskfile.yml
+    internal: true
+
+tasks:
+  install:
+    desc: Install nf-core/tools
+    summary: |
+      Install nf-core/tools
+
+      URLs
+        - [GitHub](https://github.com/nf-core/tools)
+        - [Docs](https://nf-co.re/docs/nf-core-tools)
+    vars:
+      VERSION: '{{.VERSION | default "3.1.1"}}'
+    cmds:
+      - task: group-installs:install-with-pip
+        vars:
+          APP: nf-core
+          INSTALL: 'nf-core=={{.VERSION}}'
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/nf-core/{{.VERSION}}'
+          MODULEFILE_LINES: [
+            '',
+            '',
+            'depends-on {{.DEFAULT_APPTAINER_MODULE}}',
+            'depends-on {{.DEFAULT_NXF_MODULE}}',
+            'depends-on {{.DEFAULT_JAVA_MODULE}}',
+          ]
+      - task: test
+        vars:
+          VERSION: '{{.VERSION}}'
+    generates:
+      - '{{.GROUP_MODULEFILES}}/nf-core/{{.VERSION}}'
+
+  test:
+    internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: nf-core --version
+          MODULE: 'nf-core/{{.VERSION}}'
+    requires:
+      vars: [VERSION]

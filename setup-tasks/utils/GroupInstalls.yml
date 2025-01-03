@@ -6,13 +6,19 @@ vars:
   GROUP_BIN: '{{.GROUP_HOME}}/bin'
   GROUP_CONTAINERS: '{{.GROUP_HOME}}/containers'
   GROUP_MODULEFILES: '{{.GROUP_HOME}}/Modules/modulefiles'
+  GROUP_VENVS: '{{.GROUP_HOME}}/envs/venv'
 
   APPTAINER_MODULE: apptainer/1.3.2
   MAMBA_MODULE: micromamba/2.0.1-0
   RUST_MODULE: rust
+  UV_MODULE: uv
+
+  PYTHON: /mpcdf/soft/RHEL_9/packages/x86_64/python-waterboa/2024.06/bin/python
 
 includes:
-  utils: ../../lab-tasks
+  utils:
+    taskfile: ../../lab-tasks/Taskfile.yml
+    internal: true
 
 tasks:
   complete:
@@ -127,6 +133,12 @@ tasks:
     requires:
       vars: [APPTAINER_MODULE, DEFINITION_FILE, IMAGE_NAME]
 
+  #
+  # All-in-one commands for common installs
+  #
+
+  # rust/cargo
+
   # TODO: Abstract this to work with `skani`
   install-with-cargo:
     desc: Group installs using cargo
@@ -149,6 +161,8 @@ tasks:
       - test -d ./.cargo/bin
       - test -f ./.cargo/bin/{{.APP}}
 
+  # conda/mamba
+
   install-with-mamba:
     desc: Group installs as mamba env
     prompt: 'Create mamba environment {{.PREFIX}}?'
@@ -165,3 +179,54 @@ tasks:
     status:
       - test -d '{{.PREFIX}}/bin'
 
+  # pip
+
+  install-with-pip:
+    desc: Group installs as a Python virtual env.
+    vars:
+      PREFIX: '{{.OPT_DIR}}/{{.APP}}/{{.VERSION}}'
+    dir: '{{.PREFIX}}'
+    cmds:
+      - task: utils:venv:create
+        vars:
+          INSTALL: '{{.INSTALL}}'
+          PREFIX: '{{.PREFIX}}'
+          PYTHON: '{{.PYTHON}}'
+          UV_MODULE: '{{.UV_MODULE}}'
+      - mkdir -p {{.GROUP_MODULEFILES}}/{{.APP}}
+      - task: write-modulefile-stub
+        vars:
+          APP: '{{.APP}}'
+          VERSION: '{{.VERSION}}'
+          RELPATH_EXE: /.venv/bin/
+    requires:
+      vars: [APP, INSTALL, OPT_DIR, PYTHON, UV_MODULE, VERSION]
+    generates:
+      - ./.venv
+      - ./.venv/bin
+    status:
+      - test -f ./.venv/bin/activate
+
+  # apptainer/docker
+
+  install-with-apptainer:
+    desc: Group installs as container
+    vars:
+      MODULEFILE: '{{.GROUP_MODULEFILES}}/{{.APP}}/{{.VERSION}}'
+    cmds:
+      - task: utils:containers:create-apptainer-from-dockerhub
+        vars:
+          DOCKERFILE: '{{.DOCKERFILE}}'
+      - task: write-container-modulefile-stub
+        vars:
+          APP: '{{.APP}}'
+          CMD: '{{.CMD}}'
+          FUNC: '{{.FUNC}}'
+          IMAGE_NAME: '{{.IMAGE_NAME}}'
+          VERSION: '{{.VERSION}}'
+    requires:
+      vars: [APP, CMD, DOCKERFILE, FUNC, GROUP_MODULEFILES, IMAGE_NAME, VERSION]
+    generates:
+      - '{{.MODULEFILE}}'
+    status:
+      - test -f '{{.MODULEFILE}}'
