@@ -2,3 +2,4 @@ dev
 archive
 .env
 .ROOT_DIR
+.bash_history

@@ -1,0 +1,33 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install freebayes
+    summary: |
+      Install freebayes
+
+      URLs
+        - [GitHub](https://github.com/freebayes/freebayes)
+    vars:
+      VERSION: '{{.VERSION | default "1.3.6"}}'
+    cmds:
+      - task: download-prebuilt
+        vars:
+          VERSION: '{{.VERSION}}'
+
+  download-prebuilt:
+    vars:
+      DIR: '{{.OPT_DIR}}/freebayes/{{.VERSION}}'
+      URL: https://github.com/freebayes/freebayes/releases/download/v{{.VERSION}}/freebayes-{{.VERSION}}-linux-amd64-static.gz
+    dir: '{{.DIR}}'
+    prompt: Download freebayes to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - gunzip -k $(basename {{.URL}})
+    requires:
+      vars: [OPT_DIR, VERSION]

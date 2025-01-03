@@ -17,7 +17,8 @@ tasks:
       Notes
       -----
        - Here we install and link to MKL libs. For more info, see
-         https://docs.mpcdf.mpg.de/faq/hpc_software.html#interactive-session-on-the-command-line.
+         https://docs.mpcdf.mpg.de/faq/hpc_software.html#interactive-session-on-the-command-line
+         and https://cran.r-project.org/doc/manuals/r-patched/R-admin.html#Intel-MKL
 
       URLs
       ----
@@ -74,7 +75,6 @@ tasks:
             ./configure \
               --prefix=/nexus/posix0/MPIIB-keylab/opt/R/4.4.2 \
               --with-blas="$MKL" \
-              --with-cairo \
               --with-lapack \
               --enable-memory-profiling \
               --enable-R-shlib \
@@ -117,7 +117,7 @@ tasks:
     cmds:
       - task: utils:envmodule:run-inside
         vars:
-          CMDS: R -e 'install.packages(c("languageserver", "httpgd"), repos = "https://cran.r-project.org/")'
+          CMDS: R -e 'install.packages(c("flexiblas", "httpgd", "languageserver", "renv"), repos = "https://cran.r-project.org/")'
           MODULE: 'R/{{.VERSION}}'
     requires:
       vars: [VERSION]

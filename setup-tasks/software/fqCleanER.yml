@@ -1,0 +1,60 @@
+version: '3'
+
+includes:
+  group-installs: ../utils/GroupInstalls.yml
+  utils: ../../lab-tasks
+
+tasks:
+  install:
+    desc: Install fqcleaner
+    summary: |
+      Install fqcleaner
+
+      URLs
+        - [Docs](https://research.pasteur.fr/en/tool/fqcleaner/)
+        - [GitLab](https://gitlab.pasteur.fr/GIPhy/fqCleanER)
+    vars:
+      VERSION: '{{.VERSION | default "2.01"}}'
+    cmds:
+      - task: download-script
+        vars:
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:complete
+        vars:
+          APP: fqcleaner
+          EXE: fqcleaner.sh
+          RELPATH_EXE: /fqcleaner-{{.VERSION}}/
+          VERSION: '{{.VERSION}}'
+      - task: test
+        vars:
+          VERSION: '{{.VERSION}}'
+
+  download-script:
+    vars:
+      DIR: '{{.OPT_DIR}}/fqcleaner/{{.VERSION}}'
+      URL: https://gitlab.pasteur.fr/GIPhy/fqcleaner/-/archive/{{.VERSION}}/fqcleaner-{{.VERSION}}.tar.gz
+    dir: '{{.DIR}}'
+    prompt: Download fqcleaner to {{.DIR}}?
+    cmds:
+      - wget {{.URL}}
+      - defer: rm -f $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+      - chmod +x fqcleaner-{{.VERSION}}/fqcleaner.sh
+    requires:
+      vars: [VERSION]
+    generates:
+      - ./fqcleaner-{{.VERSION}}/COPYING
+      - ./fqcleaner-{{.VERSION}}/README.md
+      - ./fqcleaner-{{.VERSION}}/fqcleaner.sh
+    status:
+      - test -f ./fqcleaner-{{.VERSION}}/fqcleaner.sh
+
+  test:
+    internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: fqcleaner.sh -h >/dev/null 2>&1
+          MODULE: 'fqcleaner/{{.VERSION}}'
+    requires:
+      vars: [VERSION]
