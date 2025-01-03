@@ -1,5 +1,8 @@
 version: '3'
 
+env:
+  NXF_SINGULARITY_CACHEDIR: $GROUP_HOME/containers/nxf-cache
+
 vars:
   GROUP_NFCORE_PIPELINES: $GROUP_HOME/tools/nf-core
 
@@ -9,34 +12,40 @@ includes:
     internal: true
 
 tasks:
-  # TODO: Use `--parallel-downloads`?
   default:
     deps:
       - task: check-nf-core-tools
+    vars:
+      EXTRA: '{{.EXTRA | default ""}}'
     cmds:
       - task: utils:nxf:download-nf-core-pipeline
         vars:
+          EXTRA: '{{.EXTRA}}'
           OUTDIR: '{{.GROUP_NFCORE_PIPELINES}}/bactmap'
           PIPELINE: bactmap
           VERSION: 1.0.0
       - task: utils:nxf:download-nf-core-pipeline
         vars:
+          EXTRA: '{{.EXTRA}}'
           CONTAINER_SYSTEM: none
           OUTDIR: '{{.GROUP_NFCORE_PIPELINES}}/eager'
           PIPELINE: eager
           VERSION: dev
       - task: utils:nxf:download-nf-core-pipeline
         vars:
+          EXTRA: '{{.EXTRA}}'
           OUTDIR: '{{.GROUP_NFCORE_PIPELINES}}/pangenome'
           PIPELINE: pangenome
           VERSION: 1.1.2
       - task: utils:nxf:download-nf-core-pipeline
         vars:
+          EXTRA: '{{.EXTRA}}'
           OUTDIR: '{{.GROUP_NFCORE_PIPELINES}}/sarek'
           PIPELINE: sarek
           VERSION: 3.5.0
       - task: utils:nxf:download-nf-core-pipeline
         vars:
+          EXTRA: '{{.EXTRA}}'
           OUTDIR: '{{.GROUP_NFCORE_PIPELINES}}/taxprofiler'
           PIPELINE: taxprofiler
           VERSION: 1.2.1
