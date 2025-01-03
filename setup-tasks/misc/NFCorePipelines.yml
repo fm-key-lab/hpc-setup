@@ -1,0 +1,40 @@
+version: '3'
+
+vars:
+  GROUP_NFCORE_PIPELINES: $GROUP_HOME/tools/nf-core
+
+includes:
+  software:
+    taskfile: ../software/Taskfile.yml
+    internal: true
+  utils:
+    taskfile: ../../lab-tasks/Taskfile.yml
+    internal: true
+
+tasks:
+  # TODO: Use `--parallel-downloads`?
+  default:
+    deps:
+      - task: software:install:nf-core
+    cmds:
+      - task: nxf:download-nf-core-pipeline
+        vars:
+          OUTDIR: '{{.GROUP_NFCORE_PIPELINES}}/bactmap'
+          PIPELINE: bactmap
+          VERSION: 1.0.0
+      - task: nxf:download-nf-core-pipeline
+        vars:
+          CONTAINER_SYSTEM: none
+          OUTDIR: '{{.GROUP_NFCORE_PIPELINES}}/eager'
+          PIPELINE: eager
+          VERSION: dev
+      - task: nxf:download-nf-core-pipeline
+        vars:
+          OUTDIR: '{{.GROUP_NFCORE_PIPELINES}}/sarek'
+          PIPELINE: sarek
+          VERSION: 3.5.0
+      - task: nxf:download-nf-core-pipeline
+        vars:
+          OUTDIR: '{{.GROUP_NFCORE_PIPELINES}}/taxprofiler'
+          PIPELINE: taxprofiler
+          VERSION: 1.2.1

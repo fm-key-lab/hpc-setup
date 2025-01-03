@@ -1,7 +1,8 @@
 version: '3'
 
 includes:
-  jupyter: JupyterInSlurm.yml
+  nf-core-pipelines: ./NFCorePipelines.yml
 
 tasks:
-  default: jupyter:launch_nb_job
+  default:
+    - task: nf-core-pipelines

@@ -12,9 +12,10 @@ vars:
 dotenv: ['{{.TASKFILE_DIR}}/.env', '{{.HOME}}/.env']
 
 includes:
-  public-data: ./setup-tasks/data
   envs: ./setup-tasks/envs
   install: ./setup-tasks/software
+  misc: ./setup-tasks/misc
+  public-data: ./setup-tasks/data
 
 # TODO: Download local versions of nf-core pipelines
 # TODO: Back up srst2 database somewhere (?) and copy over to viper
@@ -29,6 +30,7 @@ tasks:
       - task: install
       - task: envs
       - task: public-data
+      - task: misc
 
   furnish-group-home:
     desc: Group home directory structure
