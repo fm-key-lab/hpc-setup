@@ -1,8 +1,12 @@
 version: '3'
 
 includes:
-  group-installs: ../utils/GroupInstalls.yml
-  utils: ../../lab-tasks
+  group-installs:
+    taskfile: ../utils/GroupInstalls.yml
+    internal: true
+  utils:
+    taskfile: ../../lab-tasks/Taskfile.yml
+    internal: true
 
 tasks:
   install:
@@ -13,21 +17,58 @@ tasks:
       URLs
         - [GitHub](https://github.com/freebayes/freebayes)
     vars:
-      VERSION: '{{.VERSION | default "1.3.6"}}'
+      VERSION: '{{.VERSION | default "1.3.7"}}'
     cmds:
-      - task: download-prebuilt
+      - task: group-installs:install-with-apptainer
+        vars:
+          APP: freebayes
+          CMD: freebayes-parallel
+          DOCKERFILE: staphb/freebayes:{{.VERSION}}
+          FUNC: freebayes-parallel
+          IMAGE_NAME: freebayes
+          VERSION: '{{.VERSION}}'
+      - task: group-installs:append-modulefile
+        vars:
+          MODULEFILE: '{{.GROUP_MODULEFILES}}/freebayes/{{.VERSION}}'
+          MODULEFILE_LINES: [
+            '',
+            '',
+            'set-function freebayes {',
+            '    apptainer --quiet exec --home $PWD --bind /ptmp,/u,/nexus $GROUP_HOME/containers/freebayes.sif freebayes "$@"',
+            '}',
+          ]
+      - task: test
         vars:
           VERSION: '{{.VERSION}}'
 
-  download-prebuilt:
+  # TODO: This fails with linker errors
+  download-prebuilt-binary:
     vars:
       DIR: '{{.OPT_DIR}}/freebayes/{{.VERSION}}'
-      URL: https://github.com/freebayes/freebayes/releases/download/v{{.VERSION}}/freebayes-{{.VERSION}}-linux-amd64-static.gz
+      URL: wget https://github.com/freebayes/freebayes/releases/download/v{{.VERSION}}/freebayes-{{.VERSION}}-src.tar.gz
     dir: '{{.DIR}}'
     prompt: Download freebayes to {{.DIR}}?
     cmds:
       - wget {{.URL}}
       - defer: rm -f $(basename {{.URL}})
-      - gunzip -k $(basename {{.URL}})
+      - tar xf $(basename {{.URL}})
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: cd {{.DIR}}/freebayes && meson build -Dstatic=true -Dprefer_system_deps=false --buildtype release
+          MODULE: 'meson/1.6.1 cmake/3.30 gcc/10 htslib/1.20'
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: cd {{.DIR}}/freebayes/build && ninja && ninja test
+          MODULE: 'meson/1.6.1 cmake/3.30 gcc/10 htslib/1.20'
     requires:
       vars: [OPT_DIR, VERSION]
+
+  test:
+    internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: freebayes --help
+          MODULE: 'freebayes/{{.VERSION}}'
+    requires:
+      vars: [VERSION]
