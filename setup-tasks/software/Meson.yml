@@ -1,0 +1,34 @@
+version: '3'
+
+includes:
+  group-installs:
+    taskfile: ../utils/GroupInstalls.yml
+    internal: true
+  utils:
+    taskfile: ../../lab-tasks/Taskfile.yml
+    internal: true
+
+tasks:
+  install:
+    desc: Install Meson
+    vars:
+      VERSION: '{{.VERSION | default "1.6.1"}}'
+    cmds:
+      - task: group-installs:install-with-pip
+        vars:
+          APP: meson
+          INSTALL: meson=={{.VERSION}}
+          VERSION: '{{.VERSION}}'
+      - task: test
+        vars:
+          VERSION: '{{.VERSION}}'
+
+  test:
+    internal: true
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: meson --help
+          MODULE: 'meson/{{.VERSION}}'
+    requires:
+      vars: [VERSION]

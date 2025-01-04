@@ -55,6 +55,7 @@ includes:
   jq: ./jq.yml
   kraken2: ./Kraken2.yml
   megahit: ./MEGAHIT.yml
+  meson: ./Meson.yml
   micromamba: ./Micromamba.yml
   minimap2: ./minimap2.yml
   miniprot: ./miniprot.yml
@@ -90,6 +91,7 @@ includes:
   tinytex: ./TinyTex.yml
   treemmer: ./Treemmer.yml
   uv: ./uv.yml
+  variantdetective: ./VariantDetective.yml
   vcflib: ./vcflib.yml
   vg: ./vg.yml
   vcf2parquet: ./vcf2parquet.yml
@@ -128,6 +130,7 @@ tasks:
     - task: jq
     - task: kraken2
     - task: megahit
+    - task: meson
     - task: micromamba
     - task: minimap2
     - task: miniprot
@@ -163,6 +166,7 @@ tasks:
     - task: tinytex
     - task: treemmer
     - task: uv
+    - task: variantdetective
     - task: vcf2parquet
     - task: vcflib
     - task: vg
@@ -351,6 +355,11 @@ tasks:
     - task: megahit:install
       vars:
         VERSION: '{{.VERSION | default "1.2.9"}}'
+
+  meson:
+    - task: meson:install
+      vars:
+        VERSION: '{{.VERSION | default "1.6.1"}}'
 
   micromamba:
     - task: micromamba:install
@@ -541,6 +550,11 @@ tasks:
       vars:
         RUST_VERSION: '{{.RUST_VERSION | default "1.82.0"}}'
         VERSION: '{{.VERSION | default "0.4.26"}}'
+
+  variantdetective:
+    - task: variantdetective:install
+      vars:
+        VERSION: '{{.VERSION | default "1.0.1"}}'
 
   vcf2parquet:
     - task: vcf2parquet:install
