@@ -30,14 +30,14 @@ tasks:
           VERSION: '{{.MICROMAMBA_VERSION}}'
     vars:
       DIR: '{{.OPT_DIR}}/snakemake'
-      OTHER_PKGS: snakemake-executor-plugin-slurm snakemake-wrapper-utils snakefmt snakedeploy openpyxl
+      OTHER_PKGS: snakemake-executor-plugin-slurm snakemake-storage-plugin-webdav snakemake-wrapper-utils snakefmt snakedeploy openpyxl
     dir: '{{.DIR}}'
     cmds:
       # TODO: Replace with mamba env creation task
       - task: utils:envmodule:run-inside
         vars:
           CMDS: |
-            micromamba create -c conda-forge -c bioconda -p {{.DIR}}/{{.VERSION}} "snakemake>={{.VERSION}}" pip -y && \
+            micromamba create -c conda-forge -c bioconda -p {{.DIR}}/{{.VERSION}} "snakemake={{.VERSION}}" pip -y && \
             micromamba run -p {{.DIR}}/{{.VERSION}} pip install {{.OTHER_PKGS}}
           MODULE: 'micromamba/{{.MICROMAMBA_VERSION}}'
     requires:
