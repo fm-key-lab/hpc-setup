@@ -1,0 +1,20 @@
+version: '3'
+
+vars:
+  YADM_MODULE: yadm/3.2.2
+
+includes:
+  utils:
+    taskfile: ../../lab-tasks/Taskfile.yml
+    internal: true
+
+tasks:
+  update-lab-dotfiles:
+    dir: $HOME
+    cmds:
+      - task: utils:envmodule:run-inside
+        vars:
+          CMDS: yadm add {{.FILES}} && yadm commit -m {{.MSG}} && yadm push
+          MODULE: '{{.YADM_MODULE}}'
+    requires:
+      vars: [FILES, MSG, YADM_MODULE]
